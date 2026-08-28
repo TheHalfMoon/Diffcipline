@@ -1,9 +1,28 @@
 {
   "schema_version": 1,
   "fixture_revision": "4f796058bddd840be31d3fbf7d74b34a5403c49c",
-  "model_selection": {"rule": "first-explicitly-available-before-task-execution", "candidates": ["gpt-5.3-codex", "claude-sonnet-4.6", "gpt-5.4", "claude-haiku-4.5", "mai-code-1-flash", "gemini-3.1-pro-preview", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash"]},
-  "copilot_cli": {"version": "v1.0.81", "linux_x64_sha256": "3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3"},
-  "resource_limits": {"runner": "ubuntu-latest", "per_task_timeout_seconds": 480, "network_tools": "denied", "git_push": "denied"},
+  "model": {
+    "id": "diffcipline-llama3.2-3b-q4km",
+    "repository": "bartowski/Llama-3.2-3B-Instruct-GGUF",
+    "revision": "54651d07cdbbd900b46c652cbf6672c935a22236",
+    "file": "Llama-3.2-3B-Instruct-Q4_K_M.gguf",
+    "download_url": "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/54651d07cdbbd900b46c652cbf6672c935a22236/Llama-3.2-3B-Instruct-Q4_K_M.gguf?download=true",
+    "sha256": "6c1a2b41161032677be168d354123594c0e6e67d2b9227c84f296ad037c728ff",
+    "quantization": "Q4_K_M",
+    "license": "Llama 3.2 Community License"
+  },
+  "provider": {
+    "runtime": "llama.cpp",
+    "release": "b10621",
+    "source_revision": "c1d0e7a004015f23bc0233470b747b596f29b264",
+    "download_url": "https://github.com/ggml-org/llama.cpp/releases/download/b10621/llama-b10621-bin-ubuntu-x64.tar.gz",
+    "sha256": "91d7b03ddae498a39f28fdb85d84d2b4a0fd3838d10b4f897e0ef8975bb9b583",
+    "base_url": "http://127.0.0.1:8080/v1",
+    "server_args": ["--host", "127.0.0.1", "--port", "8080", "--alias", "diffcipline-llama3.2-3b-q4km", "--ctx-size", "16384", "--threads", "4", "--parallel", "1", "--seed", "1", "--jinja"],
+    "chat_template": {"revision": "c1d0e7a004015f23bc0233470b747b596f29b264", "path": "models/templates/meta-llama-Llama-3.2-3B-Instruct.jinja", "blob_sha": "1bad6a0f648dccdbec523ca79ba90fbcfc806af0"}
+  },
+  "agent": {"runtime": "repository-local-openai-tool-loop", "tools": ["bash", "skill"], "bash_mode": "synchronous"},
+  "resource_limits": {"runner": "ubuntu-latest", "cpu_cores": 4, "memory_gb": 16, "storage_gb": 14, "per_task_timeout_seconds": 480, "benchmark_job_timeout_minutes": 240, "network_tools": "denied", "git_push": "denied"},
   "prompt_suffix": "Work only in the current repository. Do not commit or push. Do not use network resources. If an installed skill is relevant, use it. Run the repository tests before finishing.",
   "arms": {
     "baseline": {"skill": null},
