@@ -26,7 +26,7 @@
     "chat_template": {"repository": "ggml-org/llama.cpp", "revision": "c1d0e7a004015f23bc0233470b747b596f29b264", "path": "models/templates/Qwen-Qwen2.5-7B-Instruct.jinja", "blob_sha": "bdf7919a96cfe43d50914a007b9c0877bd0ec27e"}
   },
   "copilot_cli": {"version": "v1.0.81", "download_url": "https://github.com/github/copilot-cli/releases/download/v1.0.81/copilot-linux-x64.tar.gz", "linux_x64_sha256": "3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3"},
-  "agent": {"disable_builtin_mcps": true, "available_tools": ["bash", "apply_patch", "view", "glob", "grep", "skill"]},
+  "agent": {"disable_builtin_mcps": true, "available_tools": ["bash", "skill"]},
   "resource_limits": {"runner": "ubuntu-latest", "cpu_cores": 4, "memory_gb": 16, "storage_gb": 14, "per_task_timeout_seconds": 480, "benchmark_job_timeout_minutes": 240, "network_tools": "denied", "git_push": "denied"},
   "prompt_suffix": "Work only in the current repository. Do not commit or push. Do not use network resources. If an installed skill is relevant, use it. Run the repository tests before finishing.",
   "arms": {
