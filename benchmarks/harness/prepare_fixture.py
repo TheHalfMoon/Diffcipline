@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
 
 
-def run(*args: str, cwd: Path) -> str:
-    completed = subprocess.run(args, cwd=cwd, check=True, text=True, capture_output=True)
+FIXTURE_COMMIT_DATE = "2000-01-01T00:00:00Z"
+
+
+def run(*args: str, cwd: Path, env: dict[str, str] | None = None) -> str:
+    completed = subprocess.run(
+        args, cwd=cwd, check=True, text=True, capture_output=True, env=env
+    )
     return completed.stdout.strip()
 
 
@@ -29,7 +35,20 @@ def main() -> int:
     run("git", "config", "user.name", "Diffcipline Benchmark", cwd=output)
     run("git", "config", "user.email", "benchmark@diffcipline.invalid", cwd=output)
     run("git", "add", ".", cwd=output)
-    run("git", "commit", "-q", "-m", f"benchmark baseline: {manifest['id']}", cwd=output)
+    commit_env = os.environ.copy()
+    commit_env.update(
+        GIT_AUTHOR_DATE=FIXTURE_COMMIT_DATE,
+        GIT_COMMITTER_DATE=FIXTURE_COMMIT_DATE,
+    )
+    run(
+        "git",
+        "commit",
+        "-q",
+        "-m",
+        f"benchmark baseline: {manifest['id']}",
+        cwd=output,
+        env=commit_env,
+    )
     print(run("git", "rev-parse", "HEAD", cwd=output))
     return 0
 
