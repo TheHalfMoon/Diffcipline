@@ -55,3 +55,55 @@ Verification evidence for T044: PR #7 exact head `e15f84e3241e487cbe2c4df3e03dcb
 - [ ] T055 Publish raw outputs, scorer, limitations, and results.
 
 Verification evidence for T051: the six frozen task fixtures landed without any model execution through PRs #9–#11. The first all-at-once candidate was rejected by Diffcipline because it exceeded repository change-size policy, so the corpus was split with forward commits rather than weakening the policy. PR #12 exact head `8606c8dabbdf1f20becbdfc365eff988933fb3e5` added only the fixture validator, isolated preparer, scorer, and benchmark CI without modifying fixture bytes. `benchmark-fixtures` run #2 passed all six manifest/initial-state checks and the no-op scorer smoke contract, while normal `ci` run #31 passed Rust and Diffcipline gates on Ubuntu, macOS, and Windows. After squash merge, canonical `main` commit `4f796058bddd840be31d3fbf7d74b34a5403c49c` passed post-merge `benchmark-fixtures` run #3 and `ci` run #32; Rust fmt, clippy with warnings denied, and full locked tests passed on Ubuntu, macOS, and Windows. T052–T054 had not run before this frozen canonical revision.
+
+### T052 current execution gate
+
+Status: `BLOCKED_HOSTED_MODEL_ENTITLEMENT`.
+
+The benchmark harness and runtime pinning were added through PR #14 and subsequent infrastructure-only repairs. No benchmark task has executed yet.
+
+Excluded infrastructure preflights:
+
+- `benchmark-arms` run #1 (`33177348082`) on canonical `f5f17b9d0fa025bbed436075c462ce48a5766151`: `gpt-5.3-codex` was unavailable; baseline, Karpathy, Ponytail, and Diffcipline all skipped.
+- `benchmark-arms` run #2 (`33177729891`) on canonical `d20f6b615fc9c1285b01b74377aa6e53e7fa081a`: `claude-sonnet-4.6` was unavailable; all arms skipped.
+- `benchmark-arms` run #3 (`33178142084`) on canonical `c71d3f81016ae6bc1d8516b47d1b3c5cb7258e45`: the predeclared nine-model explicit list was exhausted and every model was unavailable; all arms skipped.
+
+Run #3 independently proved `CopilotRequests: write`, the frozen corpus, Copilot CLI `v1.0.81` checksum, and all pinned treatment skill blobs before model resolution failed. `auto` selection remains forbidden. Current valid benchmark task execution count: **0**.
+
+T052 may proceed only after all of these pre-task gates are satisfied:
+
+- [ ] Establish one pinned local reproducible inference runtime inside GitHub Actions.
+- [ ] Pin exact runtime release/image plus checksum or digest.
+- [ ] Select one exact open-weight coding-capable model before observing any benchmark task outcome.
+- [ ] Record exact model artifact identity and digest where the distribution format permits it.
+- [ ] Verify model/runtime license permits public reproducible benchmark evidence.
+- [ ] Verify GitHub-hosted runner resource feasibility.
+- [ ] Prove the required model/tool interface with a harmless preflight.
+- [ ] Preserve selected runtime/model provenance for every downstream arm.
+- [ ] Keep frozen fixtures, prompts, scorer/preparer, treatment blobs, timeout/tool/network policy, and runner class matched across arms.
+- [ ] Pass exact-head repository CI and benchmark-infrastructure validation before the migration PR merges.
+- [ ] Start benchmark tasks only from canonical `main` after that merge.
+
+Then execute without skipping order:
+
+- [ ] T052 baseline: six frozen tasks, no treatment skill.
+- [ ] Validate six complete baseline result bundles before comparisons.
+- [ ] T053 Karpathy: six frozen tasks under identical conditions with pinned Karpathy treatment blob.
+- [ ] T053 Ponytail: six frozen tasks under identical conditions with pinned Ponytail treatment blob.
+- [ ] Validate both comparison bundles before Diffcipline.
+- [ ] T054 Diffcipline: six frozen tasks under identical conditions with pinned Diffcipline treatment blob.
+- [ ] T055 commit durable results/manifest/checksums or publish oversized raw artifacts as immutable release assets referenced from the repository.
+- [ ] T055 include raw transcripts where permitted, patches, test outputs, scorer JSON, aggregate tables, observed token/cost/time metrics or explicit `NOT AVAILABLE`, excluded runs #1–#3, limitations, and losing metrics.
+
+Detailed execution and stop conditions: [`execution-frontier.md`](execution-frontier.md).
+
+## Phase F — v0.1 canonical closeout
+
+These gates are intentionally after T055.
+
+- [ ] T060 Update README with only benchmark claims supported by canonical published evidence.
+- [ ] T061 Update CHANGELOG and final Spec 001 ledger/status.
+- [ ] T062 Pass all required canonical Rust, Diffcipline, skills compatibility, benchmark-evidence, and release-candidate gates on the exact release commit.
+- [ ] T063 Create `v0.1.0` tag only from that exact verified canonical `main` commit with matching crate version.
+- [ ] T064 Verify tag-triggered binaries, SHA-256 manifest, signatures/provenance/attestations, and published release assets.
+- [ ] T065 Mark Spec 001 / v0.1 `COMPLETE_CANONICAL` only after post-tag evidence is recorded in the repository.
