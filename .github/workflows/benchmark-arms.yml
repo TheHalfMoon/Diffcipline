@@ -144,10 +144,14 @@ jobs:
             COPILOT_HOME="$home" \
             COPILOT_PROVIDER_TYPE="$provider_type" \
             COPILOT_PROVIDER_BASE_URL="$base_url" \
+            COPILOT_PROVIDER_WIRE_API=completions \
+            COPILOT_PROVIDER_MAX_PROMPT_TOKENS=28672 \
+            COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=4096 \
             COPILOT_MODEL="$model" \
             COPILOT_OFFLINE=true \
-            timeout 480s "$copilot" -p "Use the shell tool to read preflight-nonce.txt, then reply with the exact file contents. Do not modify files." \
-              --model "$model" --no-ask-user \
+            timeout 480s "$copilot" -p "Use the bash tool to run: cat preflight-nonce.txt. Then reply with the exact file contents. Do not modify files." \
+              --model "$model" --no-ask-user --disable-builtin-mcps \
+              --available-tools='bash,list_bash,read_bash,stop_bash,write_bash,apply_patch,create,edit,view,glob,grep,skill' \
               --allow-tool=shell --deny-tool=write --deny-tool=url --deny-tool=memory \
               --share "$RUNNER_TEMP/runtime/model-preflight.md" \
               > "$RUNNER_TEMP/runtime/model-preflight.stdout" \
