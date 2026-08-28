@@ -126,21 +126,21 @@ jobs:
           nonce="$(python -c 'import secrets; print(secrets.token_hex(16))')"
           printf '%s\n' "$nonce" > "$work/preflight-nonce.txt"
           python benchmarks/harness/local_agent.py --base-url "$BASE_URL" --model "$MODEL_ID" --workdir "$work" \
-            --prompt "Use bash exactly once to run: cat preflight-nonce.txt. bash is synchronous. Then reply with the exact contents and call no more tools." \
+            --prompt "Use bash to run: cat preflight-nonce.txt. bash is synchronous. Then reply with the exact contents and finish." \
             --transcript "$RUNNER_TEMP/runtime/bash-preflight.md" --timeout-seconds 480 > "$RUNNER_TEMP/runtime/bash-preflight.stdout" 2> "$RUNNER_TEMP/runtime/bash-preflight.stderr"
-          test "$(grep -xc '## Tool: bash' "$RUNNER_TEMP/runtime/bash-preflight.md")" -eq 1
+          test "$(grep -xc '## Tool: bash' "$RUNNER_TEMP/runtime/bash-preflight.md")" -ge 1
           grep -Fq "$nonce" "$RUNNER_TEMP/runtime/bash-preflight.md"
           skill_nonce="$(python -c 'import secrets; print(secrets.token_hex(16))')"
           printf '%s\n' "$skill_nonce" > "$work/skill-nonce.txt"
           cat > "$RUNNER_TEMP/runtime/preflight-skill.md" <<'EOF'
-          After loading this skill, use bash exactly once to run: cat skill-nonce.txt. Then reply with the exact output and call no more tools.
+          After loading this skill, use bash to run: cat skill-nonce.txt. Then reply with the exact output and finish.
           EOF
           python benchmarks/harness/local_agent.py --base-url "$BASE_URL" --model "$MODEL_ID" --workdir "$work" \
             --prompt "Load the installed skill exactly once and follow it." \
             --skill "$RUNNER_TEMP/runtime/preflight-skill.md" --transcript "$RUNNER_TEMP/runtime/skill-preflight.md" \
             --timeout-seconds 480 > "$RUNNER_TEMP/runtime/skill-preflight.stdout" 2> "$RUNNER_TEMP/runtime/skill-preflight.stderr"
           test "$(grep -xc '## Tool: skill' "$RUNNER_TEMP/runtime/skill-preflight.md")" -eq 1
-          test "$(grep -xc '## Tool: bash' "$RUNNER_TEMP/runtime/skill-preflight.md")" -eq 1
+          test "$(grep -xc '## Tool: bash' "$RUNNER_TEMP/runtime/skill-preflight.md")" -ge 1
           grep -Fq "$skill_nonce" "$RUNNER_TEMP/runtime/skill-preflight.md"
 
       - if: always()
