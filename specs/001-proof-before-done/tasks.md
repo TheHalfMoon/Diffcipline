@@ -36,10 +36,12 @@ Verification evidence for T028–T032: GitHub Actions `ci` run #4 on commit `fbb
 - [x] T040 Create public `TheHalfMoon/Diffcipline` GitHub repository.
 - [x] T041 Push verified baseline through a feature branch and PR.
 - [x] T042 Add GitHub Action after CLI contract is verified.
-- [ ] T043 Add release workflow and signed/checksummed binaries.
+- [x] T043 Add release workflow and signed/checksummed binaries.
 - [ ] T044 Verify installation through compatible Agent Skills installers.
 
-Verification evidence for T042: run #11 established the initial cross-platform Action behavior on `a12089f8eb01a5e54d9ae786509ffe8db75dc443`; run #12 then exposed a macOS fixture-directory collision and T042 was reopened. Commit `db80d1801e6a650c599c05f3a76e80d4d0359e86` replaced clock-derived fixture names with process-local atomic IDs, and GitHub Actions `ci` run #13 completed successfully with both the normal Rust suite and the `Diffcipline proof gate` green on Ubuntu, macOS, and Windows. This ledger-only closeout commit must also pass exact-head CI before merge.
+Verification evidence for T042: run #11 established the initial cross-platform Action behavior on `a12089f8eb01a5e54d9ae786509ffe8db75dc443`; run #12 then exposed a macOS fixture-directory collision and T042 was reopened. Commit `db80d1801e6a650c599c05f3a76e80d4d0359e86` replaced clock-derived fixture names with process-local atomic IDs. Run #13 passed the repaired implementation on Ubuntu, macOS, and Windows, and final ledger head `7029021a3066bd26ff30c67c3fc4a6e95b92a801` passed all six jobs in `ci` run #14 before PR #4 merged.
+
+Verification evidence for T043: PR #5 head `518200a6cd639d7fd9db994eebd84507a71b950d` passed normal `ci` run #16 and release workflow run #1. Release run #1 built and smoke-tested host-native Linux, macOS, and Windows binaries and generated a verified three-subject `SHA256SUMS`; signing and publishing were intentionally unavailable on the pull request. After merge, canonical `main` commit `4348b40049d64f5b5eb5dbe060953caa3c90fdc4` passed `ci` run #17 and trusted release run #2. Run #2 created build provenance for all three binary subjects with `actions/attest`, signed it with the Public Good Sigstore instance, uploaded it to the Rekor transparency log and GitHub Attestations (attestation `43657557`), verified every subject with `gh attestation verify`, preserved `PROVENANCE.sigstore.json`, and uploaded signed-release-candidate artifact `9686520987`. Tag publication remains NOT RUN because no release tag has been created; the workflow will publish only a matching `v<crate version>` tag.
 
 ## Phase E — Benchmark
 
