@@ -1,0 +1,60 @@
+name: Diffcipline
+description: Gate coding-agent changes with deterministic diff and verification evidence.
+author: TheHalfMoon
+
+inputs:
+  base:
+    description: Optional Git ref or commit to compare against HEAD. Leave empty to inspect the working tree.
+    required: false
+    default: ""
+  run-verification:
+    description: Execute verification commands from .diffcipline.toml. Review repository policy before enabling this on untrusted code.
+    required: false
+    default: "false"
+  working-directory:
+    description: Repository directory to inspect, relative to the caller workspace or as an absolute path.
+    required: false
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Set up stable Rust
+      uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
+      with:
+        components: rustfmt, clippy
+
+    - name: Run Diffcipline proof gate
+      shell: bash
+      env:
+        DIFFCIPLINE_BASE: ${{ inputs.base }}
+        DIFFCIPLINE_RUN_VERIFICATION: ${{ inputs.run-verification }}
+        DIFFCIPLINE_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+        cd "$DIFFCIPLINE_WORKING_DIRECTORY"
+
+        args=(check)
+        if [[ -n "$DIFFCIPLINE_BASE" ]]; then
+          args+=(--base "$DIFFCIPLINE_BASE")
+        fi
+
+        case "$DIFFCIPLINE_RUN_VERIFICATION" in
+          true)
+            args+=(--run)
+            ;;
+          false)
+            ;;
+          *)
+            echo "run-verification must be 'true' or 'false'" >&2
+            exit 64
+            ;;
+        esac
+
+        cargo run --quiet \
+          --manifest-path "${{ github.action_path }}/crates/diffcipline-cli/Cargo.toml" \
+          -- "${args[@]}"
+
+branding:
+  icon: check-circle
+  color: green
