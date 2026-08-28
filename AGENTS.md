@@ -27,8 +27,8 @@ Before declaring a repository change complete, run the strongest available check
 
 ```bash
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace --all-targets
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --all-targets --locked
 ```
 
 If the local environment cannot run a required check, report that check as NOT RUN. Never convert absence of evidence into PASS.
