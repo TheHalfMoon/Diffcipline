@@ -42,19 +42,12 @@ def bash_tool(command, cwd, timeout):
         result = {"exit_code": 124, "stdout": trim(stdout), "stderr": trim(stderr + "\ncommand timed out")}
     return json.dumps(result, sort_keys=True)
 
-def tools(has_skill):
-    result = [{"type": "function", "function": {
+def tools():
+    return [{"type": "function", "function": {
         "name": "bash",
         "description": "Run one synchronous shell command in the current repository. Returns exit_code, stdout, stderr. No network, installs, commits, pushes, or gh.",
         "parameters": {"type": "object", "properties": {"command": {"type": "string"}}, "required": ["command"], "additionalProperties": False},
     }}]
-    if has_skill:
-        result.append({"type": "function", "function": {
-            "name": "skill",
-            "description": "Load the exact installed behavioral skill. Call once before changing files.",
-            "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
-        }})
-    return result
 
 def arguments(value):
     value = json.loads(value) if isinstance(value, str) else value
@@ -73,11 +66,11 @@ def run_agent(base_url, model, workdir, prompt, transcript, timeout_seconds, ski
         "Inspect before editing, make the smallest correct change, run repository tests, then finish concisely."
     )
     if skill:
-        system += " A behavioral skill is installed. You MUST call skill exactly once before changing files and follow it."
+        skill_text = skill.read_text(encoding="utf-8")
+        system += "\n\nAn installed behavioral skill applies throughout this task. Follow these exact bytes:\n\n" + skill_text
+        record(transcript, "Treatment: skill", skill_text)
     messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
-    available = tools(skill is not None)
-    skill_text = skill.read_text(encoding="utf-8") if skill else None
-    skill_loaded = False
+    available = tools()
     record(transcript, "User", prompt)
 
     for step in range(48):
@@ -102,25 +95,18 @@ def run_agent(base_url, model, workdir, prompt, transcript, timeout_seconds, ski
         calls = [dict(call, id=call.get("id") or f"call_{step}_{i}") for i, call in enumerate(calls)]
         messages.append({"role": "assistant", "content": content or None, "tool_calls": calls})
         for call in calls:
-            function, result = call.get("function") or {}, None
-            name = function.get("name")
+            function = call.get("function") or {}
             try:
                 args = arguments(function.get("arguments", {}))
-                if name == "bash":
+                if function.get("name") == "bash":
                     command = args.get("command")
                     if not isinstance(command, str) or not command.strip():
                         result = json.dumps({"error": "bash.command must be a non-empty string"})
                     else:
                         result = bash_tool(command, workdir, min(120, max(1, deadline - time.monotonic())))
                         record(transcript, "Tool: bash", f"```sh\n{command}\n```\n\n```json\n{result}\n```")
-                elif name == "skill" and skill_text is not None and not skill_loaded:
-                    result, skill_loaded = skill_text, True
-                    available = tools(False)
-                    record(transcript, "Tool: skill", skill_text)
-                elif name == "skill" and skill_loaded:
-                    result = json.dumps({"error": "skill already loaded; continue without calling it again"})
                 else:
-                    result = json.dumps({"error": f"unknown or unavailable tool: {name}"})
+                    result = json.dumps({"error": f"unknown or unavailable tool: {function.get('name')}"})
             except (ValueError, json.JSONDecodeError) as error:
                 result = json.dumps({"error": f"invalid tool arguments: {error}"})
             messages.append({"role": "tool", "tool_call_id": call["id"], "content": result})
