@@ -8,4 +8,4 @@ lockfile_changes = "review"
 untracked_files = "review"
 
 [verification]
-commands = ["cargo fmt --all -- --check", "cargo clippy --workspace --all-targets -- -D warnings", "cargo test --workspace --all-targets"]
+commands = ["cargo fmt --all -- --check", "cargo clippy --workspace --all-targets --locked -- -D warnings", "cargo test --workspace --all-targets --locked"]
