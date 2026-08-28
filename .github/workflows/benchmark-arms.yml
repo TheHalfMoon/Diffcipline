@@ -27,6 +27,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
@@ -34,6 +35,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
           git diff --exit-code "$FIXTURE_REVISION" -- \
             benchmarks/fixtures \
             benchmarks/harness/prepare_fixture.py \
@@ -45,19 +47,23 @@ jobs:
           assert c["fixture_revision"] == os.environ["FIXTURE_REVISION"]
           assert c["model"]["id"] == "diffcipline-qwen2.5-coder-7b-q4km"
           assert c["model"]["revision"] == "9fd1a598a0c90a2973cbc8c9b45868cf07ca7f02"
-          assert c["model"]["license"] == "Apache-2.0" and len(c["model"]["shards"]) == 2
-          assert all(len(s["sha256"]) == 64 for s in c["model"]["shards"])
-          assert c["provider"]["type"] == "openai" and c["provider"]["wire_api"] == "completions"
+          assert c["model"]["license"] == "Apache-2.0"
+          assert len(c["model"]["shards"]) == 2
+          assert all(len(shard["sha256"]) == 64 for shard in c["model"]["shards"])
+          assert c["provider"]["type"] == "openai"
+          assert c["provider"]["wire_api"] == "completions"
           assert c["provider"]["base_url"] == "http://127.0.0.1:8080/v1"
-          assert c["provider"]["runtime"] == "llama.cpp" and len(c["provider"]["sha256"]) == 64
+          assert c["provider"]["runtime"] == "llama.cpp"
+          assert len(c["provider"]["sha256"]) == 64
           assert "--jinja" in c["provider"]["server_args"]
           assert c["provider"]["chat_template"]["revision"] == c["provider"]["source_revision"]
           assert c["provider"]["chat_template"]["blob_sha"] == "bdf7919a96cfe43d50914a007b9c0877bd0ec27e"
           assert c["copilot_cli"]["version"] == "v1.0.81"
-          assert c["agent"]["available_tools"] == ["bash", "apply_patch", "view", "glob", "grep", "skill"]
+          assert c["agent"]["available_tools"] == ["bash", "skill"]
           assert c["agent"]["disable_builtin_mcps"] is True
           assert c["resource_limits"]["runner"] == "ubuntu-latest"
-          assert c["resource_limits"]["network_tools"] == "denied" and c["resource_limits"]["git_push"] == "denied"
+          assert c["resource_limits"]["network_tools"] == "denied"
+          assert c["resource_limits"]["git_push"] == "denied"
           PY
       - name: Build pinned runtime inputs
         shell: bash
@@ -89,8 +95,10 @@ jobs:
           echo "$PROVIDER_SHA  $RUNNER_TEMP/runtime/provider.tgz" | sha256sum -c -
           tar -xzf "$RUNNER_TEMP/runtime/provider.tgz" -C "$RUNNER_TEMP/runtime/provider"
           for index in 1 2; do
-            file_var="MODEL_FILE_$index"; sha_var="MODEL_SHA_$index"
-            file="${!file_var}"; sha="${!sha_var}"
+            file_var="MODEL_FILE_$index"
+            sha_var="MODEL_SHA_$index"
+            file="${!file_var}"
+            sha="${!sha_var}"
             curl -fsSL "https://huggingface.co/$MODEL_REPO/resolve/$MODEL_REV/$file?download=true" -o "$RUNNER_TEMP/runtime/$file"
             echo "$sha  $RUNNER_TEMP/runtime/$file" | sha256sum -c -
           done
@@ -110,7 +118,8 @@ jobs:
           set -euo pipefail
           source "$RUNNER_TEMP/runtime/env"
           server="$(find "$RUNNER_TEMP/runtime/provider" -type f -name llama-server -print -quit)"
-          test -n "$server" && chmod +x "$server"
+          test -n "$server"
+          chmod +x "$server"
           mapfile -t server_args < <(python -c 'import json; print("\n".join(json.load(open("benchmarks/run-config.json"))["provider"]["server_args"]))')
           "$server" --model "$RUNNER_TEMP/runtime/$MODEL_FILE_1" "${server_args[@]}" \
             --chat-template-file "$RUNNER_TEMP/runtime/qwen-tool-template.jinja" \
@@ -118,10 +127,16 @@ jobs:
           echo "$!" > "$RUNNER_TEMP/runtime/llama-server.pid"
           ready=0
           for _ in $(seq 1 240); do
-            if curl -fsS http://127.0.0.1:8080/health > "$RUNNER_TEMP/runtime/health.json"; then ready=1; break; fi
+            if curl -fsS http://127.0.0.1:8080/health > "$RUNNER_TEMP/runtime/health.json"; then
+              ready=1
+              break
+            fi
             sleep 1
           done
-          if [[ "$ready" != 1 ]]; then cat "$RUNNER_TEMP/runtime/llama-server.log"; exit 1; fi
+          if [[ "$ready" != 1 ]]; then
+            cat "$RUNNER_TEMP/runtime/llama-server.log"
+            exit 1
+          fi
           curl -fsS http://127.0.0.1:8080/props > "$RUNNER_TEMP/runtime/props.json"
           grep -Fq "<tool_call>" "$RUNNER_TEMP/runtime/props.json"
           ps -o pid,rss,vsz,cmd -p "$(cat "$RUNNER_TEMP/runtime/llama-server.pid")" >> "$RUNNER_TEMP/runtime/resource-observation.txt"
@@ -131,23 +146,35 @@ jobs:
           set -euo pipefail
           copilot="$(find "$RUNNER_TEMP/runtime/copilot" -type f -name copilot -print -quit)"
           chmod +x "$copilot"
-          work="$RUNNER_TEMP/preflight-work"; home="$RUNNER_TEMP/preflight-home"
+          work="$RUNNER_TEMP/preflight-work"
+          home="$RUNNER_TEMP/preflight-home"
           mkdir -p "$work" "$home"
           nonce="$(python -c 'import secrets; print(secrets.token_hex(16))')"
           printf '%s\n' "$nonce" > "$work/preflight-nonce.txt"
           (
             cd "$work"
-            COPILOT_HOME="$home" COPILOT_PROVIDER_TYPE=openai COPILOT_PROVIDER_BASE_URL=http://127.0.0.1:8080/v1 \
-            COPILOT_PROVIDER_WIRE_API=completions COPILOT_MODEL=diffcipline-qwen2.5-coder-7b-q4km COPILOT_OFFLINE=true \
+            COPILOT_HOME="$home" \
+            COPILOT_PROVIDER_TYPE=openai \
+            COPILOT_PROVIDER_BASE_URL=http://127.0.0.1:8080/v1 \
+            COPILOT_PROVIDER_WIRE_API=completions \
+            COPILOT_MODEL=diffcipline-qwen2.5-coder-7b-q4km \
+            COPILOT_OFFLINE=true \
             timeout 480s "$copilot" -p "Use the bash tool to run: cat preflight-nonce.txt. Then reply with the exact file contents. Do not modify files." \
-              --model diffcipline-qwen2.5-coder-7b-q4km --no-ask-user --disable-builtin-mcps \
-              --available-tools='bash,apply_patch,view,glob,grep,skill' \
-              --allow-tool=shell --deny-tool=write --deny-tool=url --deny-tool=memory \
+              --model diffcipline-qwen2.5-coder-7b-q4km \
+              --no-ask-user \
+              --disable-builtin-mcps \
+              --available-tools='bash,skill' \
+              --allow-tool=shell \
+              --deny-tool=write \
+              --deny-tool=url \
+              --deny-tool=memory \
               --share "$RUNNER_TEMP/runtime/model-preflight.md" \
-              > "$RUNNER_TEMP/runtime/model-preflight.stdout" 2> "$RUNNER_TEMP/runtime/model-preflight.stderr"
+              > "$RUNNER_TEMP/runtime/model-preflight.stdout" \
+              2> "$RUNNER_TEMP/runtime/model-preflight.stderr"
           )
           test -s "$RUNNER_TEMP/runtime/model-preflight.md"
-          grep -Fq "$nonce" "$RUNNER_TEMP/runtime/model-preflight.stdout" || grep -Fq "$nonce" "$RUNNER_TEMP/runtime/model-preflight.md"
+          grep -Fq "$nonce" "$RUNNER_TEMP/runtime/model-preflight.stdout" || \
+            grep -Fq "$nonce" "$RUNNER_TEMP/runtime/model-preflight.md"
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -173,6 +200,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          ref: ${{ github.sha }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
@@ -180,58 +208,112 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           mkdir -p "$RUNNER_TEMP/runtime"/{copilot,provider,treatments/{karpathy-guidelines,ponytail,diffcipline}}
           python - <<'PY' > "$RUNNER_TEMP/runtime/env"
           import json, shlex
           c = json.load(open("benchmarks/run-config.json", encoding="utf-8"))
-          values = {"COPILOT_URL": c["copilot_cli"]["download_url"], "COPILOT_SHA": c["copilot_cli"]["linux_x64_sha256"], "PROVIDER_URL": c["provider"]["download_url"], "PROVIDER_SHA": c["provider"]["sha256"], "MODEL_REPO": c["model"]["repository"], "MODEL_REV": c["model"]["revision"]}
-          for index, shard in enumerate(c["model"]["shards"], 1): values[f"MODEL_FILE_{index}"] = shard["file"]; values[f"MODEL_SHA_{index}"] = shard["sha256"]
-          for key, value in values.items(): print(f"{key}={shlex.quote(value)}")
+          values = {
+              "COPILOT_URL": c["copilot_cli"]["download_url"],
+              "COPILOT_SHA": c["copilot_cli"]["linux_x64_sha256"],
+              "PROVIDER_URL": c["provider"]["download_url"],
+              "PROVIDER_SHA": c["provider"]["sha256"],
+              "MODEL_REPO": c["model"]["repository"],
+              "MODEL_REV": c["model"]["revision"],
+          }
+          for index, shard in enumerate(c["model"]["shards"], 1):
+              values[f"MODEL_FILE_{index}"] = shard["file"]
+              values[f"MODEL_SHA_{index}"] = shard["sha256"]
+          for key, value in values.items():
+              print(f"{key}={shlex.quote(value)}")
           PY
           source "$RUNNER_TEMP/runtime/env"
-          curl -fsSL "$COPILOT_URL" -o "$RUNNER_TEMP/runtime/copilot.tgz"; echo "$COPILOT_SHA  $RUNNER_TEMP/runtime/copilot.tgz" | sha256sum -c -; tar -xzf "$RUNNER_TEMP/runtime/copilot.tgz" -C "$RUNNER_TEMP/runtime/copilot"
-          curl -fsSL "$PROVIDER_URL" -o "$RUNNER_TEMP/runtime/provider.tgz"; echo "$PROVIDER_SHA  $RUNNER_TEMP/runtime/provider.tgz" | sha256sum -c -; tar -xzf "$RUNNER_TEMP/runtime/provider.tgz" -C "$RUNNER_TEMP/runtime/provider"
-          for index in 1 2; do file_var="MODEL_FILE_$index"; sha_var="MODEL_SHA_$index"; file="${!file_var}"; sha="${!sha_var}"; curl -fsSL "https://huggingface.co/$MODEL_REPO/resolve/$MODEL_REV/$file?download=true" -o "$RUNNER_TEMP/runtime/$file"; echo "$sha  $RUNNER_TEMP/runtime/$file" | sha256sum -c -; done
-          curl -fsSL "https://raw.githubusercontent.com/ggml-org/llama.cpp/c1d0e7a004015f23bc0233470b747b596f29b264/models/templates/Qwen-Qwen2.5-7B-Instruct.jinja" > "$RUNNER_TEMP/runtime/qwen-tool-template.jinja"; test "$(git hash-object "$RUNNER_TEMP/runtime/qwen-tool-template.jinja")" = "bdf7919a96cfe43d50914a007b9c0877bd0ec27e"
+          curl -fsSL "$COPILOT_URL" -o "$RUNNER_TEMP/runtime/copilot.tgz"
+          echo "$COPILOT_SHA  $RUNNER_TEMP/runtime/copilot.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/runtime/copilot.tgz" -C "$RUNNER_TEMP/runtime/copilot"
+          curl -fsSL "$PROVIDER_URL" -o "$RUNNER_TEMP/runtime/provider.tgz"
+          echo "$PROVIDER_SHA  $RUNNER_TEMP/runtime/provider.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/runtime/provider.tgz" -C "$RUNNER_TEMP/runtime/provider"
+          for index in 1 2; do
+            file_var="MODEL_FILE_$index"
+            sha_var="MODEL_SHA_$index"
+            file="${!file_var}"
+            sha="${!sha_var}"
+            curl -fsSL "https://huggingface.co/$MODEL_REPO/resolve/$MODEL_REV/$file?download=true" -o "$RUNNER_TEMP/runtime/$file"
+            echo "$sha  $RUNNER_TEMP/runtime/$file" | sha256sum -c -
+          done
+          curl -fsSL "https://raw.githubusercontent.com/ggml-org/llama.cpp/c1d0e7a004015f23bc0233470b747b596f29b264/models/templates/Qwen-Qwen2.5-7B-Instruct.jinja" > "$RUNNER_TEMP/runtime/qwen-tool-template.jinja"
+          test "$(git hash-object "$RUNNER_TEMP/runtime/qwen-tool-template.jinja")" = "bdf7919a96cfe43d50914a007b9c0877bd0ec27e"
           curl -fsSL "https://raw.githubusercontent.com/multica-ai/andrej-karpathy-skills/2c606141936f1eeef17fa3043a72095b4765b9c2/skills/karpathy-guidelines/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md"
           curl -fsSL "https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md"
           curl -fsSL "https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/6bbeb59bab21724c92ed3456953a94e5202f0e53/skills/diffcipline/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md"
-          test "$(git hash-object "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md")" = "6a62d0441753157ca6ca50479e490c2948033adb"; test "$(git hash-object "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md")" = "02c0712c86277d49d18a77da3a2b825657bf02d1"; test "$(git hash-object "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md")" = "0ca69dc046c7ba41d9b361b734a776ff536695ac"
+          test "$(git hash-object "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md")" = "6a62d0441753157ca6ca50479e490c2948033adb"
+          test "$(git hash-object "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md")" = "02c0712c86277d49d18a77da3a2b825657bf02d1"
+          test "$(git hash-object "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md")" = "0ca69dc046c7ba41d9b361b734a776ff536695ac"
           cp benchmarks/run-config.json "$RUNNER_TEMP/runtime/provenance.json"
-          copilot="$(find "$RUNNER_TEMP/runtime/copilot" -type f -name copilot -print -quit)"; server="$(find "$RUNNER_TEMP/runtime/provider" -type f -name llama-server -print -quit)"; chmod +x "$copilot" "$server"; printf '%s\n' "$copilot" > "$RUNNER_TEMP/runtime/copilot-path"
+          copilot="$(find "$RUNNER_TEMP/runtime/copilot" -type f -name copilot -print -quit)"
+          server="$(find "$RUNNER_TEMP/runtime/provider" -type f -name llama-server -print -quit)"
+          chmod +x "$copilot" "$server"
+          printf '%s\n' "$copilot" > "$RUNNER_TEMP/runtime/copilot-path"
           mapfile -t server_args < <(python -c 'import json; print("\n".join(json.load(open("benchmarks/run-config.json"))["provider"]["server_args"]))')
-          "$server" --model "$RUNNER_TEMP/runtime/$MODEL_FILE_1" "${server_args[@]}" --chat-template-file "$RUNNER_TEMP/runtime/qwen-tool-template.jinja" > "$RUNNER_TEMP/runtime/llama-server.log" 2>&1 &
-          for _ in $(seq 1 240); do curl -fsS http://127.0.0.1:8080/health > /dev/null && break; sleep 1; done
-          curl -fsS http://127.0.0.1:8080/health > /dev/null
-          echo 'COPILOT_PROVIDER_TYPE=openai' >> "$GITHUB_ENV"; echo 'COPILOT_PROVIDER_BASE_URL=http://127.0.0.1:8080/v1' >> "$GITHUB_ENV"; echo 'COPILOT_PROVIDER_WIRE_API=completions' >> "$GITHUB_ENV"; echo 'COPILOT_MODEL=diffcipline-qwen2.5-coder-7b-q4km' >> "$GITHUB_ENV"; echo 'COPILOT_OFFLINE=true' >> "$GITHUB_ENV"
+          "$server" --model "$RUNNER_TEMP/runtime/$MODEL_FILE_1" "${server_args[@]}" \
+            --chat-template-file "$RUNNER_TEMP/runtime/qwen-tool-template.jinja" \
+            > "$RUNNER_TEMP/runtime/llama-server.log" 2>&1 &
+          ready=0
+          for _ in $(seq 1 240); do
+            if curl -fsS http://127.0.0.1:8080/health > /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" = 1
+          echo 'COPILOT_PROVIDER_TYPE=openai' >> "$GITHUB_ENV"
+          echo 'COPILOT_PROVIDER_BASE_URL=http://127.0.0.1:8080/v1' >> "$GITHUB_ENV"
+          echo 'COPILOT_PROVIDER_WIRE_API=completions' >> "$GITHUB_ENV"
+          echo 'COPILOT_MODEL=diffcipline-qwen2.5-coder-7b-q4km' >> "$GITHUB_ENV"
+          echo 'COPILOT_OFFLINE=true' >> "$GITHUB_ENV"
       - name: Run T052 through T054 in canonical order
         shell: bash
         run: |
           set -euo pipefail
-          model="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["model"]["id"])')"; suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"; copilot="$(cat "$RUNNER_TEMP/runtime/copilot-path")"
+          model="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["model"]["id"])')"
+          suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
+          copilot="$(cat "$RUNNER_TEMP/runtime/copilot-path")"
           run_arm() {
-            arm="$1"; skill="${2:-}"; skill_name="${3:-}"; results="$RUNNER_TEMP/benchmark/$arm/results"
+            arm="$1"
+            skill="${2:-}"
+            skill_name="${3:-}"
+            results="$RUNNER_TEMP/benchmark/$arm/results"
             args=(--arm "$arm" --model "$model" --copilot "$copilot" --results "$results" --prompt-suffix "$suffix")
-            if [[ -n "$skill" ]]; then args+=(--skill "$skill" --skill-name "$skill_name"); fi
+            if [[ -n "$skill" ]]; then
+              args+=(--skill "$skill" --skill-name "$skill_name")
+            fi
             python benchmarks/harness/run_arm.py "${args[@]}"
             cp "$RUNNER_TEMP/runtime/provenance.json" "$results/runtime-provenance.json"
             ARM="$arm" MODEL="$model" RESULTS="$results" python - <<'PY'
           import json, os
           from pathlib import Path
-          fixtures = ["f01-shared-root-cause","f02-stdlib-query","f03-dependency-temptation","f04-refactor-preserve","f05-security-boundary","f06-already-minimal"]
-          root = Path(os.environ["RESULTS"]); summary = json.load(open(root / "summary.json", encoding="utf-8"))
+          fixtures = ["f01-shared-root-cause", "f02-stdlib-query", "f03-dependency-temptation", "f04-refactor-preserve", "f05-security-boundary", "f06-already-minimal"]
+          root = Path(os.environ["RESULTS"])
+          summary = json.load(open(root / "summary.json", encoding="utf-8"))
           assert (summary["arm"], summary["model"], summary["tasks"]) == (os.environ["ARM"], os.environ["MODEL"], 6)
           assert (root / "runtime-provenance.json").is_file()
           for task in fixtures:
               bundle = root / task
-              for name in ["transcript.md","stdout.txt","stderr.txt","score.json","changes.patch","status.txt","metadata.json"]: assert (bundle / name).is_file(), f"{task}: missing {name}"
+              for name in ["transcript.md", "stdout.txt", "stderr.txt", "score.json", "changes.patch", "status.txt", "metadata.json"]:
+                  assert (bundle / name).is_file(), f"{task}: missing {name}"
               assert (bundle / "workspace").is_dir()
           PY
           }
-          echo 'T052 baseline'; run_arm baseline
-          echo 'T053 Karpathy'; run_arm karpathy "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md" karpathy-guidelines
-          echo 'T053 Ponytail'; run_arm ponytail "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md" ponytail
-          echo 'T054 Diffcipline'; run_arm diffcipline "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md" diffcipline
+          echo 'T052 baseline'
+          run_arm baseline
+          echo 'T053 Karpathy'
+          run_arm karpathy "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md" karpathy-guidelines
+          echo 'T053 Ponytail'
+          run_arm ponytail "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md" ponytail
+          echo 'T054 Diffcipline'
+          run_arm diffcipline "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md" diffcipline
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
