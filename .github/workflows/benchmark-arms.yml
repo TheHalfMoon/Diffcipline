@@ -13,7 +13,6 @@ permissions:
   copilot-requests: write
 
 env:
-  MODEL: claude-sonnet-4.6
   COPILOT_VERSION: v1.0.81
   COPILOT_SHA256: 3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3
   FIXTURE_REVISION: 4f796058bddd840be31d3fbf7d74b34a5403c49c
@@ -41,8 +40,12 @@ jobs:
           python - <<'PY'
           import json, os
           config = json.load(open("benchmarks/run-config.json", encoding="utf-8"))
+          selection = config["model_selection"]
+          candidates = selection["candidates"]
           assert config["fixture_revision"] == os.environ["FIXTURE_REVISION"]
-          assert config["model"] == os.environ["MODEL"]
+          assert selection["rule"] == "first-explicitly-available-before-task-execution"
+          assert candidates and len(candidates) == len(set(candidates))
+          assert "auto" not in candidates
           assert config["copilot_cli"]["version"] == os.environ["COPILOT_VERSION"]
           assert config["copilot_cli"]["linux_x64_sha256"] == os.environ["COPILOT_SHA256"]
           PY
@@ -64,19 +67,37 @@ jobs:
           test "$(git hash-object runtime/treatments/karpathy-guidelines/SKILL.md)" = "6a62d0441753157ca6ca50479e490c2948033adb"
           test "$(git hash-object runtime/treatments/ponytail/SKILL.md)" = "02c0712c86277d49d18a77da3a2b825657bf02d1"
           test "$(git hash-object runtime/treatments/diffcipline/SKILL.md)" = "0ca69dc046c7ba41d9b361b734a776ff536695ac"
-      - name: Verify Copilot authentication and pinned model
+      - name: Resolve one explicit model before benchmark execution
         shell: bash
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/preflight-home" "$RUNNER_TEMP/preflight-work"
-          COPILOT_HOME="$RUNNER_TEMP/preflight-home" runtime/copilot \
-            -p "Reply with BENCHMARK_PREFLIGHT_OK." -s \
-            --model "$MODEL" --no-ask-user \
-            --deny-tool=write --deny-tool=shell --deny-tool=url --deny-tool=memory \
-            > runtime/model-preflight.txt
-          test -s runtime/model-preflight.txt
+          rm -f runtime/selected-model.txt
+          index=0
+          while IFS= read -r model; do
+            index=$((index + 1))
+            home="$RUNNER_TEMP/model-probe-$index"
+            rm -rf "$home"
+            mkdir -p "$home"
+            echo "Probing explicit model: $model"
+            if COPILOT_HOME="$home" runtime/copilot \
+              -p "Reply with BENCHMARK_PREFLIGHT_OK." -s \
+              --model "$model" --no-ask-user \
+              --deny-tool=write --deny-tool=shell --deny-tool=url --deny-tool=memory \
+              > "runtime/model-probe-$index.out" 2> "runtime/model-probe-$index.stderr"; then
+              test -s "runtime/model-probe-$index.out"
+              printf '%s\n' "$model" > runtime/selected-model.txt
+              cp "runtime/model-probe-$index.out" runtime/model-preflight.txt
+              break
+            fi
+          done < <(python -c 'import json; print("\n".join(json.load(open("benchmarks/run-config.json"))["model_selection"]["candidates"]))')
+          if [[ ! -s runtime/selected-model.txt ]]; then
+            cat runtime/model-probe-*.stderr
+            echo "No predeclared explicit model is available; refusing to use auto selection." >&2
+            exit 1
+          fi
+          echo "Selected exact benchmark model: $(cat runtime/selected-model.txt)"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: benchmark-runtime-inputs
@@ -101,8 +122,9 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x "$RUNNER_TEMP/runtime/copilot"
+          model="$(cat "$RUNNER_TEMP/runtime/selected-model.txt")"
           suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
-          python benchmarks/harness/run_arm.py --arm baseline --model "$MODEL" \
+          python benchmarks/harness/run_arm.py --arm baseline --model "$model" \
             --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/baseline/results" \
             --prompt-suffix "$suffix"
       - if: always()
@@ -125,8 +147,9 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x "$RUNNER_TEMP/runtime/copilot"
+          model="$(cat "$RUNNER_TEMP/runtime/selected-model.txt")"
           suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
-          python benchmarks/harness/run_arm.py --arm karpathy --model "$MODEL" \
+          python benchmarks/harness/run_arm.py --arm karpathy --model "$model" \
             --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/karpathy/results" \
             --skill "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md" --skill-name karpathy-guidelines \
             --prompt-suffix "$suffix"
@@ -150,8 +173,9 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x "$RUNNER_TEMP/runtime/copilot"
+          model="$(cat "$RUNNER_TEMP/runtime/selected-model.txt")"
           suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
-          python benchmarks/harness/run_arm.py --arm ponytail --model "$MODEL" \
+          python benchmarks/harness/run_arm.py --arm ponytail --model "$model" \
             --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/ponytail/results" \
             --skill "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md" --skill-name ponytail \
             --prompt-suffix "$suffix"
@@ -175,8 +199,9 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x "$RUNNER_TEMP/runtime/copilot"
+          model="$(cat "$RUNNER_TEMP/runtime/selected-model.txt")"
           suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
-          python benchmarks/harness/run_arm.py --arm diffcipline --model "$MODEL" \
+          python benchmarks/harness/run_arm.py --arm diffcipline --model "$model" \
             --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/diffcipline/results" \
             --skill "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md" --skill-name diffcipline \
             --prompt-suffix "$suffix"
