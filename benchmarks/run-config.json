@@ -35,7 +35,7 @@
     "download_url": "https://github.com/github/copilot-cli/releases/download/v1.0.81/copilot-linux-x64.tar.gz",
     "linux_x64_sha256": "3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3"
   },
-  "agent": {"disable_builtin_mcps": true, "available_tools": ["bash", "skill"]},
+  "agent": {"disable_builtin_mcps": true, "available_tools": ["bash", "read_bash", "skill"]},
   "resource_limits": {"runner": "ubuntu-latest", "cpu_cores": 4, "memory_gb": 16, "storage_gb": 14, "per_task_timeout_seconds": 480, "benchmark_job_timeout_minutes": 240, "network_tools": "denied", "git_push": "denied"},
   "prompt_suffix": "Work only in the current repository. Do not commit or push. Do not use network resources. If an installed skill is relevant, use it. Run the repository tests before finishing.",
   "arms": {
