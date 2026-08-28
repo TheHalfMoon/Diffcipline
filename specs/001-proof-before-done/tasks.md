@@ -48,8 +48,10 @@ Verification evidence for T044: PR #7 exact head `e15f84e3241e487cbe2c4df3e03dcb
 ## Phase E — Benchmark
 
 - [x] T050 Publish benchmark protocol before claims.
-- [ ] T051 Build public task fixtures.
+- [x] T051 Build public task fixtures.
 - [ ] T052 Run unassisted-agent baseline.
 - [ ] T053 Run comparison skill baselines under matching conditions.
 - [ ] T054 Run Diffcipline arm.
 - [ ] T055 Publish raw outputs, scorer, limitations, and results.
+
+Verification evidence for T051: the six frozen task fixtures landed without any model execution through PRs #9–#11. The first all-at-once candidate was rejected by Diffcipline because it exceeded repository change-size policy, so the corpus was split with forward commits rather than weakening the policy. PR #12 exact head `8606c8dabbdf1f20becbdfc365eff988933fb3e5` added only the fixture validator, isolated preparer, scorer, and benchmark CI without modifying fixture bytes. `benchmark-fixtures` run #2 passed all six manifest/initial-state checks and the no-op scorer smoke contract, while normal `ci` run #31 passed Rust and Diffcipline gates on Ubuntu, macOS, and Windows. After squash merge, canonical `main` commit `4f796058bddd840be31d3fbf7d74b34a5403c49c` passed post-merge `benchmark-fixtures` run #3 and `ci` run #32; Rust fmt, clippy with warnings denied, and full locked tests passed on Ubuntu, macOS, and Windows. T052–T054 had not run before this frozen canonical revision.
