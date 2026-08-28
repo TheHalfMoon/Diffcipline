@@ -17,6 +17,7 @@ FIXTURES = [
     "f05-security-boundary",
     "f06-already-minimal",
 ]
+AVAILABLE_TOOLS = "bash,skill"
 
 
 def run(command: list[str], cwd: Path, **kwargs) -> subprocess.CompletedProcess[str]:
@@ -88,8 +89,10 @@ def main() -> int:
             "--model",
             args.model,
             "--no-ask-user",
-            "--allow-tool=write",
+            "--disable-builtin-mcps",
+            f"--available-tools={AVAILABLE_TOOLS}",
             "--allow-tool=shell",
+            "--deny-tool=write",
             "--deny-tool=url",
             "--deny-tool=memory",
             "--deny-tool=shell(git push)",
