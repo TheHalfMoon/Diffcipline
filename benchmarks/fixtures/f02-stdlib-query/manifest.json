@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "id": "f02-stdlib-query",
+  "class": "standard-library-solution",
+  "language": "python",
+  "python_version": "3.12",
+  "test_command": ["python", "-m", "unittest", "discover", "-s", "tests", "-v"],
+  "allowed_paths": ["query.py"],
+  "protected_paths": ["tests/**"],
+  "dependency_files": ["requirements.txt", "pyproject.toml", "Pipfile", "Pipfile.lock", "poetry.lock", "uv.lock"],
+  "expected_initial_test_pass": false,
+  "ideal_max_changed_files": 1
+}
