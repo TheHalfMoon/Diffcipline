@@ -99,6 +99,31 @@ diffcipline check --base origin/main --run
 
 `--run` executes the verification commands declared in `.diffcipline.toml`. Without `--run`, configured verification is reported as NOT RUN rather than silently treated as passing.
 
+## GitHub Action
+
+Diffcipline can gate pull requests with the same CLI and repository policy. Before a tagged release exists, `@main` is suitable only for evaluation. Pin a release or exact commit for production workflows.
+
+```yaml
+permissions:
+  contents: read
+
+steps:
+  - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    with:
+      fetch-depth: 0
+
+  - uses: TheHalfMoon/Diffcipline@main
+    with:
+      base: ${{ github.event.pull_request.base.sha }}
+      run-verification: "true"
+```
+
+The Action requires explicit `run-verification: "true"` before executing commands from `.diffcipline.toml`. Treat repository policy as executable code and review it before enabling verification on untrusted changes.
+
+A PASS exits `0`; REVIEW exits `1`; FAIL exits `2`. Missing evidence therefore fails the GitHub job instead of silently becoming green.
+
+The repository dogfoods this Action on Ubuntu, macOS, and Windows before T042 can be considered complete.
+
 ## Policy
 
 `diffcipline init` creates a small repository policy:
@@ -148,6 +173,7 @@ See [`benchmarks/PROTOCOL.md`](benchmarks/PROTOCOL.md).
 - dependency/lockfile awareness
 - deterministic verification commands
 - PASS / REVIEW / FAIL proof card
+- GitHub Action proof gate
 
 **v0.2 — Intent-aware scope**
 - proof contract for expected files and forbidden surfaces
@@ -162,7 +188,7 @@ See [`benchmarks/PROTOCOL.md`](benchmarks/PROTOCOL.md).
 - stable proof schema
 - broad agent portability
 - signed release artifacts
-- GitHub Action and enterprise policy mode
+- enterprise policy mode
 
 ## Prior art and attribution
 
