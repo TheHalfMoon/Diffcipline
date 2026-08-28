@@ -1,0 +1,13 @@
+[package]
+name = "diffcipline"
+version = "0.1.0"
+edition = "2024"
+description = "Proof-before-done discipline for coding agents"
+license = "MIT"
+repository = "https://github.com/TheHalfMoon/Diffcipline"
+
+[[bin]]
+name = "diffcipline"
+path = "src/main.rs"
+
+[dependencies]

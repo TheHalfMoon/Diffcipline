@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/diffcipline-cli"]
+resolver = "2"

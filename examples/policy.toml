@@ -1,0 +1,11 @@
+version = 1
+
+[policy]
+max_changed_files = 8
+max_added_lines = 250
+dependency_manifest_changes = "fail"
+lockfile_changes = "review"
+untracked_files = "review"
+
+[verification]
+commands = ["cargo fmt --all -- --check", "cargo clippy --workspace --all-targets -- -D warnings", "cargo test --workspace --all-targets"]
