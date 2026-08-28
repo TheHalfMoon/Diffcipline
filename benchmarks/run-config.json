@@ -1,9 +1,33 @@
 {
   "schema_version": 1,
   "fixture_revision": "4f796058bddd840be31d3fbf7d74b34a5403c49c",
-  "model_selection": {"rule": "first-explicitly-available-before-task-execution", "candidates": ["gpt-5.3-codex", "claude-sonnet-4.6", "gpt-5.4", "claude-haiku-4.5", "mai-code-1-flash", "gemini-3.1-pro-preview", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash"]},
-  "copilot_cli": {"version": "v1.0.81", "linux_x64_sha256": "3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3"},
-  "resource_limits": {"runner": "ubuntu-latest", "per_task_timeout_seconds": 480, "network_tools": "denied", "git_push": "denied"},
+  "model": {
+    "id": "diffcipline-qwen2.5-coder-7b-q4km",
+    "repository": "Qwen/Qwen2.5-Coder-7B-Instruct-GGUF",
+    "revision": "9fd1a598a0c90a2973cbc8c9b45868cf07ca7f02",
+    "quantization": "Q4_K_M",
+    "license": "Apache-2.0",
+    "shards": [
+      {"file": "qwen2.5-coder-7b-instruct-q4_k_m-00001-of-00002.gguf", "sha256": "89f120544682078148c5a86117de9af3a65c339111262f2d3ff01d80d48b14be"},
+      {"file": "qwen2.5-coder-7b-instruct-q4_k_m-00002-of-00002.gguf", "sha256": "0183b3c850cfa96c31082c3af0123115300d3f62798c4448fa8f57bd0eac05e0"}
+    ]
+  },
+  "provider": {
+    "type": "openai",
+    "base_url": "http://127.0.0.1:8080/v1",
+    "wire_api": "completions",
+    "runtime": "llama.cpp",
+    "release": "b10621",
+    "source_revision": "c1d0e7a004015f23bc0233470b747b596f29b264",
+    "asset": "llama-b10621-bin-ubuntu-x64.tar.gz",
+    "download_url": "https://github.com/ggml-org/llama.cpp/releases/download/b10621/llama-b10621-bin-ubuntu-x64.tar.gz",
+    "sha256": "91d7b03ddae498a39f28fdb85d84d2b4a0fd3838d10b4f897e0ef8975bb9b583",
+    "server_args": ["--host", "127.0.0.1", "--port", "8080", "--alias", "diffcipline-qwen2.5-coder-7b-q4km", "--ctx-size", "16384", "--threads", "4", "--parallel", "1", "--jinja"],
+    "chat_template": {"repository": "ggml-org/llama.cpp", "revision": "c1d0e7a004015f23bc0233470b747b596f29b264", "path": "models/templates/Qwen-Qwen2.5-7B-Instruct.jinja", "blob_sha": "bdf7919a96cfe43d50914a007b9c0877bd0ec27e"}
+  },
+  "copilot_cli": {"version": "v1.0.81", "download_url": "https://github.com/github/copilot-cli/releases/download/v1.0.81/copilot-linux-x64.tar.gz", "linux_x64_sha256": "3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3"},
+  "agent": {"disable_builtin_mcps": true, "available_tools": ["bash", "apply_patch", "view", "glob", "grep", "skill"]},
+  "resource_limits": {"runner": "ubuntu-latest", "cpu_cores": 4, "memory_gb": 16, "storage_gb": 14, "per_task_timeout_seconds": 480, "benchmark_job_timeout_minutes": 240, "network_tools": "denied", "git_push": "denied"},
   "prompt_suffix": "Work only in the current repository. Do not commit or push. Do not use network resources. If an installed skill is relevant, use it. Run the repository tests before finishing.",
   "arms": {
     "baseline": {"skill": null},
