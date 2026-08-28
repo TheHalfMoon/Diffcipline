@@ -25,8 +25,8 @@ jobs:
           curl -fsSL "https://github.com/ggml-org/llama.cpp/releases/download/b10621/llama-b10621-bin-ubuntu-x64.tar.gz" -o "$RUNNER_TEMP/local/llama.tgz"
           echo "91d7b03ddae498a39f28fdb85d84d2b4a0fd3838d10b4f897e0ef8975bb9b583  $RUNNER_TEMP/local/llama.tgz" | sha256sum -c -
           tar -xzf "$RUNNER_TEMP/local/llama.tgz" -C "$RUNNER_TEMP/local/llama"
-          curl -fsSL "https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/2ab9f8f42af02fc212effaef7c4850c885e965f4/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf?download=true" -o "$RUNNER_TEMP/local/model.gguf"
-          echo "cc324af070c2ecbfd324a30884d2f951a7ff756aba85cb811a6ec436933bb046  $RUNNER_TEMP/local/model.gguf" | sha256sum -c -
+          curl -fsSL "https://huggingface.co/Qwen/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/aebf6a0f72261b12fb8199bc580fe172fe86c901/qwen2.5-coder-3b-instruct-q4_k_m.gguf?download=true" -o "$RUNNER_TEMP/local/model.gguf"
+          echo "724fb256bec1ff062b2f65e4569e871ad2e95ab2a3989723d1769c54294730b7  $RUNNER_TEMP/local/model.gguf" | sha256sum -c -
           curl -fsSL "https://raw.githubusercontent.com/ggml-org/llama.cpp/c1d0e7a004015f23bc0233470b747b596f29b264/models/templates/Qwen-Qwen2.5-7B-Instruct.jinja" -o "$RUNNER_TEMP/local/tool-template.jinja"
           test "$(git hash-object "$RUNNER_TEMP/local/tool-template.jinja")" = "bdf7919a96cfe43d50914a007b9c0877bd0ec27e"
       - name: Start pinned tool-aware server
@@ -36,7 +36,7 @@ jobs:
           server="$(find "$RUNNER_TEMP/local/llama" -type f -name llama-server -print -quit)"
           chmod +x "$server"
           "$server" --model "$RUNNER_TEMP/local/model.gguf" --host 127.0.0.1 --port 8080 \
-            --alias diffcipline-qwen2.5-coder-1.5b-q4km --ctx-size 32768 --threads 4 --parallel 1 \
+            --alias diffcipline-qwen2.5-coder-3b-q4km --ctx-size 32768 --threads 4 --parallel 1 \
             --jinja --chat-template-file "$RUNNER_TEMP/local/tool-template.jinja" \
             > "$RUNNER_TEMP/local/server.log" 2>&1 &
           for _ in $(seq 1 180); do
@@ -59,10 +59,10 @@ jobs:
             COPILOT_HOME="$RUNNER_TEMP/probe-home" \
             COPILOT_PROVIDER_TYPE=openai \
             COPILOT_PROVIDER_BASE_URL=http://127.0.0.1:8080/v1 \
-            COPILOT_MODEL=diffcipline-qwen2.5-coder-1.5b-q4km \
+            COPILOT_MODEL=diffcipline-qwen2.5-coder-3b-q4km \
             COPILOT_OFFLINE=true \
             timeout 480s "$copilot" -p "Use bash to read preflight-nonce.txt, then reply with the exact file contents." \
-              --model diffcipline-qwen2.5-coder-1.5b-q4km --no-ask-user \
+              --model diffcipline-qwen2.5-coder-3b-q4km --no-ask-user \
               --available-tools=bash --allow-tool=shell --disable-builtin-mcps \
               --share "$RUNNER_TEMP/local/probe.md" \
               > "$RUNNER_TEMP/local/probe.stdout" 2> "$RUNNER_TEMP/local/probe.stderr"
