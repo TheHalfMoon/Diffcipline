@@ -115,6 +115,7 @@ def run_agent(base_url, model, workdir, prompt, transcript, timeout_seconds, ski
                         record(transcript, "Tool: bash", f"```sh\n{command}\n```\n\n```json\n{result}\n```")
                 elif name == "skill" and skill_text is not None and not skill_loaded:
                     result, skill_loaded = skill_text, True
+                    available = tools(False)
                     record(transcript, "Tool: skill", skill_text)
                 elif name == "skill" and skill_loaded:
                     result = json.dumps({"error": "skill already loaded; continue without calling it again"})
