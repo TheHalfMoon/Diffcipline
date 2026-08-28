@@ -1,7 +1,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static NEXT_FIXTURE_ID: AtomicU64 = AtomicU64::new(0);
 
 struct Fixture {
     root: PathBuf,
@@ -9,10 +11,7 @@ struct Fixture {
 
 impl Fixture {
     fn new(max_changed_files: usize) -> Self {
-        let unique = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .expect("clock must be after unix epoch")
-            .as_nanos();
+        let unique = NEXT_FIXTURE_ID.fetch_add(1, Ordering::Relaxed);
         let root = std::env::temp_dir().join(format!(
             "diffcipline-fixture-{}-{unique}",
             std::process::id()

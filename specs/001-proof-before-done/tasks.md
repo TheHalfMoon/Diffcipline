@@ -35,11 +35,11 @@ Verification evidence for T028–T032: GitHub Actions `ci` run #4 on commit `fbb
 
 - [x] T040 Create public `TheHalfMoon/Diffcipline` GitHub repository.
 - [x] T041 Push verified baseline through a feature branch and PR.
-- [x] T042 Add GitHub Action after CLI contract is verified.
+- [ ] T042 Add GitHub Action after CLI contract is verified.
 - [ ] T043 Add release workflow and signed/checksummed binaries.
 - [ ] T044 Verify installation through compatible Agent Skills installers.
 
-Verification evidence for T042: GitHub Actions `ci` run #11 on implementation commit `a12089f8eb01a5e54d9ae786509ffe8db75dc443` completed successfully with the normal Rust suite and the `Diffcipline proof gate` itself both green on Ubuntu, macOS, and Windows. The task-ledger-only follow-up commit must also pass exact-head CI before merge.
+T042 implementation evidence: GitHub Actions `ci` run #11 on commit `a12089f8eb01a5e54d9ae786509ffe8db75dc443` completed successfully with the normal Rust suite and the `Diffcipline proof gate` itself green on Ubuntu, macOS, and Windows. T042 was reopened after run #12 exposed a macOS fixture-directory collision in the existing integration tests; completion now requires the collision fix and a new exact-head all-platform PASS.
 
 ## Phase E — Benchmark
 
