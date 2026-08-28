@@ -31,6 +31,10 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def timeout_text(value: str | bytes | None) -> str:
+    return value.decode("utf-8", errors="replace") if isinstance(value, bytes) else value or ""
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--arm", required=True)
@@ -111,8 +115,8 @@ def main() -> int:
         except subprocess.TimeoutExpired as error:
             timed_out = True
             exit_code = 124
-            stdout = error.stdout or ""
-            stderr = error.stderr or ""
+            stdout = timeout_text(error.stdout)
+            stderr = timeout_text(error.stderr)
         duration = round(time.monotonic() - clock, 3)
         (out / "stdout.txt").write_text(stdout, encoding="utf-8", errors="replace")
         (out / "stderr.txt").write_text(stderr, encoding="utf-8", errors="replace")
