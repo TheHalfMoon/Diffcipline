@@ -28,6 +28,16 @@ jobs:
           python-version: "3.12"
       - name: Validate frozen fixture initial states
         run: python benchmarks/harness/validate_fixtures.py
+      - name: Prove deterministic fixture revisions
+        shell: bash
+        run: |
+          set -euo pipefail
+          for fixture in benchmarks/fixtures/*; do
+            name="$(basename "$fixture")"
+            first="$(python benchmarks/harness/prepare_fixture.py "$fixture" "$RUNNER_TEMP/${name}-a")"
+            second="$(python benchmarks/harness/prepare_fixture.py "$fixture" "$RUNNER_TEMP/${name}-b")"
+            test "$first" = "$second"
+          done
       - name: Smoke-test no-change scorer contract
         shell: bash
         run: |
