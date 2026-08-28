@@ -139,11 +139,7 @@ fn run_check(args: Vec<String>) -> Result<Verdict, String> {
         match args[index].as_str() {
             "--base" => {
                 index += 1;
-                base = Some(
-                    args.get(index)
-                        .ok_or("--base requires a ref")?
-                        .to_string(),
-                );
+                base = Some(args.get(index).ok_or("--base requires a ref")?.to_string());
             }
             "--run" => execute = true,
             "--json" => json = true,
@@ -391,12 +387,7 @@ fn is_manifest(path: &str) -> bool {
     let name = path.rsplit('/').next().unwrap_or(path);
     matches!(
         name,
-        "Cargo.toml"
-            | "package.json"
-            | "pyproject.toml"
-            | "go.mod"
-            | "Gemfile"
-            | "composer.json"
+        "Cargo.toml" | "package.json" | "pyproject.toml" | "go.mod" | "Gemfile" | "composer.json"
     ) || name.starts_with("requirements") && name.ends_with(".txt")
 }
 
@@ -422,7 +413,9 @@ fn git_root() -> Result<PathBuf, String> {
     if !output.status.success() {
         return Err("not inside a Git repository".into());
     }
-    Ok(PathBuf::from(String::from_utf8_lossy(&output.stdout).trim()))
+    Ok(PathBuf::from(
+        String::from_utf8_lossy(&output.stdout).trim(),
+    ))
 }
 
 fn git(root: &Path, args: &[String]) -> Result<String, String> {
@@ -487,9 +480,7 @@ fn parse_policy(input: &str) -> Result<Policy, String> {
 
         match (section.as_str(), key) {
             ("", "version") => {
-                policy.version = value
-                    .parse()
-                    .map_err(|_| "version must be an integer")?;
+                policy.version = value.parse().map_err(|_| "version must be an integer")?;
             }
             ("policy", "max_changed_files") => {
                 policy.max_changed_files = value
