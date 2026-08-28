@@ -136,7 +136,7 @@ jobs:
             --prompt "Load the installed skill exactly once, then reply with the token it contains. Do not use bash." \
             --skill "$RUNNER_TEMP/runtime/preflight-skill.md" --transcript "$RUNNER_TEMP/runtime/skill-preflight.md" \
             --timeout-seconds 480 > "$RUNNER_TEMP/runtime/skill-preflight.stdout" 2> "$RUNNER_TEMP/runtime/skill-preflight.stderr"
-          grep -Fq '## Tool: skill' "$RUNNER_TEMP/runtime/skill-preflight.md"
+          test "$(grep -xc '## Tool: skill' "$RUNNER_TEMP/runtime/skill-preflight.md")" -eq 1
           grep -Fq "$skill_nonce" "$RUNNER_TEMP/runtime/skill-preflight.md"
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
