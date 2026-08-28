@@ -50,6 +50,8 @@ jobs:
           assert config["provider"]["base_url"] == "http://127.0.0.1:8080/v1"
           assert config["provider"]["runtime"] == "llama.cpp"
           assert len(config["provider"]["sha256"]) == 64
+          assert config["provider"]["chat_template"]["revision"] == config["provider"]["source_revision"]
+          assert config["provider"]["chat_template"]["blob_sha"] == "bdf7919a96cfe43d50914a007b9c0877bd0ec27e"
           assert config["resource_limits"]["runner"] == "ubuntu-latest"
           assert config["resource_limits"]["network_tools"] == "denied"
           assert config["resource_limits"]["git_push"] == "denied"
@@ -87,6 +89,8 @@ jobs:
           curl -fsSL "$MODEL_URL" -o "$RUNNER_TEMP/runtime/$MODEL_FILE"
           echo "$MODEL_SHA  $RUNNER_TEMP/runtime/$MODEL_FILE" | sha256sum -c -
           test "$(stat -c %s "$RUNNER_TEMP/runtime/$MODEL_FILE")" = "$MODEL_SIZE"
+          curl -fsSL "https://raw.githubusercontent.com/ggml-org/llama.cpp/c1d0e7a004015f23bc0233470b747b596f29b264/models/templates/Qwen-Qwen2.5-7B-Instruct.jinja" > "$RUNNER_TEMP/runtime/qwen-tool-template.jinja"
+          test "$(git hash-object "$RUNNER_TEMP/runtime/qwen-tool-template.jinja")" = "bdf7919a96cfe43d50914a007b9c0877bd0ec27e"
           curl -fsSL "https://raw.githubusercontent.com/multica-ai/andrej-karpathy-skills/2c606141936f1eeef17fa3043a72095b4765b9c2/skills/karpathy-guidelines/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md"
           curl -fsSL "https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md"
           curl -fsSL "https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/6bbeb59bab21724c92ed3456953a94e5202f0e53/skills/diffcipline/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md"
@@ -103,16 +107,24 @@ jobs:
           test -n "$server"
           chmod +x "$server"
           mapfile -t server_args < <(python -c 'import json; print("\n".join(json.load(open("benchmarks/run-config.json"))["provider"]["server_args"]))')
-          "$server" --model "$RUNNER_TEMP/runtime/$model_file" "${server_args[@]}" > "$RUNNER_TEMP/runtime/llama-server.log" 2>&1 &
+          "$server" --model "$RUNNER_TEMP/runtime/$model_file" "${server_args[@]}" \
+            --chat-template-file "$RUNNER_TEMP/runtime/qwen-tool-template.jinja" \
+            > "$RUNNER_TEMP/runtime/llama-server.log" 2>&1 &
           echo "$!" > "$RUNNER_TEMP/runtime/llama-server.pid"
+          ready=0
           for _ in $(seq 1 180); do
             if curl -fsS http://127.0.0.1:8080/health > "$RUNNER_TEMP/runtime/health.json"; then
-              exit 0
+              ready=1
+              break
             fi
             sleep 1
           done
-          cat "$RUNNER_TEMP/runtime/llama-server.log"
-          exit 1
+          if [[ "$ready" != 1 ]]; then
+            cat "$RUNNER_TEMP/runtime/llama-server.log"
+            exit 1
+          fi
+          curl -fsS http://127.0.0.1:8080/props > "$RUNNER_TEMP/runtime/props.json"
+          grep -Fq "<tool_call>" "$RUNNER_TEMP/runtime/props.json"
       - name: Prove local model tool interface
         shell: bash
         run: |
@@ -134,7 +146,7 @@ jobs:
             COPILOT_PROVIDER_BASE_URL="$base_url" \
             COPILOT_MODEL="$model" \
             COPILOT_OFFLINE=true \
-            "$copilot" -p "Use the shell tool to read preflight-nonce.txt, then reply with the exact file contents. Do not modify files." \
+            timeout 480s "$copilot" -p "Use the shell tool to read preflight-nonce.txt, then reply with the exact file contents. Do not modify files." \
               --model "$model" --no-ask-user \
               --allow-tool=shell --deny-tool=write --deny-tool=url --deny-tool=memory \
               --share "$RUNNER_TEMP/runtime/model-preflight.md" \
@@ -155,6 +167,7 @@ jobs:
             ${{ runner.temp }}/runtime/model-preflight.stderr
             ${{ runner.temp }}/runtime/llama-server.log
             ${{ runner.temp }}/runtime/health.json
+            ${{ runner.temp }}/runtime/props.json
           if-no-files-found: warn
           retention-days: 30
 
@@ -198,6 +211,8 @@ jobs:
           tar -xzf "$RUNNER_TEMP/runtime/provider.tgz" -C "$RUNNER_TEMP/runtime/provider"
           curl -fsSL "$MODEL_URL" -o "$RUNNER_TEMP/runtime/$MODEL_FILE"
           echo "$MODEL_SHA  $RUNNER_TEMP/runtime/$MODEL_FILE" | sha256sum -c -
+          curl -fsSL "https://raw.githubusercontent.com/ggml-org/llama.cpp/c1d0e7a004015f23bc0233470b747b596f29b264/models/templates/Qwen-Qwen2.5-7B-Instruct.jinja" > "$RUNNER_TEMP/runtime/qwen-tool-template.jinja"
+          test "$(git hash-object "$RUNNER_TEMP/runtime/qwen-tool-template.jinja")" = "bdf7919a96cfe43d50914a007b9c0877bd0ec27e"
           curl -fsSL "https://raw.githubusercontent.com/multica-ai/andrej-karpathy-skills/2c606141936f1eeef17fa3043a72095b4765b9c2/skills/karpathy-guidelines/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md"
           curl -fsSL "https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md"
           curl -fsSL "https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/6bbeb59bab21724c92ed3456953a94e5202f0e53/skills/diffcipline/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md"
@@ -210,7 +225,9 @@ jobs:
           chmod +x "$copilot" "$server"
           printf '%s\n' "$copilot" > "$RUNNER_TEMP/runtime/copilot-path"
           mapfile -t server_args < <(python -c 'import json; print("\n".join(json.load(open("benchmarks/run-config.json"))["provider"]["server_args"]))')
-          "$server" --model "$RUNNER_TEMP/runtime/$MODEL_FILE" "${server_args[@]}" > "$RUNNER_TEMP/runtime/llama-server.log" 2>&1 &
+          "$server" --model "$RUNNER_TEMP/runtime/$MODEL_FILE" "${server_args[@]}" \
+            --chat-template-file "$RUNNER_TEMP/runtime/qwen-tool-template.jinja" \
+            > "$RUNNER_TEMP/runtime/llama-server.log" 2>&1 &
           for _ in $(seq 1 180); do
             curl -fsS http://127.0.0.1:8080/health > /dev/null && exit 0
             sleep 1
