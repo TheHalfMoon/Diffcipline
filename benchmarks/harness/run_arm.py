@@ -17,7 +17,7 @@ FIXTURES = [
     "f05-security-boundary",
     "f06-already-minimal",
 ]
-AVAILABLE_TOOLS = "bash,skill"
+AVAILABLE_TOOLS = "bash,read_bash,skill"
 
 
 def run(command: list[str], cwd: Path, **kwargs) -> subprocess.CompletedProcess[str]:
