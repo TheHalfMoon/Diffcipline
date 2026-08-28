@@ -1,0 +1,185 @@
+name: benchmark-arms
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/benchmark-arms.yml"
+      - "benchmarks/run-config.json"
+      - "benchmarks/harness/run_arm.py"
+
+permissions:
+  contents: read
+  copilot-requests: write
+
+env:
+  MODEL: gpt-5.3-codex
+  COPILOT_VERSION: v1.0.81
+  COPILOT_SHA256: 3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3
+  FIXTURE_REVISION: 4f796058bddd840be31d3fbf7d74b34a5403c49c
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Verify frozen corpus and run configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code "$FIXTURE_REVISION" -- \
+            benchmarks/fixtures \
+            benchmarks/harness/prepare_fixture.py \
+            benchmarks/harness/score_run.py
+          python benchmarks/harness/validate_fixtures.py
+          python - <<'PY'
+          import json, os
+          config = json.load(open("benchmarks/run-config.json", encoding="utf-8"))
+          assert config["fixture_revision"] == os.environ["FIXTURE_REVISION"]
+          assert config["model"] == os.environ["MODEL"]
+          assert config["copilot_cli"]["version"] == os.environ["COPILOT_VERSION"]
+          assert config["copilot_cli"]["linux_x64_sha256"] == os.environ["COPILOT_SHA256"]
+          PY
+      - name: Build pinned runtime inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p runtime/treatments/{karpathy-guidelines,ponytail,diffcipline}
+          curl -fsSL "https://github.com/github/copilot-cli/releases/download/${COPILOT_VERSION}/copilot-linux-x64.tar.gz" -o runtime/copilot.tgz
+          echo "$COPILOT_SHA256  runtime/copilot.tgz" | sha256sum -c -
+          tar -xzf runtime/copilot.tgz -C runtime
+          rm runtime/copilot.tgz
+          chmod +x runtime/copilot
+          runtime/copilot --version | tee runtime/copilot-version.txt
+          grep -F "1.0.81" runtime/copilot-version.txt
+          curl -fsSL "https://raw.githubusercontent.com/multica-ai/andrej-karpathy-skills/2c606141936f1eeef17fa3043a72095b4765b9c2/skills/karpathy-guidelines/SKILL.md" > runtime/treatments/karpathy-guidelines/SKILL.md
+          curl -fsSL "https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail/SKILL.md" > runtime/treatments/ponytail/SKILL.md
+          cp skills/diffcipline/SKILL.md runtime/treatments/diffcipline/SKILL.md
+          test "$(git hash-object runtime/treatments/karpathy-guidelines/SKILL.md)" = "6a62d0441753157ca6ca50479e490c2948033adb"
+          test "$(git hash-object runtime/treatments/ponytail/SKILL.md)" = "02c0712c86277d49d18a77da3a2b825657bf02d1"
+          test "$(git hash-object runtime/treatments/diffcipline/SKILL.md)" = "0ca69dc046c7ba41d9b361b734a776ff536695ac"
+      - name: Verify Copilot authentication and pinned model
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/preflight-home" "$RUNNER_TEMP/preflight-work"
+          COPILOT_HOME="$RUNNER_TEMP/preflight-home" runtime/copilot \
+            -p "Reply with BENCHMARK_PREFLIGHT_OK." -s \
+            --model "$MODEL" --no-ask-user \
+            --deny-tool=write --deny-tool=shell --deny-tool=url --deny-tool=memory \
+            > runtime/model-preflight.txt
+          test -s runtime/model-preflight.txt
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: benchmark-runtime-inputs
+          path: runtime
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+  baseline:
+    needs: preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with: {python-version: "3.12"}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with: {name: benchmark-runtime-inputs, path: "${{ runner.temp }}/runtime", digest-mismatch: error}
+      - name: Run T052 baseline
+        env: {GITHUB_TOKEN: "${{ github.token }}"}
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP/runtime/copilot"
+          suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
+          python benchmarks/harness/run_arm.py --arm baseline --model "$MODEL" \
+            --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/baseline/results" \
+            --prompt-suffix "$suffix"
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with: {name: benchmark-baseline, path: "${{ runner.temp }}/benchmark/baseline/results", if-no-files-found: warn, retention-days: 30}
+
+  karpathy:
+    needs: [preflight, baseline]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with: {python-version: "3.12"}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with: {name: benchmark-runtime-inputs, path: "${{ runner.temp }}/runtime", digest-mismatch: error}
+      - name: Run Karpathy comparison
+        env: {GITHUB_TOKEN: "${{ github.token }}"}
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP/runtime/copilot"
+          suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
+          python benchmarks/harness/run_arm.py --arm karpathy --model "$MODEL" \
+            --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/karpathy/results" \
+            --skill "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md" --skill-name karpathy-guidelines \
+            --prompt-suffix "$suffix"
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with: {name: benchmark-karpathy, path: "${{ runner.temp }}/benchmark/karpathy/results", if-no-files-found: warn, retention-days: 30}
+
+  ponytail:
+    needs: [preflight, baseline]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with: {python-version: "3.12"}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with: {name: benchmark-runtime-inputs, path: "${{ runner.temp }}/runtime", digest-mismatch: error}
+      - name: Run Ponytail comparison
+        env: {GITHUB_TOKEN: "${{ github.token }}"}
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP/runtime/copilot"
+          suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
+          python benchmarks/harness/run_arm.py --arm ponytail --model "$MODEL" \
+            --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/ponytail/results" \
+            --skill "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md" --skill-name ponytail \
+            --prompt-suffix "$suffix"
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with: {name: benchmark-ponytail, path: "${{ runner.temp }}/benchmark/ponytail/results", if-no-files-found: warn, retention-days: 30}
+
+  diffcipline:
+    needs: [preflight, karpathy, ponytail]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with: {python-version: "3.12"}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with: {name: benchmark-runtime-inputs, path: "${{ runner.temp }}/runtime", digest-mismatch: error}
+      - name: Run T054 Diffcipline arm
+        env: {GITHUB_TOKEN: "${{ github.token }}"}
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x "$RUNNER_TEMP/runtime/copilot"
+          suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
+          python benchmarks/harness/run_arm.py --arm diffcipline --model "$MODEL" \
+            --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/diffcipline/results" \
+            --skill "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md" --skill-name diffcipline \
+            --prompt-suffix "$suffix"
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with: {name: benchmark-diffcipline, path: "${{ runner.temp }}/benchmark/diffcipline/results", if-no-files-found: warn, retention-days: 30}
