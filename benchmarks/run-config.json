@@ -2,36 +2,13 @@
   "schema_version": 1,
   "fixture_revision": "4f796058bddd840be31d3fbf7d74b34a5403c49c",
   "model": "gpt-5.3-codex",
-  "copilot_cli": {
-    "version": "v1.0.81",
-    "linux_x64_sha256": "3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3"
-  },
-  "resource_limits": {
-    "runner": "ubuntu-latest",
-    "per_task_timeout_seconds": 480,
-    "network_tools": "denied",
-    "git_push": "denied"
-  },
+  "copilot_cli": {"version": "v1.0.81", "linux_x64_sha256": "3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3"},
+  "resource_limits": {"runner": "ubuntu-latest", "per_task_timeout_seconds": 480, "network_tools": "denied", "git_push": "denied"},
   "prompt_suffix": "Work only in the current repository. Do not commit or push. Do not use network resources. If an installed skill is relevant, use it. Run the repository tests before finishing.",
   "arms": {
     "baseline": {"skill": null},
-    "karpathy": {
-      "repository": "multica-ai/andrej-karpathy-skills",
-      "revision": "2c606141936f1eeef17fa3043a72095b4765b9c2",
-      "path": "skills/karpathy-guidelines/SKILL.md",
-      "blob_sha": "6a62d0441753157ca6ca50479e490c2948033adb"
-    },
-    "ponytail": {
-      "repository": "DietrichGebert/ponytail",
-      "revision": "2ed6c52c9d7e5e56942508591085fd45dea277d3",
-      "path": "skills/ponytail/SKILL.md",
-      "blob_sha": "02c0712c86277d49d18a77da3a2b825657bf02d1"
-    },
-    "diffcipline": {
-      "repository": "TheHalfMoon/Diffcipline",
-      "revision": "6bbeb59bab21724c92ed3456953a94e5202f0e53",
-      "path": "skills/diffcipline/SKILL.md",
-      "blob_sha": "0ca69dc046c7ba41d9b361b734a776ff536695ac"
-    }
+    "karpathy": {"repository": "multica-ai/andrej-karpathy-skills", "revision": "2c606141936f1eeef17fa3043a72095b4765b9c2", "path": "skills/karpathy-guidelines/SKILL.md", "blob_sha": "6a62d0441753157ca6ca50479e490c2948033adb"},
+    "ponytail": {"repository": "DietrichGebert/ponytail", "revision": "2ed6c52c9d7e5e56942508591085fd45dea277d3", "path": "skills/ponytail/SKILL.md", "blob_sha": "02c0712c86277d49d18a77da3a2b825657bf02d1"},
+    "diffcipline": {"repository": "TheHalfMoon/Diffcipline", "revision": "6bbeb59bab21724c92ed3456953a94e5202f0e53", "path": "skills/diffcipline/SKILL.md", "blob_sha": "0ca69dc046c7ba41d9b361b734a776ff536695ac"}
   }
 }
