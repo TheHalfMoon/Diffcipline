@@ -13,7 +13,7 @@ permissions:
   copilot-requests: write
 
 env:
-  MODEL: gpt-5.3-codex
+  MODEL: claude-sonnet-4.6
   COPILOT_VERSION: v1.0.81
   COPILOT_SHA256: 3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3
   FIXTURE_REVISION: 4f796058bddd840be31d3fbf7d74b34a5403c49c
