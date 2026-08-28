@@ -21,7 +21,7 @@
     "server_args": ["--host", "127.0.0.1", "--port", "8080", "--alias", "diffcipline-llama3.2-3b-q4km", "--ctx-size", "16384", "--threads", "4", "--parallel", "1", "--seed", "1", "--jinja"],
     "chat_template": {"revision": "c1d0e7a004015f23bc0233470b747b596f29b264", "path": "models/templates/meta-llama-Llama-3.2-3B-Instruct.jinja", "blob_sha": "1bad6a0f648dccdbec523ca79ba90fbcfc806af0"}
   },
-  "agent": {"runtime": "repository-local-openai-tool-loop", "tools": ["bash", "skill"], "bash_mode": "synchronous"},
+  "agent": {"runtime": "repository-local-openai-tool-loop", "tools": ["bash"], "bash_mode": "synchronous", "treatment_delivery": "system-context-once"},
   "resource_limits": {"runner": "ubuntu-latest", "cpu_cores": 4, "memory_gb": 16, "storage_gb": 14, "per_task_timeout_seconds": 480, "benchmark_job_timeout_minutes": 240, "network_tools": "denied", "git_push": "denied"},
   "prompt_suffix": "Work only in the current repository. Do not commit or push. Do not use network resources. If an installed skill is relevant, use it. Run the repository tests before finishing.",
   "arms": {
