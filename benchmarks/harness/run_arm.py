@@ -17,6 +17,7 @@ FIXTURES = [
     "f05-security-boundary",
     "f06-already-minimal",
 ]
+AVAILABLE_TOOLS = "bash,apply_patch,view,glob,grep,skill"
 
 
 def run(command: list[str], cwd: Path, **kwargs) -> subprocess.CompletedProcess[str]:
@@ -88,6 +89,8 @@ def main() -> int:
             "--model",
             args.model,
             "--no-ask-user",
+            "--disable-builtin-mcps",
+            f"--available-tools={AVAILABLE_TOOLS}",
             "--allow-tool=write",
             "--allow-tool=shell",
             "--deny-tool=url",
