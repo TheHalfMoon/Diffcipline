@@ -1,0 +1,49 @@
+# Tasks — 001 Proof Before Done
+
+## Phase A — Repository foundation
+
+- [x] T001 Create product README and positioning.
+- [x] T002 Add constitution and repository instructions.
+- [x] T003 Add clean-room acknowledgments and MIT license.
+- [x] T004 Add security and contribution policies.
+
+## Phase B — Portable behavioral skills
+
+- [x] T010 Add `diffcipline` skill.
+- [x] T011 Add `diffcipline-review` skill.
+- [x] T012 Document risk model and proof contract.
+
+## Phase C — CLI v0.1 implementation
+
+- [x] T020 Create dependency-free Rust workspace.
+- [x] T021 Implement `diffcipline init`.
+- [x] T022 Implement Git diff/stat collection.
+- [x] T023 Implement dependency/lockfile/untracked policy checks.
+- [x] T024 Implement explicit verification execution with `--run`.
+- [x] T025 Implement human proof card.
+- [x] T026 Implement JSON output.
+- [x] T027 Add unit tests for parser/classification/verdict helpers.
+- [ ] T028 Compile with stable Rust.
+- [ ] T029 Pass rustfmt.
+- [ ] T030 Pass clippy with warnings denied.
+- [ ] T031 Pass unit tests.
+- [ ] T032 Add fixture-repository integration tests for PASS/REVIEW/FAIL.
+
+## Phase D — Distribution
+
+Blocked on Phase C verification.
+
+- [x] T040 Create public `TheHalfMoon/Diffcipline` GitHub repository.
+- [ ] T041 Push verified baseline through a feature branch and PR.
+- [ ] T042 Add GitHub Action after CLI contract is verified.
+- [ ] T043 Add release workflow and signed/checksummed binaries.
+- [ ] T044 Verify installation through compatible Agent Skills installers.
+
+## Phase E — Benchmark
+
+- [x] T050 Publish benchmark protocol before claims.
+- [ ] T051 Build public task fixtures.
+- [ ] T052 Run unassisted-agent baseline.
+- [ ] T053 Run comparison skill baselines under matching conditions.
+- [ ] T054 Run Diffcipline arm.
+- [ ] T055 Publish raw outputs, scorer, limitations, and results.
