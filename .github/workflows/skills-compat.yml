@@ -1,0 +1,104 @@
+name: skills-compat
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/skills-compat.yml"
+      - "skills/**"
+      - "docs/INSTALLATION.md"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/skills-compat.yml"
+      - "skills/**"
+      - "docs/INSTALLATION.md"
+
+permissions:
+  contents: read
+
+jobs:
+  install:
+    name: skills installer (${{ matrix.agent }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - agent: claude-code
+            skill_dir: .claude/skills
+          - agent: codex
+            skill_dir: .agents/skills
+          - agent: cursor
+            skill_dir: .agents/skills
+          - agent: opencode
+            skill_dir: .agents/skills
+          - agent: github-copilot
+            skill_dir: .agents/skills
+          - agent: gemini-cli
+            skill_dir: .agents/skills
+    env:
+      DO_NOT_TRACK: "1"
+      SKILLS_CLI_VERSION: "1.5.23"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - name: Select exact install source
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            echo "value=$GITHUB_WORKSPACE" >> "$GITHUB_OUTPUT"
+            echo "mode=local-exact-head" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=TheHalfMoon/Diffcipline" >> "$GITHUB_OUTPUT"
+            echo "mode=public-github" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Verify pinned installer version
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(npx --yes "skills@$SKILLS_CLI_VERSION" --version)"
+          test "$version" = "$SKILLS_CLI_VERSION"
+      - name: Discover both Diffcipline skills
+        shell: bash
+        env:
+          SOURCE: ${{ steps.source.outputs.value }}
+        run: |
+          set -euo pipefail
+          npx --yes "skills@$SKILLS_CLI_VERSION" add "$SOURCE" --list > "$RUNNER_TEMP/available-skills.txt"
+          grep -Fq "diffcipline" "$RUNNER_TEMP/available-skills.txt"
+          grep -Fq "diffcipline-review" "$RUNNER_TEMP/available-skills.txt"
+      - name: Install both skills non-interactively
+        shell: bash
+        env:
+          SOURCE: ${{ steps.source.outputs.value }}
+          AGENT: ${{ matrix.agent }}
+        run: |
+          set -euo pipefail
+          install_root="$RUNNER_TEMP/install-$AGENT"
+          mkdir -p "$install_root"
+          cd "$install_root"
+          npx --yes "skills@$SKILLS_CLI_VERSION" add "$SOURCE" \
+            --skill diffcipline \
+            --skill diffcipline-review \
+            --agent "$AGENT" \
+            --copy \
+            --yes
+      - name: Verify installed skill contract
+        shell: bash
+        env:
+          AGENT: ${{ matrix.agent }}
+          SKILL_DIR: ${{ matrix.skill_dir }}
+          SOURCE_MODE: ${{ steps.source.outputs.mode }}
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/install-$AGENT/$SKILL_DIR"
+          test -f "$root/diffcipline/SKILL.md"
+          test -f "$root/diffcipline-review/SKILL.md"
+          grep -Fxq "name: diffcipline" "$root/diffcipline/SKILL.md"
+          grep -Fxq "name: diffcipline-review" "$root/diffcipline-review/SKILL.md"
+          grep -Fq "Think → Challenge → Minimize → Change → Prove" "$root/diffcipline/SKILL.md"
+          echo "Verified $SOURCE_MODE install for $AGENT at $SKILL_DIR"
