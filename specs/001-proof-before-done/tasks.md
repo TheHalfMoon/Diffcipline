@@ -23,18 +23,18 @@
 - [x] T025 Implement human proof card.
 - [x] T026 Implement JSON output.
 - [x] T027 Add unit tests for parser/classification/verdict helpers.
-- [ ] T028 Compile with stable Rust.
-- [ ] T029 Pass rustfmt.
-- [ ] T030 Pass clippy with warnings denied.
-- [ ] T031 Pass unit tests.
-- [ ] T032 Add fixture-repository integration tests for PASS/REVIEW/FAIL.
+- [x] T028 Compile with stable Rust.
+- [x] T029 Pass rustfmt.
+- [x] T030 Pass clippy with warnings denied.
+- [x] T031 Pass unit tests.
+- [x] T032 Add fixture-repository integration tests for PASS/REVIEW/FAIL.
+
+Verification evidence for T028–T032: GitHub Actions `ci` run #4 on commit `fbbd42637c58a72f7fd3e9d928eec299b94227b5` completed successfully with `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets -- -D warnings`, and `cargo test --workspace --all-targets` all green.
 
 ## Phase D — Distribution
 
-Blocked on Phase C verification.
-
 - [x] T040 Create public `TheHalfMoon/Diffcipline` GitHub repository.
-- [ ] T041 Push verified baseline through a feature branch and PR.
+- [x] T041 Push verified baseline through a feature branch and PR.
 - [ ] T042 Add GitHub Action after CLI contract is verified.
 - [ ] T043 Add release workflow and signed/checksummed binaries.
 - [ ] T044 Verify installation through compatible Agent Skills installers.
