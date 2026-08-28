@@ -77,6 +77,7 @@ def run_agent(base_url, model, workdir, prompt, transcript, timeout_seconds, ski
     messages = [{"role": "system", "content": system}, {"role": "user", "content": prompt}]
     available = tools(skill is not None)
     skill_text = skill.read_text(encoding="utf-8") if skill else None
+    skill_loaded = False
     record(transcript, "User", prompt)
 
     for step in range(48):
@@ -112,9 +113,11 @@ def run_agent(base_url, model, workdir, prompt, transcript, timeout_seconds, ski
                     else:
                         result = bash_tool(command, workdir, min(120, max(1, deadline - time.monotonic())))
                         record(transcript, "Tool: bash", f"```sh\n{command}\n```\n\n```json\n{result}\n```")
-                elif name == "skill" and skill_text is not None:
-                    result = skill_text
+                elif name == "skill" and skill_text is not None and not skill_loaded:
+                    result, skill_loaded = skill_text, True
                     record(transcript, "Tool: skill", skill_text)
+                elif name == "skill" and skill_loaded:
+                    result = json.dumps({"error": "skill already loaded; continue without calling it again"})
                 else:
                     result = json.dumps({"error": f"unknown or unavailable tool: {name}"})
             except (ValueError, json.JSONDecodeError) as error:
