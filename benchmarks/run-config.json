@@ -34,7 +34,13 @@
       "--parallel",
       "1",
       "--jinja"
-    ]
+    ],
+    "chat_template": {
+      "repository": "ggml-org/llama.cpp",
+      "revision": "c1d0e7a004015f23bc0233470b747b596f29b264",
+      "path": "models/templates/Qwen-Qwen2.5-7B-Instruct.jinja",
+      "blob_sha": "bdf7919a96cfe43d50914a007b9c0877bd0ec27e"
+    }
   },
   "copilot_cli": {
     "version": "v1.0.81",
