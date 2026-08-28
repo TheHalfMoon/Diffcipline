@@ -1,14 +1,75 @@
 {
   "schema_version": 1,
   "fixture_revision": "4f796058bddd840be31d3fbf7d74b34a5403c49c",
-  "model_selection": {"rule": "first-explicitly-available-before-task-execution", "candidates": ["gpt-5.3-codex", "claude-sonnet-4.6", "gpt-5.4", "claude-haiku-4.5", "mai-code-1-flash", "gemini-3.1-pro-preview", "gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.7-flash"]},
-  "copilot_cli": {"version": "v1.0.81", "linux_x64_sha256": "3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3"},
-  "resource_limits": {"runner": "ubuntu-latest", "per_task_timeout_seconds": 480, "network_tools": "denied", "git_push": "denied"},
+  "model": {
+    "id": "diffcipline-qwen2.5-coder-1.5b-q4km",
+    "repository": "Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF",
+    "revision": "2ab9f8f42af02fc212effaef7c4850c885e965f4",
+    "file": "qwen2.5-coder-1.5b-instruct-q4_k_m.gguf",
+    "download_url": "https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/2ab9f8f42af02fc212effaef7c4850c885e965f4/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf?download=true",
+    "sha256": "cc324af070c2ecbfd324a30884d2f951a7ff756aba85cb811a6ec436933bb046",
+    "size_bytes": 1117320768,
+    "license": "Apache-2.0"
+  },
+  "provider": {
+    "type": "openai",
+    "base_url": "http://127.0.0.1:8080/v1",
+    "runtime": "llama.cpp",
+    "release": "b10621",
+    "source_revision": "c1d0e7a004015f23bc0233470b747b596f29b264",
+    "asset": "llama-b10621-bin-ubuntu-x64.tar.gz",
+    "download_url": "https://github.com/ggml-org/llama.cpp/releases/download/b10621/llama-b10621-bin-ubuntu-x64.tar.gz",
+    "sha256": "91d7b03ddae498a39f28fdb85d84d2b4a0fd3838d10b4f897e0ef8975bb9b583",
+    "server_args": [
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "8080",
+      "--alias",
+      "diffcipline-qwen2.5-coder-1.5b-q4km",
+      "--ctx-size",
+      "32768",
+      "--threads",
+      "4",
+      "--parallel",
+      "1",
+      "--jinja"
+    ]
+  },
+  "copilot_cli": {
+    "version": "v1.0.81",
+    "download_url": "https://github.com/github/copilot-cli/releases/download/v1.0.81/copilot-linux-x64.tar.gz",
+    "linux_x64_sha256": "3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3"
+  },
+  "resource_limits": {
+    "runner": "ubuntu-latest",
+    "per_task_timeout_seconds": 480,
+    "benchmark_job_timeout_minutes": 240,
+    "network_tools": "denied",
+    "git_push": "denied"
+  },
   "prompt_suffix": "Work only in the current repository. Do not commit or push. Do not use network resources. If an installed skill is relevant, use it. Run the repository tests before finishing.",
   "arms": {
-    "baseline": {"skill": null},
-    "karpathy": {"repository": "multica-ai/andrej-karpathy-skills", "revision": "2c606141936f1eeef17fa3043a72095b4765b9c2", "path": "skills/karpathy-guidelines/SKILL.md", "blob_sha": "6a62d0441753157ca6ca50479e490c2948033adb"},
-    "ponytail": {"repository": "DietrichGebert/ponytail", "revision": "2ed6c52c9d7e5e56942508591085fd45dea277d3", "path": "skills/ponytail/SKILL.md", "blob_sha": "02c0712c86277d49d18a77da3a2b825657bf02d1"},
-    "diffcipline": {"repository": "TheHalfMoon/Diffcipline", "revision": "6bbeb59bab21724c92ed3456953a94e5202f0e53", "path": "skills/diffcipline/SKILL.md", "blob_sha": "0ca69dc046c7ba41d9b361b734a776ff536695ac"}
+    "baseline": {
+      "skill": null
+    },
+    "karpathy": {
+      "repository": "multica-ai/andrej-karpathy-skills",
+      "revision": "2c606141936f1eeef17fa3043a72095b4765b9c2",
+      "path": "skills/karpathy-guidelines/SKILL.md",
+      "blob_sha": "6a62d0441753157ca6ca50479e490c2948033adb"
+    },
+    "ponytail": {
+      "repository": "DietrichGebert/ponytail",
+      "revision": "2ed6c52c9d7e5e56942508591085fd45dea277d3",
+      "path": "skills/ponytail/SKILL.md",
+      "blob_sha": "02c0712c86277d49d18a77da3a2b825657bf02d1"
+    },
+    "diffcipline": {
+      "repository": "TheHalfMoon/Diffcipline",
+      "revision": "6bbeb59bab21724c92ed3456953a94e5202f0e53",
+      "path": "skills/diffcipline/SKILL.md",
+      "blob_sha": "0ca69dc046c7ba41d9b361b734a776ff536695ac"
+    }
   }
 }
