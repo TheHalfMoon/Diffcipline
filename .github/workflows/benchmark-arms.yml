@@ -58,7 +58,7 @@ jobs:
           assert c["provider"]["chat_template"]["blob_sha"] == "1bad6a0f648dccdbec523ca79ba90fbcfc806af0"
           assert c["copilot_cli"]["version"] == "v1.0.81"
           assert c["copilot_cli"]["linux_x64_sha256"] == "3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3"
-          assert c["agent"]["available_tools"] == ["bash", "skill"]
+          assert c["agent"]["available_tools"] == ["bash", "read_bash", "skill"]
           assert c["agent"]["disable_builtin_mcps"] is True
           assert c["resource_limits"]["runner"] == "ubuntu-latest"
           assert c["resource_limits"]["per_task_timeout_seconds"] == 480
@@ -155,7 +155,7 @@ jobs:
               --model diffcipline-llama3.2-3b-q4km \
               --no-ask-user \
               --disable-builtin-mcps \
-              --available-tools='bash,skill' \
+              --available-tools='bash,read_bash,skill' \
               --allow-tool=shell \
               --deny-tool=write \
               --deny-tool=url \
@@ -165,6 +165,7 @@ jobs:
               2> "$RUNNER_TEMP/runtime/model-preflight.stderr"
           )
           test -s "$RUNNER_TEMP/runtime/model-preflight.md"
+          grep -Fq '### `bash`' "$RUNNER_TEMP/runtime/model-preflight.md"
           grep -Fq "$nonce" "$RUNNER_TEMP/runtime/model-preflight.stdout" || \
             grep -Fq "$nonce" "$RUNNER_TEMP/runtime/model-preflight.md"
       - if: always()
