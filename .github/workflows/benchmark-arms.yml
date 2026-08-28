@@ -1,210 +1,198 @@
 name: benchmark-arms
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/benchmark-arms.yml"
+      - "benchmarks/run-config.json"
+      - "benchmarks/harness/local_agent.py"
+      - "benchmarks/harness/run_arm.py"
   push:
     branches: [main]
     paths:
       - ".github/workflows/benchmark-arms.yml"
       - "benchmarks/run-config.json"
+      - "benchmarks/harness/local_agent.py"
       - "benchmarks/harness/run_arm.py"
 
 permissions:
   contents: read
-  copilot-requests: write
 
 env:
-  COPILOT_VERSION: v1.0.81
-  COPILOT_SHA256: 3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3
   FIXTURE_REVISION: 4f796058bddd840be31d3fbf7d74b34a5403c49c
 
 jobs:
-  preflight:
+  experiment:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
-      - name: Verify frozen corpus and run configuration
+
+      - name: Verify frozen experiment
         shell: bash
         run: |
           set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
           git diff --exit-code "$FIXTURE_REVISION" -- \
-            benchmarks/fixtures \
-            benchmarks/harness/prepare_fixture.py \
-            benchmarks/harness/score_run.py
+            benchmarks/fixtures benchmarks/harness/prepare_fixture.py benchmarks/harness/score_run.py
           python benchmarks/harness/validate_fixtures.py
           python - <<'PY'
-          import json, os
-          config = json.load(open("benchmarks/run-config.json", encoding="utf-8"))
-          selection = config["model_selection"]
-          candidates = selection["candidates"]
-          assert config["fixture_revision"] == os.environ["FIXTURE_REVISION"]
-          assert selection["rule"] == "first-explicitly-available-before-task-execution"
-          assert candidates and len(candidates) == len(set(candidates))
-          assert "auto" not in candidates
-          assert config["copilot_cli"]["version"] == os.environ["COPILOT_VERSION"]
-          assert config["copilot_cli"]["linux_x64_sha256"] == os.environ["COPILOT_SHA256"]
+          import ast, json, os
+          from pathlib import Path
+          c = json.load(open("benchmarks/run-config.json", encoding="utf-8"))
+          assert c["fixture_revision"] == os.environ["FIXTURE_REVISION"]
+          assert c["model"]["id"] == "diffcipline-llama3.2-3b-q4km"
+          assert c["model"]["revision"] == "54651d07cdbbd900b46c652cbf6672c935a22236"
+          assert c["model"]["sha256"] == "6c1a2b41161032677be168d354123594c0e6e67d2b9227c84f296ad037c728ff"
+          assert c["provider"]["release"] == "b10621"
+          assert c["provider"]["source_revision"] == "c1d0e7a004015f23bc0233470b747b596f29b264"
+          assert c["provider"]["sha256"] == "91d7b03ddae498a39f28fdb85d84d2b4a0fd3838d10b4f897e0ef8975bb9b583"
+          assert c["provider"]["chat_template"]["blob_sha"] == "1bad6a0f648dccdbec523ca79ba90fbcfc806af0"
+          assert c["agent"] == {"runtime": "repository-local-openai-tool-loop", "tools": ["bash", "skill"], "bash_mode": "synchronous"}
+          assert c["resource_limits"]["per_task_timeout_seconds"] == 480
+          assert c["resource_limits"]["network_tools"] == c["resource_limits"]["git_push"] == "denied"
+          for path in ("benchmarks/harness/local_agent.py", "benchmarks/harness/run_arm.py"):
+              ast.parse(Path(path).read_text(encoding="utf-8"))
           PY
-      - name: Build pinned runtime inputs
+
+      - name: Build pinned local runtime
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p runtime/treatments/{karpathy-guidelines,ponytail,diffcipline}
-          curl -fsSL "https://github.com/github/copilot-cli/releases/download/${COPILOT_VERSION}/copilot-linux-x64.tar.gz" -o runtime/copilot.tgz
-          echo "$COPILOT_SHA256  runtime/copilot.tgz" | sha256sum -c -
-          tar -xzf runtime/copilot.tgz -C runtime
-          rm runtime/copilot.tgz
-          chmod +x runtime/copilot
-          runtime/copilot --version | tee runtime/copilot-version.txt
-          grep -F "1.0.81" runtime/copilot-version.txt
-          curl -fsSL "https://raw.githubusercontent.com/multica-ai/andrej-karpathy-skills/2c606141936f1eeef17fa3043a72095b4765b9c2/skills/karpathy-guidelines/SKILL.md" > runtime/treatments/karpathy-guidelines/SKILL.md
-          curl -fsSL "https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail/SKILL.md" > runtime/treatments/ponytail/SKILL.md
-          cp skills/diffcipline/SKILL.md runtime/treatments/diffcipline/SKILL.md
-          test "$(git hash-object runtime/treatments/karpathy-guidelines/SKILL.md)" = "6a62d0441753157ca6ca50479e490c2948033adb"
-          test "$(git hash-object runtime/treatments/ponytail/SKILL.md)" = "02c0712c86277d49d18a77da3a2b825657bf02d1"
-          test "$(git hash-object runtime/treatments/diffcipline/SKILL.md)" = "0ca69dc046c7ba41d9b361b734a776ff536695ac"
-      - name: Resolve one explicit model before benchmark execution
+          mkdir -p "$RUNNER_TEMP/runtime"/{provider,treatments/{karpathy-guidelines,ponytail,diffcipline}}
+          python - <<'PY' > "$RUNNER_TEMP/runtime/env"
+          import json, shlex
+          c = json.load(open("benchmarks/run-config.json", encoding="utf-8"))
+          for key, value in {
+              "PROVIDER_URL": c["provider"]["download_url"], "PROVIDER_SHA": c["provider"]["sha256"],
+              "MODEL_URL": c["model"]["download_url"], "MODEL_SHA": c["model"]["sha256"],
+              "MODEL_FILE": c["model"]["file"], "MODEL_ID": c["model"]["id"], "BASE_URL": c["provider"]["base_url"],
+          }.items():
+              print(f"{key}={shlex.quote(value)}")
+          PY
+          source "$RUNNER_TEMP/runtime/env"
+          curl -fsSL "$PROVIDER_URL" -o "$RUNNER_TEMP/runtime/provider.tgz"
+          echo "$PROVIDER_SHA  $RUNNER_TEMP/runtime/provider.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/runtime/provider.tgz" -C "$RUNNER_TEMP/runtime/provider"
+          curl -fsSL "$MODEL_URL" -o "$RUNNER_TEMP/runtime/$MODEL_FILE"
+          echo "$MODEL_SHA  $RUNNER_TEMP/runtime/$MODEL_FILE" | sha256sum -c -
+          curl -fsSL "https://raw.githubusercontent.com/ggml-org/llama.cpp/c1d0e7a004015f23bc0233470b747b596f29b264/models/templates/meta-llama-Llama-3.2-3B-Instruct.jinja" > "$RUNNER_TEMP/runtime/tool-template.jinja"
+          test "$(git hash-object "$RUNNER_TEMP/runtime/tool-template.jinja")" = "1bad6a0f648dccdbec523ca79ba90fbcfc806af0"
+          curl -fsSL "https://raw.githubusercontent.com/multica-ai/andrej-karpathy-skills/2c606141936f1eeef17fa3043a72095b4765b9c2/skills/karpathy-guidelines/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md"
+          curl -fsSL "https://raw.githubusercontent.com/DietrichGebert/ponytail/2ed6c52c9d7e5e56942508591085fd45dea277d3/skills/ponytail/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md"
+          curl -fsSL "https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/6bbeb59bab21724c92ed3456953a94e5202f0e53/skills/diffcipline/SKILL.md" > "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md"
+          test "$(git hash-object "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md")" = "6a62d0441753157ca6ca50479e490c2948033adb"
+          test "$(git hash-object "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md")" = "02c0712c86277d49d18a77da3a2b825657bf02d1"
+          test "$(git hash-object "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md")" = "0ca69dc046c7ba41d9b361b734a776ff536695ac"
+          python - <<'PY' > "$RUNNER_TEMP/runtime/provenance.json"
+          import hashlib, json, subprocess
+          c = json.load(open("benchmarks/run-config.json", encoding="utf-8"))
+          c["repository_revision"] = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          for key, path in {"agent_harness_sha256": "benchmarks/harness/local_agent.py", "run_arm_sha256": "benchmarks/harness/run_arm.py"}.items():
+              c[key] = hashlib.sha256(open(path, "rb").read()).hexdigest()
+          print(json.dumps(c, indent=2, sort_keys=True))
+          PY
+          { nproc; free -b; df -B1 "$RUNNER_TEMP"; stat -c '%n %s' "$RUNNER_TEMP/runtime/$MODEL_FILE"; } > "$RUNNER_TEMP/runtime/resource-observation.txt"
+
+      - name: Start pinned local model
         shell: bash
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          rm -f runtime/selected-model.txt
-          index=0
-          while IFS= read -r model; do
-            index=$((index + 1))
-            home="$RUNNER_TEMP/model-probe-$index"
-            rm -rf "$home"
-            mkdir -p "$home"
-            echo "Probing explicit model: $model"
-            if COPILOT_HOME="$home" runtime/copilot \
-              -p "Reply with BENCHMARK_PREFLIGHT_OK." -s \
-              --model "$model" --no-ask-user \
-              --deny-tool=write --deny-tool=shell --deny-tool=url --deny-tool=memory \
-              > "runtime/model-probe-$index.out" 2> "runtime/model-probe-$index.stderr"; then
-              test -s "runtime/model-probe-$index.out"
-              printf '%s\n' "$model" > runtime/selected-model.txt
-              cp "runtime/model-probe-$index.out" runtime/model-preflight.txt
-              break
-            fi
-          done < <(python -c 'import json; print("\n".join(json.load(open("benchmarks/run-config.json"))["model_selection"]["candidates"]))')
-          if [[ ! -s runtime/selected-model.txt ]]; then
-            cat runtime/model-probe-*.stderr
-            echo "No predeclared explicit model is available; refusing to use auto selection." >&2
-            exit 1
-          fi
-          echo "Selected exact benchmark model: $(cat runtime/selected-model.txt)"
+          source "$RUNNER_TEMP/runtime/env"
+          server="$(find "$RUNNER_TEMP/runtime/provider" -type f -name llama-server -print -quit)"
+          chmod +x "$server"
+          mapfile -t args < <(python -c 'import json; print("\n".join(json.load(open("benchmarks/run-config.json"))["provider"]["server_args"]))')
+          "$server" --model "$RUNNER_TEMP/runtime/$MODEL_FILE" "${args[@]}" --chat-template-file "$RUNNER_TEMP/runtime/tool-template.jinja" > "$RUNNER_TEMP/runtime/llama-server.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/runtime/llama-server.pid"
+          for _ in $(seq 1 180); do curl -fsS http://127.0.0.1:8080/health > "$RUNNER_TEMP/runtime/health.json" && break || sleep 1; done
+          grep -Fq '"status":"ok"' "$RUNNER_TEMP/runtime/health.json"
+          curl -fsS http://127.0.0.1:8080/props > "$RUNNER_TEMP/runtime/props.json"
+          grep -Fq '"supports_tool_calls":true' <(tr -d ' ' < "$RUNNER_TEMP/runtime/props.json")
+          ps -o pid,rss,vsz,cmd -p "$(cat "$RUNNER_TEMP/runtime/llama-server.pid")" >> "$RUNNER_TEMP/runtime/resource-observation.txt"
+
+      - name: Prove synchronous bash and skill tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          source "$RUNNER_TEMP/runtime/env"
+          work="$RUNNER_TEMP/preflight-work"; mkdir -p "$work"
+          nonce="$(python -c 'import secrets; print(secrets.token_hex(16))')"
+          printf '%s\n' "$nonce" > "$work/preflight-nonce.txt"
+          python benchmarks/harness/local_agent.py --base-url "$BASE_URL" --model "$MODEL_ID" --workdir "$work" \
+            --prompt "Use bash exactly once to run: cat preflight-nonce.txt. bash is synchronous. Then reply with the exact contents and call no more tools." \
+            --transcript "$RUNNER_TEMP/runtime/bash-preflight.md" --timeout-seconds 480 > "$RUNNER_TEMP/runtime/bash-preflight.stdout" 2> "$RUNNER_TEMP/runtime/bash-preflight.stderr"
+          grep -Fq '## Tool: bash' "$RUNNER_TEMP/runtime/bash-preflight.md"
+          grep -Fq "$nonce" "$RUNNER_TEMP/runtime/bash-preflight.md"
+          skill_nonce="$(python -c 'import secrets; print(secrets.token_hex(16))')"
+          printf 'Return this exact token after loading the skill: %s\n' "$skill_nonce" > "$RUNNER_TEMP/runtime/preflight-skill.md"
+          python benchmarks/harness/local_agent.py --base-url "$BASE_URL" --model "$MODEL_ID" --workdir "$work" \
+            --prompt "Load the installed skill exactly once, then reply with the token it contains. Do not use bash." \
+            --skill "$RUNNER_TEMP/runtime/preflight-skill.md" --transcript "$RUNNER_TEMP/runtime/skill-preflight.md" \
+            --timeout-seconds 480 > "$RUNNER_TEMP/runtime/skill-preflight.stdout" 2> "$RUNNER_TEMP/runtime/skill-preflight.stderr"
+          grep -Fq '## Tool: skill' "$RUNNER_TEMP/runtime/skill-preflight.md"
+          grep -Fq "$skill_nonce" "$RUNNER_TEMP/runtime/skill-preflight.md"
+
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: benchmark-runtime-inputs
-          path: runtime
+          name: benchmark-local-agent-preflight
+          path: |
+            ${{ runner.temp }}/runtime/provenance.json
+            ${{ runner.temp }}/runtime/resource-observation.txt
+            ${{ runner.temp }}/runtime/*-preflight.*
+            ${{ runner.temp }}/runtime/llama-server.log
+            ${{ runner.temp }}/runtime/health.json
+            ${{ runner.temp }}/runtime/props.json
           if-no-files-found: error
           retention-days: 30
-          compression-level: 0
 
-  baseline:
-    needs: preflight
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with: {python-version: "3.12"}
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with: {name: benchmark-runtime-inputs, path: "${{ runner.temp }}/runtime", digest-mismatch: error}
-      - name: Run T052 baseline
-        env: {GITHUB_TOKEN: "${{ github.token }}"}
+      - name: Run T052 through T054 in canonical order
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         run: |
           set -euo pipefail
-          chmod +x "$RUNNER_TEMP/runtime/copilot"
-          model="$(cat "$RUNNER_TEMP/runtime/selected-model.txt")"
+          source "$RUNNER_TEMP/runtime/env"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
-          python benchmarks/harness/run_arm.py --arm baseline --model "$model" \
-            --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/baseline/results" \
-            --prompt-suffix "$suffix"
-      - if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with: {name: benchmark-baseline, path: "${{ runner.temp }}/benchmark/baseline/results", if-no-files-found: warn, retention-days: 30}
+          run_arm() {
+            arm="$1"; skill="${2:-}"; name="${3:-}"; results="$RUNNER_TEMP/benchmark/$arm/results"
+            args=(--arm "$arm" --model "$MODEL_ID" --base-url "$BASE_URL" --results "$results" --timeout-seconds 480 --prompt-suffix "$suffix")
+            [[ -z "$skill" ]] || args+=(--skill "$skill" --skill-name "$name")
+            python benchmarks/harness/run_arm.py "${args[@]}"
+            cp "$RUNNER_TEMP/runtime/provenance.json" "$results/runtime-provenance.json"
+            ARM="$arm" RESULTS="$results" python - <<'PY'
+          import json, os
+          from pathlib import Path
+          ids = ["f01-shared-root-cause","f02-stdlib-query","f03-dependency-temptation","f04-refactor-preserve","f05-security-boundary","f06-already-minimal"]
+          root = Path(os.environ["RESULTS"]); summary = json.load(open(root / "summary.json"))
+          assert summary["arm"] == os.environ["ARM"] and summary["tasks"] == 6
+          assert (root / "runtime-provenance.json").is_file()
+          for task in ids:
+              bundle = root / task
+              for name in ["transcript.md","stdout.txt","stderr.txt","score.json","changes.patch","status.txt","metadata.json"]:
+                  assert (bundle / name).is_file(), f"{task}: missing {name}"
+              assert (bundle / "workspace").is_dir()
+          PY
+          }
+          echo "T052 baseline"; run_arm baseline
+          echo "T053 Karpathy"; run_arm karpathy "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md" karpathy-guidelines
+          echo "T053 Ponytail"; run_arm ponytail "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md" ponytail
+          echo "T054 Diffcipline"; run_arm diffcipline "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md" diffcipline
 
-  karpathy:
-    needs: [preflight, baseline]
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with: {python-version: "3.12"}
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with: {name: benchmark-runtime-inputs, path: "${{ runner.temp }}/runtime", digest-mismatch: error}
-      - name: Run Karpathy comparison
-        env: {GITHUB_TOKEN: "${{ github.token }}"}
-        shell: bash
-        run: |
-          set -euo pipefail
-          chmod +x "$RUNNER_TEMP/runtime/copilot"
-          model="$(cat "$RUNNER_TEMP/runtime/selected-model.txt")"
-          suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
-          python benchmarks/harness/run_arm.py --arm karpathy --model "$model" \
-            --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/karpathy/results" \
-            --skill "$RUNNER_TEMP/runtime/treatments/karpathy-guidelines/SKILL.md" --skill-name karpathy-guidelines \
-            --prompt-suffix "$suffix"
-      - if: always()
+      - if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with: {name: benchmark-karpathy, path: "${{ runner.temp }}/benchmark/karpathy/results", if-no-files-found: warn, retention-days: 30}
-
-  ponytail:
-    needs: [preflight, baseline]
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with: {python-version: "3.12"}
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with: {name: benchmark-runtime-inputs, path: "${{ runner.temp }}/runtime", digest-mismatch: error}
-      - name: Run Ponytail comparison
-        env: {GITHUB_TOKEN: "${{ github.token }}"}
-        shell: bash
-        run: |
-          set -euo pipefail
-          chmod +x "$RUNNER_TEMP/runtime/copilot"
-          model="$(cat "$RUNNER_TEMP/runtime/selected-model.txt")"
-          suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
-          python benchmarks/harness/run_arm.py --arm ponytail --model "$model" \
-            --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/ponytail/results" \
-            --skill "$RUNNER_TEMP/runtime/treatments/ponytail/SKILL.md" --skill-name ponytail \
-            --prompt-suffix "$suffix"
-      - if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with: {name: benchmark-ponytail, path: "${{ runner.temp }}/benchmark/ponytail/results", if-no-files-found: warn, retention-days: 30}
-
-  diffcipline:
-    needs: [preflight, karpathy, ponytail]
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with: {python-version: "3.12"}
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with: {name: benchmark-runtime-inputs, path: "${{ runner.temp }}/runtime", digest-mismatch: error}
-      - name: Run T054 Diffcipline arm
-        env: {GITHUB_TOKEN: "${{ github.token }}"}
-        shell: bash
-        run: |
-          set -euo pipefail
-          chmod +x "$RUNNER_TEMP/runtime/copilot"
-          model="$(cat "$RUNNER_TEMP/runtime/selected-model.txt")"
-          suffix="$(python -c 'import json; print(json.load(open("benchmarks/run-config.json"))["prompt_suffix"])')"
-          python benchmarks/harness/run_arm.py --arm diffcipline --model "$model" \
-            --copilot "$RUNNER_TEMP/runtime/copilot" --results "$RUNNER_TEMP/benchmark/diffcipline/results" \
-            --skill "$RUNNER_TEMP/runtime/treatments/diffcipline/SKILL.md" --skill-name diffcipline \
-            --prompt-suffix "$suffix"
-      - if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with: {name: benchmark-diffcipline, path: "${{ runner.temp }}/benchmark/diffcipline/results", if-no-files-found: warn, retention-days: 30}
+        with:
+          name: benchmark-results
+          path: |
+            ${{ runner.temp }}/benchmark
+            ${{ runner.temp }}/runtime/provenance.json
+            ${{ runner.temp }}/runtime/llama-server.log
+          if-no-files-found: warn
+          retention-days: 30
+          compression-level: 6
