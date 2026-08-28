@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "fixture_revision": "4f796058bddd840be31d3fbf7d74b34a5403c49c",
-  "model": "gpt-5.3-codex",
+  "model": "claude-sonnet-4.6",
   "copilot_cli": {"version": "v1.0.81", "linux_x64_sha256": "3082c4a27aa683def52e48397c02606dc7f8267dcef1c93949f3f58de4a5cde3"},
   "resource_limits": {"runner": "ubuntu-latest", "per_task_timeout_seconds": 480, "network_tools": "denied", "git_push": "denied"},
   "prompt_suffix": "Work only in the current repository. Do not commit or push. Do not use network resources. If an installed skill is relevant, use it. Run the repository tests before finishing.",
