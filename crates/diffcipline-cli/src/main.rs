@@ -137,6 +137,10 @@ struct Stats {
 #[derive(Debug)]
 struct CheckResult {
     verdict: Verdict,
+    risk: Option<Risk>,
+    expected_files: Vec<String>,
+    forbidden_surfaces: Vec<String>,
+    scope_violations: Vec<String>,
     stats: Stats,
     reasons: Vec<String>,
     verification: Vec<(String, Option<bool>)>,
@@ -319,9 +323,10 @@ fn check(base: Option<&str>, execute: bool, risk: Option<Risk>) -> Result<CheckR
         &mut reasons,
     );
 
-    for reason in scope_violations(&policy, &changed_paths(&stats)) {
+    let scope_violations = scope_violations(&policy, &changed_paths(&stats));
+    for reason in &scope_violations {
         verdict = Verdict::Fail;
-        reasons.push(reason);
+        reasons.push(reason.clone());
     }
 
     let mut verification = Vec::new();
@@ -350,6 +355,10 @@ fn check(base: Option<&str>, execute: bool, risk: Option<Risk>) -> Result<CheckR
 
     Ok(CheckResult {
         verdict,
+        risk,
+        expected_files: policy.expected_files,
+        forbidden_surfaces: policy.forbidden_surfaces,
+        scope_violations,
         stats,
         reasons,
         verification,
@@ -739,6 +748,34 @@ fn print_result(result: &CheckResult, base: Option<&str>) {
     println!("DIFFCIPLINE PROOF\n");
     println!("Verdict       {}", result.verdict.name());
     println!(
+        "Risk          {}",
+        result.risk.map(Risk::name).unwrap_or("default")
+    );
+    println!(
+        "Expected      {}",
+        if result.expected_files.is_empty() {
+            "unrestricted".into()
+        } else {
+            result.expected_files.join(", ")
+        }
+    );
+    println!(
+        "Forbidden     {}",
+        if result.forbidden_surfaces.is_empty() {
+            "none".into()
+        } else {
+            result.forbidden_surfaces.join(", ")
+        }
+    );
+    println!(
+        "Scope         {}",
+        if result.scope_violations.is_empty() {
+            "PASS".into()
+        } else {
+            format!("FAIL — {} violation(s)", result.scope_violations.len())
+        }
+    );
+    println!(
         "Comparison    {}",
         base.map(|value| format!("{value}...HEAD"))
             .unwrap_or_else(|| "HEAD vs working tree".into())
@@ -767,12 +804,7 @@ fn print_result(result: &CheckResult, base: Option<&str>) {
     println!("Untracked     {}", result.stats.untracked.len());
 
     for (command, state) in &result.verification {
-        let label = match state {
-            Some(true) => "PASS",
-            Some(false) => "FAIL",
-            None => "NOT RUN",
-        };
-        println!("Verification  {label} — {command}");
+        println!("Verification  {} — {command}", verification_state(*state));
     }
 
     if !result.reasons.is_empty() {
@@ -784,34 +816,63 @@ fn print_result(result: &CheckResult, base: Option<&str>) {
     println!("\n{}", result.verdict.name());
 }
 
+fn verification_state(state: Option<bool>) -> &'static str {
+    match state {
+        Some(true) => "PASS",
+        Some(false) => "FAIL",
+        None => "NOT RUN",
+    }
+}
+
 fn to_json(result: &CheckResult, base: Option<&str>) -> String {
-    let files = result
-        .stats
-        .files
+    let files = json_string_array(&result.stats.files);
+    let reasons = json_string_array(&result.reasons);
+    let expected_files = json_string_array(&result.expected_files);
+    let forbidden_surfaces = json_string_array(&result.forbidden_surfaces);
+    let scope_violations = json_string_array(&result.scope_violations);
+    let verification = result
+        .verification
         .iter()
-        .map(|value| format!("\"{}\"", json_escape(value)))
-        .collect::<Vec<_>>()
-        .join(",");
-    let reasons = result
-        .reasons
-        .iter()
-        .map(|value| format!("\"{}\"", json_escape(value)))
+        .map(|(command, state)| {
+            format!(
+                "{{\"command\":\"{}\",\"state\":\"{}\"}}",
+                json_escape(command),
+                verification_state(*state)
+            )
+        })
         .collect::<Vec<_>>()
         .join(",");
     let base = base
         .map(|value| format!("\"{}\"", json_escape(value)))
         .unwrap_or_else(|| "null".into());
+    let risk = result
+        .risk
+        .map(|value| format!("\"{}\"", value.name()))
+        .unwrap_or_else(|| "null".into());
 
     format!(
-        "{{\"verdict\":\"{}\",\"base\":{},\"changed_files\":{},\"added_lines\":{},\"deleted_lines\":{},\"files\":[{}],\"reasons\":[{}]}}",
+        "{{\"verdict\":\"{}\",\"base\":{},\"changed_files\":{},\"added_lines\":{},\"deleted_lines\":{},\"files\":[{}],\"reasons\":[{}],\"risk\":{},\"expected_files\":[{}],\"forbidden_surfaces\":[{}],\"scope_violations\":[{}],\"verification\":[{}]}}",
         result.verdict.name(),
         base,
         result.stats.files.len(),
         result.stats.added,
         result.stats.deleted,
         files,
-        reasons
+        reasons,
+        risk,
+        expected_files,
+        forbidden_surfaces,
+        scope_violations,
+        verification
     )
+}
+
+fn json_string_array(values: &[String]) -> String {
+    values
+        .iter()
+        .map(|value| format!("\"{}\"", json_escape(value)))
+        .collect::<Vec<_>>()
+        .join(",")
 }
 
 fn json_escape(value: &str) -> String {
@@ -875,6 +936,51 @@ r2_commands = [\"cargo clippy\"]\nr3_commands = [\"cargo test --all\"]\n",
             ["risk-one"]
         );
         assert!(verification_commands(&policy, Some(Risk::R2)).is_err());
+    }
+
+    #[test]
+    fn json_output_is_additive_and_escaped() {
+        let result = CheckResult {
+            verdict: Verdict::Fail,
+            risk: Some(Risk::R2),
+            expected_files: vec!["src/**".into(), "quote\".txt".into()],
+            forbidden_surfaces: vec!["secrets/**".into()],
+            scope_violations: vec!["unexpected changed file: line\nbreak".into()],
+            stats: Stats {
+                files: vec!["src/lib.rs".into()],
+                added: 1,
+                deleted: 2,
+                manifests: Vec::new(),
+                lockfiles: Vec::new(),
+                untracked: Vec::new(),
+            },
+            reasons: vec!["reason\tvalue".into()],
+            verification: vec![
+                ("echo \"ok\"".into(), Some(true)),
+                ("path\\check".into(), None),
+            ],
+        };
+
+        let json = to_json(&result, Some("main"));
+        assert!(json.contains("\"verdict\":\"FAIL\""));
+        assert!(json.contains("\"base\":\"main\""));
+        assert!(json.contains("\"changed_files\":1"));
+        assert!(json.contains("\"risk\":\"R2\""));
+        assert!(json.contains("\"expected_files\":[\"src/**\",\"quote\\\".txt\"]"));
+        assert!(json.contains("\"forbidden_surfaces\":[\"secrets/**\"]"));
+        assert!(json.contains("\"scope_violations\":[\"unexpected changed file: line\\nbreak\"]"));
+        assert!(json.contains("\"reasons\":[\"reason\\tvalue\"]"));
+        assert!(json.contains(
+            "\"verification\":[{\"command\":\"echo \\\"ok\\\"\",\"state\":\"PASS\"},{\"command\":\"path\\\\check\",\"state\":\"NOT RUN\"}]"
+        ));
+    }
+
+    #[test]
+    fn json_escape_handles_structural_characters() {
+        assert_eq!(
+            json_escape("slash\\quote\"line\nreturn\rtab\t"),
+            "slash\\\\quote\\\"line\\nreturn\\rtab\\t"
+        );
     }
 
     #[test]
