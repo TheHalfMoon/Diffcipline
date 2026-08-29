@@ -10,8 +10,8 @@ HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 ADAPTER_KINDS = {"local-openai-tool-loop"}
 SANDBOX_CONTRACT = {
-    "kind": "docker-host-toolchain-v1",
-    "image": "diffcipline-tool-sandbox:v1",
+    "kind": "docker-python-v1",
+    "image": "python:3.12.11-slim-bookworm@sha256:519591d6871b7bc437060736b9f7456b8731f1499a57e22e6c285135ae657bf7",
     "network": "none",
     "root_filesystem": "read-only",
     "workspace_mount": "read-write-only",
