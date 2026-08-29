@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/verify-v0.1.0-release.yml"
       - ".github/workflows/release.yml"
+      - ".github/workflows/stage-v0.1.0-release.yml"
       - "crates/diffcipline-cli/Cargo.toml"
       - "docs/RELEASES.md"
       - "specs/**"
@@ -46,7 +47,7 @@ jobs:
         with:
           ref: ${{ github.event.release.tag_name }}
           fetch-depth: 0
-      - name: Verify exact canonical tag and crate version
+      - name: Verify immutable canonical tag lineage and crate version
         shell: bash
         env:
           TAG: ${{ github.event.release.tag_name }}
@@ -54,7 +55,7 @@ jobs:
           set -euo pipefail
           tagged_sha="$(git rev-parse HEAD)"
           git fetch origin main --no-tags
-          test "$(git rev-parse origin/main)" = "$tagged_sha"
+          git merge-base --is-ancestor "$tagged_sha" origin/main
           git fetch origin "refs/tags/$TAG:refs/tags/$TAG" --no-tags
           test "$(git rev-parse "refs/tags/$TAG")" = "$tagged_sha"
           crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
@@ -110,6 +111,7 @@ jobs:
           set -euo pipefail
           mkdir -p evidence
           tagged_sha="$(git rev-parse HEAD)"
+          canonical_main_sha="$(git rev-parse origin/main)"
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
             --json tagName,url,isDraft,isImmutable,publishedAt,assets \
             > evidence/release.json
@@ -120,6 +122,7 @@ jobs:
           cat > evidence/verification.txt <<EOF
           tag=$TAG
           tag_sha=$tagged_sha
+          canonical_main_sha=$canonical_main_sha
           workflow_run_id=$GITHUB_RUN_ID
           workflow_run_attempt=$GITHUB_RUN_ATTEMPT
           workflow_sha=$GITHUB_SHA
