@@ -96,6 +96,10 @@ fn pass_requires_executed_verification() {
     assert_eq!(output.status.code(), Some(0));
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("Verdict       PASS"));
+    assert!(stdout.contains("Risk          default"));
+    assert!(stdout.contains("Expected      unrestricted"));
+    assert!(stdout.contains("Forbidden     none"));
+    assert!(stdout.contains("Scope         PASS"));
     assert!(stdout.contains("Verification  PASS — git diff --check"));
 }
 
@@ -129,6 +133,7 @@ fn explicit_risk_selects_only_requested_profile() {
 
     assert_eq!(output.status.code(), Some(0));
     let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Risk          R1"));
     assert!(stdout.contains("Verification  PASS — git status --short"));
     assert!(!stdout.contains("Verification  PASS — git diff --check"));
 }
@@ -140,6 +145,7 @@ fn omitted_risk_preserves_default_commands() {
 
     assert_eq!(output.status.code(), Some(0));
     let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Risk          default"));
     assert!(stdout.contains("Verification  PASS — git diff --check"));
     assert!(!stdout.contains("Verification  PASS — git status --short"));
 }
@@ -193,6 +199,8 @@ fn expected_file_contract_allows_matching_change() {
     assert_eq!(output.status.code(), Some(0));
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("Verdict       PASS"));
+    assert!(stdout.contains("Expected      tracked.txt"));
+    assert!(stdout.contains("Scope         PASS"));
     assert!(!stdout.contains("unexpected changed file"));
 }
 
@@ -204,6 +212,7 @@ fn expected_file_contract_fails_unmatched_tracked_change() {
     assert_eq!(output.status.code(), Some(2));
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("Verdict       FAIL"));
+    assert!(stdout.contains("Scope         FAIL — 1 violation(s)"));
     assert!(stdout.contains("unexpected changed file: tracked.txt"));
     assert!(stdout.contains("Verification  PASS — git diff --check"));
 }
@@ -227,8 +236,48 @@ fn forbidden_surface_contract_fails_matching_change() {
     assert_eq!(output.status.code(), Some(2));
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("Verdict       FAIL"));
+    assert!(stdout.contains("Forbidden     *.txt"));
     assert!(stdout.contains("forbidden surface changed: tracked.txt"));
     assert!(stdout.contains("Verification  PASS — git diff --check"));
+}
+
+#[test]
+fn json_proof_exposes_risk_intent_and_verification() {
+    let fixture = Fixture::with_parts(
+        4,
+        "expected_files = [\"tracked.txt\"]\nforbidden_surfaces = [\"secrets/**\"]",
+        "r1_commands = [\"git status --short\"]",
+    );
+    let output = fixture.run(&["check", "--risk", "R1", "--run", "--json"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("\"verdict\":\"PASS\""));
+    assert!(stdout.contains("\"changed_files\":1"));
+    assert!(stdout.contains("\"risk\":\"R1\""));
+    assert!(stdout.contains("\"expected_files\":[\"tracked.txt\"]"));
+    assert!(stdout.contains("\"forbidden_surfaces\":[\"secrets/**\"]"));
+    assert!(stdout.contains("\"scope_violations\":[]"));
+    assert!(stdout.contains(
+        "\"verification\":[{\"command\":\"git status --short\",\"state\":\"PASS\"}]"
+    ));
+}
+
+#[test]
+fn json_proof_exposes_scope_violations_without_removing_reasons() {
+    let fixture = Fixture::with_policy(4, "expected_files = [\"src/**\"]");
+    let output = fixture.run(&["check", "--run", "--json"]);
+
+    assert_eq!(output.status.code(), Some(2));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("\"risk\":null"));
+    assert!(stdout.contains(
+        "\"scope_violations\":[\"unexpected changed file: tracked.txt\"]"
+    ));
+    assert!(stdout.contains("\"reasons\":[\"unexpected changed file: tracked.txt\"]"));
+    assert!(stdout.contains(
+        "\"verification\":[{\"command\":\"git diff --check\",\"state\":\"PASS\"}]"
+    ));
 }
 
 #[test]
