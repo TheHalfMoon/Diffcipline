@@ -119,10 +119,10 @@ jobs:
           skills_run="$(successful_run skills-compat.yml push)"
           release_run="$(successful_run release.yml push)"
           tag_run="$(successful_run tag-v0.1.0.yml issue_comment)"
-          test -n "$ci_run"
-          test -n "$skills_run"
-          test -n "$release_run"
-          test -n "$tag_run"
+          test "$ci_run" = "33237553577"
+          test "$skills_run" = "33237553599"
+          test "$release_run" = "33237553641"
+          test "$tag_run" = "33237861972"
           echo "ci_run=$ci_run" >> "$GITHUB_OUTPUT"
           echo "skills_run=$skills_run" >> "$GITHUB_OUTPUT"
           echo "release_run=$release_run" >> "$GITHUB_OUTPUT"
@@ -136,7 +136,11 @@ jobs:
         run: |
           set -euo pipefail
           artifact_count="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID/artifacts" --jq '[.artifacts[] | select(.name == "signed-release-candidate" and .expired == false)] | length')"
+          artifact_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID/artifacts" --jq '.artifacts[] | select(.name == "signed-release-candidate" and .expired == false) | .id')"
+          artifact_digest="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID/artifacts" --jq '.artifacts[] | select(.name == "signed-release-candidate" and .expired == false) | .digest')"
           test "$artifact_count" -eq 1
+          test "$artifact_id" = "9710422207"
+          test "$artifact_digest" = "sha256:586ebf4c711b1d746e7664a1a71f4f2dd4542ee3eff98df2dfeb1443e4021e7e"
           rm -rf dist
           mkdir dist
           gh run download "$RELEASE_RUN_ID" \
@@ -208,6 +212,8 @@ jobs:
           ci_run_id=$CI_RUN_ID
           skills_run_id=$SKILLS_RUN_ID
           canonical_release_run_id=$RELEASE_RUN_ID
+          signed_release_artifact_id=9710422207
+          signed_release_artifact_digest=sha256:586ebf4c711b1d746e7664a1a71f4f2dd4542ee3eff98df2dfeb1443e4021e7e
           tag_authority_run_id=$TAG_RUN_ID
           staging_workflow_run_id=$GITHUB_RUN_ID
           draft_release=true
