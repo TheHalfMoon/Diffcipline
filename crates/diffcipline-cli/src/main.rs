@@ -71,7 +71,9 @@ impl Risk {
             "R1" => Ok(Self::R1),
             "R2" => Ok(Self::R2),
             "R3" => Ok(Self::R3),
-            other => Err(format!("invalid risk level: {other}; expected R0, R1, R2, or R3")),
+            other => Err(format!(
+                "invalid risk level: {other}; expected R0, R1, R2, or R3"
+            )),
         }
     }
 
