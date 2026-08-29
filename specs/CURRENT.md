@@ -2,7 +2,7 @@
 
 Active: [`001-proof-before-done`](001-proof-before-done/spec.md)
 
-Status: `V0_1_TAGGED_RELEASE_STAGING`
+Status: `V0_1_DRAFT_STAGED_IMMUTABLE_PUBLICATION_PENDING_ADMIN`
 
 ## Canonical continuation
 
@@ -24,6 +24,7 @@ Read in this order before acting:
 14. `.github/workflows/stage-v0.1.0-release.yml`
 15. `.github/workflows/verify-v0.1.0-release.yml`
 16. `docs/RELEASES.md`
+17. `docs/v0.1.0-draft-staging-evidence.md`
 
 Live GitHub/repository truth overrides every recorded SHA below.
 
@@ -57,12 +58,20 @@ T062 is complete on that exact commit:
 
 T063 is complete. Guarded tag-authority run `33237861972` succeeded and created lightweight `v0.1.0` directly at the release commit above. The tag must never be moved or replaced.
 
+## Verified draft staging
+
+PR #28 merged the reviewed staging recovery to canonical `main` as:
+
+`528a1fd5a722bcd4c40e05b7e54a293c287e14b7`
+
+Staging recovery run `33245697424` completed successfully and recovered the exact signed T062 artifact rather than rebuilding a replacement candidate. It created GitHub Release ID `378936458` as a draft containing exactly five byte-verified assets.
+
+Durable draft evidence is recorded in `docs/v0.1.0-draft-staging-evidence.md` and workflow artifact `9712760016` (`sha256:22f6606a28900558a3a79c8782f44d3807f615346d356fb5613fbdc1ece20d18`).
+
 ## Active release gate
 
-T064 remains open. The repository-native tag was pushed by a workflow using `GITHUB_TOKEN`; GitHub's workflow-recursion guard therefore did not create a second tag-push workflow run. No draft release was created, and the tag remains valid.
+T064 remains open solely at immutable publication and post-publication verification.
 
-The authorized recovery is `.github/workflows/stage-v0.1.0-release.yml`. It must recover the already-signed `signed-release-candidate` artifact from exact T062 release run `33237553641`, verify the tag lineage, checksums, binary attestations, T062/T063 evidence, and exact five-asset round trip, and create a draft release without rebuilding or moving the tag.
+A repository administrator must independently confirm **Enable release immutability** and publish the already-verified draft. Publication must trigger `.github/workflows/verify-v0.1.0-release.yml`, which requires the fixed tag to remain an ancestor of canonical `main`, `isImmutable=true`, release verification, all five asset verifications, binary provenance verification, and durable verification evidence.
 
-After the verified draft exists, a repository administrator must independently confirm **Enable release immutability** and publish that draft. Publication must trigger `.github/workflows/verify-v0.1.0-release.yml`, which requires the fixed tag to remain an ancestor of canonical `main`, `isImmutable=true`, release verification, all five asset verifications, binary provenance verification, and durable verification evidence.
-
-T065 remains open until the exact post-tag and post-publication evidence is committed and merged to canonical `main`. `COMPLETE_CANONICAL` must not be claimed before that merge.
+T065 remains open until the exact post-publication evidence is committed and merged to canonical `main`. `COMPLETE_CANONICAL` must not be claimed before that merge.
