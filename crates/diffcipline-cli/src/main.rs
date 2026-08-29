@@ -64,6 +64,8 @@ struct Policy {
     dependency_manifest_changes: Decision,
     lockfile_changes: Decision,
     untracked_files: Decision,
+    expected_files: Vec<String>,
+    forbidden_surfaces: Vec<String>,
     commands: Vec<String>,
 }
 
@@ -76,6 +78,8 @@ impl Default for Policy {
             dependency_manifest_changes: Decision::Review,
             lockfile_changes: Decision::Review,
             untracked_files: Decision::Review,
+            expected_files: Vec::new(),
+            forbidden_surfaces: Vec::new(),
             commands: Vec::new(),
         }
     }
@@ -268,6 +272,11 @@ fn check(base: Option<&str>, execute: bool) -> Result<CheckResult, String> {
         &mut reasons,
     );
 
+    for reason in scope_violations(&policy, &changed_paths(&stats)) {
+        verdict = Verdict::Fail;
+        reasons.push(reason);
+    }
+
     let mut verification = Vec::new();
     if policy.commands.is_empty() {
         verdict = verdict.max(Verdict::Review);
@@ -312,6 +321,79 @@ fn apply_decision(
         if decision != Decision::Allow {
             reasons.push(reason);
         }
+    }
+}
+
+fn changed_paths(stats: &Stats) -> Vec<String> {
+    let mut paths = stats.files.clone();
+    for path in &stats.untracked {
+        if !paths.contains(path) {
+            paths.push(path.clone());
+        }
+    }
+    paths
+}
+
+fn scope_violations(policy: &Policy, paths: &[String]) -> Vec<String> {
+    let mut reasons = Vec::new();
+    for path in paths {
+        if !policy.expected_files.is_empty()
+            && !policy
+                .expected_files
+                .iter()
+                .any(|pattern| path_pattern_matches(pattern, path))
+        {
+            reasons.push(format!("unexpected changed file: {path}"));
+        }
+        if policy
+            .forbidden_surfaces
+            .iter()
+            .any(|pattern| path_pattern_matches(pattern, path))
+        {
+            reasons.push(format!("forbidden surface changed: {path}"));
+        }
+    }
+    reasons
+}
+
+fn validate_path_pattern(pattern: &str) -> Result<(), String> {
+    if pattern.is_empty() {
+        return Err("pattern must not be empty".into());
+    }
+    if pattern.starts_with('/') || pattern.contains('\\') {
+        return Err("pattern must be a repository-relative path using '/' separators".into());
+    }
+    if pattern.split('/').any(|segment| segment == "..") {
+        return Err("pattern must not contain '..' path segments".into());
+    }
+
+    if !pattern.contains('*') {
+        return Ok(());
+    }
+    if let Some(suffix) = pattern.strip_prefix("*.") {
+        if !suffix.is_empty() && !suffix.contains('*') && !suffix.contains('/') {
+            return Ok(());
+        }
+    }
+    if let Some(directory) = pattern.strip_suffix("/**") {
+        if !directory.is_empty() && !directory.contains('*') {
+            return Ok(());
+        }
+    }
+
+    Err(format!("unsupported path pattern: {pattern}"))
+}
+
+fn path_pattern_matches(pattern: &str, path: &str) -> bool {
+    if let Some(directory) = pattern.strip_suffix("/**") {
+        path == directory
+            || path
+                .strip_prefix(directory)
+                .is_some_and(|rest| rest.starts_with('/'))
+    } else if let Some(suffix) = pattern.strip_prefix('*') {
+        path.rsplit('/').next().unwrap_or(path).ends_with(suffix)
+    } else {
+        path == pattern
     }
 }
 
@@ -501,8 +583,14 @@ fn parse_policy(input: &str) -> Result<Policy, String> {
             ("policy", "untracked_files") => {
                 policy.untracked_files = Decision::parse(value)?;
             }
+            ("policy", "expected_files") => {
+                policy.expected_files = parse_patterns(value, "expected_files")?;
+            }
+            ("policy", "forbidden_surfaces") => {
+                policy.forbidden_surfaces = parse_patterns(value, "forbidden_surfaces")?;
+            }
             ("verification", "commands") => {
-                policy.commands = parse_array(value)?;
+                policy.commands = parse_array(value, "commands")?;
             }
             _ => {
                 return Err(format!(
@@ -530,10 +618,10 @@ fn strip_comment(line: &str) -> &str {
     line
 }
 
-fn parse_array(value: &str) -> Result<Vec<String>, String> {
+fn parse_array(value: &str, field: &str) -> Result<Vec<String>, String> {
     let value = value.trim();
     if !value.starts_with('[') || !value.ends_with(']') {
-        return Err("commands must be an array".into());
+        return Err(format!("{field} must be an array"));
     }
     let inner = value[1..value.len() - 1].trim();
     if inner.is_empty() {
@@ -545,13 +633,21 @@ fn parse_array(value: &str) -> Result<Vec<String>, String> {
         .map(|item| {
             let item = item.trim();
             if item.len() < 2 || !item.starts_with('"') || !item.ends_with('"') {
-                return Err("commands must contain quoted strings".into());
+                return Err(format!("{field} must contain quoted strings"));
             }
             Ok(item[1..item.len() - 1]
                 .replace("\\\"", "\"")
                 .replace("\\\\", "\\"))
         })
         .collect()
+}
+
+fn parse_patterns(value: &str, field: &str) -> Result<Vec<String>, String> {
+    let patterns = parse_array(value, field)?;
+    for pattern in &patterns {
+        validate_path_pattern(pattern).map_err(|error| format!("{field}: {error}"))?;
+    }
+    Ok(patterns)
 }
 
 fn toml_escape(value: &str) -> String {
@@ -655,13 +751,60 @@ mod tests {
         let policy = parse_policy(
             "version = 1\n[policy]\nmax_changed_files = 7\nmax_added_lines = 80\n\
 dependency_manifest_changes = \"fail\"\nlockfile_changes = \"review\"\n\
-untracked_files = \"allow\"\n[verification]\ncommands = [\"cargo test\"]\n",
+untracked_files = \"allow\"\nexpected_files = [\"src/**\", \"*.md\"]\n\
+forbidden_surfaces = [\"secrets/**\"]\n[verification]\ncommands = [\"cargo test\"]\n",
         )
         .unwrap();
 
         assert_eq!(policy.max_changed_files, 7);
         assert_eq!(policy.dependency_manifest_changes, Decision::Fail);
+        assert_eq!(policy.expected_files, ["src/**", "*.md"]);
+        assert_eq!(policy.forbidden_surfaces, ["secrets/**"]);
         assert!(parse_policy("version = 1\n[policy]\nunknown = 1\n").is_err());
+    }
+
+    #[test]
+    fn path_patterns_are_narrow_and_deterministic() {
+        for valid in ["README.md", "src/**", "*.rs"] {
+            assert!(validate_path_pattern(valid).is_ok(), "{valid}");
+        }
+        for invalid in ["", "/root", "src\\file.rs", "../secret", "src/*.rs", "foo*", "**"] {
+            assert!(validate_path_pattern(invalid).is_err(), "{invalid}");
+        }
+
+        assert!(path_pattern_matches("README.md", "README.md"));
+        assert!(!path_pattern_matches("README.md", "docs/README.md"));
+        assert!(path_pattern_matches("src/**", "src"));
+        assert!(path_pattern_matches("src/**", "src/lib.rs"));
+        assert!(!path_pattern_matches("src/**", "src-old/lib.rs"));
+        assert!(path_pattern_matches("*.rs", "src/lib.rs"));
+        assert!(!path_pattern_matches("*.rs", "src/lib.rs.bak"));
+    }
+
+    #[test]
+    fn scope_contract_reports_unexpected_and_forbidden_paths() {
+        let policy = Policy {
+            expected_files: vec!["src/**".into(), "README.md".into()],
+            forbidden_surfaces: vec!["src/generated/**".into(), "*.key".into()],
+            ..Policy::default()
+        };
+        let paths = vec![
+            "src/lib.rs".into(),
+            "README.md".into(),
+            "docs/guide.md".into(),
+            "src/generated/api.rs".into(),
+            "secret.key".into(),
+        ];
+
+        assert_eq!(
+            scope_violations(&policy, &paths),
+            vec![
+                "unexpected changed file: docs/guide.md",
+                "forbidden surface changed: src/generated/api.rs",
+                "unexpected changed file: secret.key",
+                "forbidden surface changed: secret.key",
+            ]
+        );
     }
 
     #[test]
