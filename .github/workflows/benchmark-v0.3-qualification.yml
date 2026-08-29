@@ -1,0 +1,67 @@
+name: benchmark-v0.3-qualification
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/benchmark-v0.3-qualification.yml"
+      - "benchmarks/fixtures/**"
+      - "benchmarks/harness/**"
+      - "benchmarks/v0.3/**"
+      - "benchmarks/run-config.json"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/benchmark-v0.3-qualification.yml"
+      - "benchmarks/fixtures/**"
+      - "benchmarks/harness/**"
+      - "benchmarks/v0.3/**"
+      - "benchmarks/run-config.json"
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Verify exact checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - name: Run v0.3 harness contract tests
+        run: >-
+          python -S -m unittest
+          benchmarks.harness.test_experiment_config
+          benchmarks.harness.test_executor_adapter
+          benchmarks.harness.test_experiment_runner
+          -v
+      - name: Produce secret-free qualification evidence
+        run: python -S benchmarks/harness/qualify_v03.py --output "$RUNNER_TEMP/v0.3-qualification.json"
+      - name: Verify qualification evidence contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - "$RUNNER_TEMP/v0.3-qualification.json" <<'PY'
+          import json, sys
+          evidence = json.load(open(sys.argv[1], encoding="utf-8"))
+          assert evidence["result"] == "PASS"
+          assert evidence["private_credentials_required"] is False
+          assert evidence["comparative_model_execution"] is False
+          assert evidence["matrix_rows"] == 24
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: v0.3-harness-qualification
+          path: ${{ runner.temp }}/v0.3-qualification.json
+          if-no-files-found: error
+          retention-days: 90
