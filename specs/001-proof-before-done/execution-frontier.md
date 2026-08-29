@@ -19,7 +19,7 @@ Live GitHub/repository truth always overrides this snapshot. Re-verify `main`, o
 11. `.github/workflows/skills-compat.yml`
 12. `.github/workflows/release.yml`
 13. `.github/workflows/tag-v0.1.0.yml`
-14. `.github/workflows/publish-v0.1.0.yml`
+14. `.github/workflows/verify-v0.1.0-release.yml`
 15. `docs/RELEASES.md`
 
 ## Last verified canonical state
@@ -72,10 +72,14 @@ Required T062 evidence:
 6. Canonical v0.1 benchmark archive checksum and manifest assertions.
 7. Locked release builds for Linux, macOS, and Windows.
 8. A three-subject SHA-256 release manifest and checksum verification.
-9. Validation of the guarded tag and immutable-publication request contracts.
+9. Validation of the guarded tag authority and immutable release verifier.
 10. On trusted canonical `main`, successful Sigstore provenance creation plus GitHub attestation verification for every native binary.
 
 If the candidate head changes, all exact-head PR gates must be re-established before merge.
+
+## Change-size policy
+
+The canonical `.diffcipline.toml` sets `max_added_lines = 400` and `max_changed_files = 12`. The original combined closeout PR exceeded that policy. Release/CI workflow hardening is therefore landed as a separate prerequisite PR rather than weakening the policy. After that prerequisite becomes canonical, the remaining closeout diff must be re-proven against the updated `main` and must independently satisfy the same policy.
 
 ## Tag authority
 
@@ -94,7 +98,7 @@ Because the connected GitHub tooling cannot create a tag directly, `.github/work
 
 ## Immutable release authority
 
-The tag-triggered `release.yml` workflow must build and attest the exact tagged source, then create a **draft** GitHub Release containing:
+The tag-triggered `release.yml` workflow must build and attest the exact tagged source, then create a **draft** GitHub Release containing exactly five assets:
 
 - Linux, macOS, and Windows native binaries;
 - `SHA256SUMS`;
@@ -102,17 +106,22 @@ The tag-triggered `release.yml` workflow must build and attest the exact tagged 
 
 The workflow must verify the checksum manifest, GitHub artifact attestations, tag/version equality, draft state, asset list, and byte-for-byte round-trip download before it succeeds.
 
-The draft is intentionally not published automatically. GitHub's repository immutable-release setting requires repository Administration access to inspect or change, while the ordinary workflow `GITHUB_TOKEN` does not receive that permission. A `403 Resource not accessible by integration` therefore cannot be interpreted as evidence that immutability is enabled or disabled.
+The draft is intentionally not published by repository automation. GitHub's repository immutable-release setting requires repository Administration access to inspect or change, while the ordinary workflow `GITHUB_TOKEN` does not receive that permission. A `403 Resource not accessible by integration` therefore cannot be interpreted as evidence that immutability is enabled or disabled.
 
-Before final T064 publication, an administrator must independently confirm that repository release immutability is enabled. After that external prerequisite is satisfied, `.github/workflows/publish-v0.1.0.yml` is the reviewed owner-only publication authority. It must re-prove the exact canonical SHA, exact tag, crate version, draft release, checksums, and artifact attestations before publishing.
+Before final T064 publication, a repository administrator must independently confirm that **Enable release immutability** is active and publish the already-verified draft through GitHub's administrative release surface. This is a genuine external administrative prerequisite.
 
-After publication it must machine-prove:
+Publication triggers `.github/workflows/verify-v0.1.0-release.yml`. That exact release-event workflow must machine-prove:
 
-- `isImmutable=true`;
-- valid GitHub release attestation via `gh release verify`;
-- every staged asset via `gh release verify-asset`.
+- the published tag still resolves to canonical `main` and crate version `0.1.0`;
+- `isDraft=false` and `isImmutable=true`;
+- a valid GitHub Release attestation via `gh release verify`;
+- exactly five release assets;
+- `SHA256SUMS` validates all three native binaries;
+- each native binary verifies with `gh attestation verify`;
+- every published asset verifies with `gh release verify-asset`;
+- a durable `v0.1.0-release-verification` Actions artifact records the release metadata, tag SHA, run ID, and published asset digests.
 
-T064 is not complete if any of those post-publication checks fail.
+T064 is not complete if any of those post-publication checks fail or are absent.
 
 T065 remains open until exact post-tag and post-publication evidence is committed and merged to canonical `main`. Only then may `specs/CURRENT.md` and the task ledger record `COMPLETE_CANONICAL`.
 
