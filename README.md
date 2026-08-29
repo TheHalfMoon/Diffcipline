@@ -164,6 +164,14 @@ A Diffcipline benchmark is publishable only when it includes:
 
 See [`benchmarks/PROTOCOL.md`](benchmarks/PROTOCOL.md).
 
+### v0.1 canonical benchmark
+
+The canonical six-task v0.1 experiment **did not show a correctness advantage for Diffcipline**. Baseline, Karpathy, Ponytail, and Diffcipline each finished at **1/6 correct** and **1/6 scorer-pass**. All four arms changed zero files; the only correct task was the already-minimal no-op fixture.
+
+Observed total wall-clock time was 746.668s for baseline, 797.091s for Karpathy, 702.127s for Ponytail, and **981.263s for Diffcipline**, making Diffcipline the slowest arm in this run. The small pinned 3B Q4 model/agent also exhibited provider/tool-parser failures, timeouts, and sessions that produced assistant text without repository edits, so this experiment does not support a treatment-effect inference.
+
+Raw transcripts, scorer JSON, patches, metadata, runtime provenance, checksums, invalidated/excluded runs, and limitations are published under [`benchmarks/results/v0.1/`](benchmarks/results/v0.1/REPORT.md). Tokens and monetary cost were not available and are reported as such.
+
 ## Roadmap
 
 **v0.1 — Proof before done**
