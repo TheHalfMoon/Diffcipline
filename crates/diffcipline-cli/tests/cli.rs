@@ -22,11 +22,7 @@ impl Fixture {
         Self::with_parts(max_changed_files, "", extra_verification)
     }
 
-    fn with_parts(
-        max_changed_files: usize,
-        extra_policy: &str,
-        extra_verification: &str,
-    ) -> Self {
+    fn with_parts(max_changed_files: usize, extra_policy: &str, extra_verification: &str) -> Self {
         let unique = NEXT_FIXTURE_ID.fetch_add(1, Ordering::Relaxed);
         let root = std::env::temp_dir().join(format!(
             "diffcipline-fixture-{}-{unique}",
