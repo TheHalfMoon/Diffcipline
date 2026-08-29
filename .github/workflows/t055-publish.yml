@@ -2,8 +2,7 @@ name: t055-publish
 
 on:
   push:
-    branches:
-      - docs/publish-v0-1-benchmark-evidence
+    branches: [docs/publish-v0-1-benchmark-evidence]
 
 permissions:
   actions: read
@@ -19,7 +18,6 @@ jobs:
           fetch-depth: 0
           ref: docs/publish-v0-1-benchmark-evidence
           persist-credentials: true
-
       - name: Materialize durable T055 evidence
         shell: bash
         env:
@@ -28,184 +26,75 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf /tmp/t055
-          mkdir -p /tmp/t055/results /tmp/t055/preflight /tmp/t055/stage
+          mkdir -p /tmp/t055/{results,preflight,stage}
           gh run download 33200332207 -n benchmark-results -D /tmp/t055/results
           gh run download 33200332207 -n benchmark-local-agent-preflight -D /tmp/t055/preflight
-
           python - <<'PY'
-          import json, shutil
+          import hashlib, json, math, shutil, subprocess
           from pathlib import Path
 
-          results = Path('/tmp/t055/results')
-          preflight = Path('/tmp/t055/preflight')
-          stage = Path('/tmp/t055/stage')
-          keep = {
-              'transcript.md', 'stdout.txt', 'stderr.txt', 'score.json',
-              'changes.patch', 'status.txt', 'metadata.json', 'summary.json',
-              'runtime-provenance.json', 'provenance.json',
-          }
-          for src in results.rglob('*'):
-              if not src.is_file() or src.name not in keep:
-                  continue
-              rel = src.relative_to(results)
-              if 'workspace' in rel.parts or 'work' in rel.parts:
-                  continue
-              dst = stage / 'canonical-run27' / rel
-              dst.parent.mkdir(parents=True, exist_ok=True)
-              shutil.copy2(src, dst)
-          for src in preflight.rglob('*'):
-              if not src.is_file() or src.name == 'llama-server.log':
-                  continue
-              rel = src.relative_to(preflight)
-              dst = stage / 'preflight' / rel
-              dst.parent.mkdir(parents=True, exist_ok=True)
-              shutil.copy2(src, dst)
+          R=Path('/tmp/t055/results'); P=Path('/tmp/t055/preflight'); S=Path('/tmp/t055/stage')
+          O=Path('benchmarks/results/v0.1'); O.mkdir(parents=True,exist_ok=True)
+          arms=['baseline','karpathy','ponytail','diffcipline']
+          tasks=['f01-shared-root-cause','f02-stdlib-query','f03-dependency-temptation','f04-refactor-preserve','f05-security-boundary','f06-already-minimal']
+          keep={'transcript.md','stdout.txt','stderr.txt','score.json','changes.patch','status.txt','metadata.json','summary.json','runtime-provenance.json','provenance.json'}
+          for src in R.rglob('*'):
+              if src.is_file() and src.name in keep:
+                  rel=src.relative_to(R)
+                  if 'workspace' not in rel.parts and 'work' not in rel.parts:
+                      dst=S/'canonical-run27'/rel; dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dst)
+          for src in P.rglob('*'):
+              if src.is_file() and src.name!='llama-server.log':
+                  dst=S/'preflight'/src.relative_to(P); dst.parent.mkdir(parents=True,exist_ok=True); shutil.copy2(src,dst)
 
-          arms = ['baseline', 'karpathy', 'ponytail', 'diffcipline']
-          tasks = [
-              'f01-shared-root-cause', 'f02-stdlib-query',
-              'f03-dependency-temptation', 'f04-refactor-preserve',
-              'f05-security-boundary', 'f06-already-minimal',
-          ]
-          audit = {'arms': {}, 'matched_base_commits': {}}
+          audit={'arms':{},'matched_base_commits':{}}
+          expected={'baseline':(1,1,0),'karpathy':(1,1,0),'ponytail':(1,1,0),'diffcipline':(1,1,0)}
           for arm in arms:
-              root = results / 'benchmark' / arm / 'results'
-              summary = json.loads((root / 'summary.json').read_text())
-              assert summary['tasks'] == 6
-              durations = []
-              exits = []
-              bash_calls = 0
+              root=R/'benchmark'/arm/'results'; summary=json.loads((root/'summary.json').read_text()); assert summary['tasks']==6
+              assert (summary['correct'],summary['passed'],summary['changed_files'])==expected[arm]
+              durations=[]; exits=[]; bash=0
+              prov=json.loads((root/'runtime-provenance.json').read_text())
+              assert prov['repository_revision']=='b640461cfdf08c25b8cf8b0404aa6b5a8ccae1bc'
+              assert prov['fixture_revision']=='cde4d0058ce522ddd9863457c29560679fac53dd'
               for task in tasks:
-                  meta = json.loads((root / task / 'metadata.json').read_text())
-                  score = json.loads((root / task / 'score.json').read_text())
-                  transcript = (root / task / 'transcript.md').read_text(errors='replace')
-                  durations.append(meta['duration_seconds'])
-                  exits.append(meta['agent_exit_code'])
-                  bash_calls += transcript.count('## Tool: bash')
-                  assert score['changed_files'] == 0
-              audit['arms'][arm] = {
-                  'summary': summary,
-                  'total_duration_seconds': round(sum(durations), 3),
-                  'clean_agent_exits': sum(code == 0 for code in exits),
-                  'bash_calls': bash_calls,
-              }
+                  m=json.loads((root/task/'metadata.json').read_text()); q=json.loads((root/task/'score.json').read_text())
+                  t=(root/task/'transcript.md').read_text(errors='replace')
+                  durations.append(m['duration_seconds']); exits.append(m['agent_exit_code']); bash+=t.count('## Tool: bash')
+                  assert q['changed_files']==0 and q['added_lines']==0 and q['deleted_lines']==0
+              audit['arms'][arm]={'summary':summary,'total_duration_seconds':round(sum(durations),3),'clean_agent_exits':sum(x==0 for x in exits),'bash_calls':bash}
           for task in tasks:
-              bases = {
-                  json.loads((results / 'benchmark' / arm / 'results' / task / 'metadata.json').read_text())['base_commit']
-                  for arm in arms
-              }
-              assert len(bases) == 1, (task, bases)
-              audit['matched_base_commits'][task] = next(iter(bases))
-          (stage / 'canonical-audit.json').write_text(json.dumps(audit, indent=2, sort_keys=True) + '\n')
+              bases={json.loads((R/'benchmark'/arm/'results'/task/'metadata.json').read_text())['base_commit'] for arm in arms}
+              assert len(bases)==1,(task,bases); audit['matched_base_commits'][task]=next(iter(bases))
+          assert len(list((S/'canonical-run27').rglob('transcript.md')))==24
+          assert len(list((S/'canonical-run27').rglob('score.json')))==24
+          assert len(list((S/'canonical-run27').rglob('metadata.json')))==24
+          (S/'canonical-audit.json').write_text(json.dumps(audit,indent=2,sort_keys=True)+'\n')
+          exclusions='''Hosted #1: run 33177348082, head f5f17b9d0fa025bbed436075c462ce48a5766151, gpt-5.3-codex unavailable; no task/artifact.
+          Hosted #2: run 33177729891, head d20f6b615fc9c1285b01b74377aa6e53e7fa081a, claude-sonnet-4.6 unavailable; no task/artifact.
+          Hosted #3: run 33178142084, head c71d3f81016ae6bc1d8516b47d1b3c5cb7258e45, nine explicit hosted models unavailable; auto refused; no task/artifact.
+          PR18: run 33181234505 head fbd7e84b41f8fbf216f5cb3c26abcb3a1e276562; invalid tool transport; artifact sha256 eea6bd285f645f2754b71189943ab886c818bca879e18f4e8a1d830d25aa216f.
+          PR20: run 33186587083 head ca0876c45a72c8790718800683aabb1086f93c34; fenced JSON not tool invocation; artifact sha256 8add2429392c5b97e3f1d6632c8f7a9b96b865573948ccd64cc42da12e8b7aa6.
+          PR21: run 33189824912 head e4d4b429b3fb0c09d6a932363e0a5c82f998caf0; async-shell schema mismatch; artifact sha256 3f49c7b5616d776c57f7232521ffd2f2a50b1f024dceb0d5505c521e518a0047.
+          PR22 b1a8: run 33191295481; duplicate treatment exposure risk; artifact sha256 e19b25d38f8fe710c0595277c80c660123828f7ddc6a7d67c6b360a01a3cd840.
+          PR22 2329: run 33191633859; repeated skill-call loop; no artifact.
+          PR22 ae12: run 33194306246; unrealistic synthetic skill-only preflight; no artifact.
+          PR22 7606: run 33194507949; external HTTP 429 then exact-head rerun; overly strict repeated-bash check; artifact sha256 9fa6675cd2d75286b9d08c7722f33c10ef0abd92b71bd1d1be24162f4c541335.
+          PR22 ca2b: run 33194820682; provider parser HTTP 500; artifact sha256 30a7bf74007273869fb0d5584dd62ed6f95ae2b60b544cb3922a54e406fc22aa.
+          PR22 final: run 33195158003; accepted pre-execution evidence; artifact sha256 876dfeb72b226eaeca26f274cc1ffd2560c7602ef4e78abc0924cdd1fdb2b128.
+          Run #25: run 33195457215 head 70bbe62d2cc516e2d465e5ef861ab7a5b975ead3; INVALIDATED because fixture base commit SHAs differed across arms; results artifact sha256 5def2fd78f8cf4886a0dde3e8fdf5b3f86420fde67a2352ff81b8a251652843c.
+          '''
+          (S/'EXCLUSIONS.txt').write_text(exclusions)
+          subprocess.run(['tar','--sort=name','--owner=0','--group=0','--numeric-owner','--mtime=UTC 2026-08-29 00:00:00','-C',str(S),'-czf',str(O/'raw-canonical-evidence.tar.gz'),'.'],check=True)
+          sha=hashlib.sha256((O/'raw-canonical-evidence.tar.gz').read_bytes()).hexdigest(); (O/'SHA256SUMS').write_text(f'{sha}  raw-canonical-evidence.tar.gz\n')
+          z=1.959963984540054; n=6; p=1/n; den=1+z*z/n; c=(p+z*z/(2*n))/den; h=z*math.sqrt(p*(1-p)/n+z*z/(4*n*n))/den; ci=[round((c-h)*100,1),round((c+h)*100,1)]
+          manifest={'schema_version':1,'canonical_execution_run':33200332207,'canonical_execution_revision':'b640461cfdf08c25b8cf8b0404aa6b5a8ccae1bc','fixture_preparer_scorer_boundary_revision':'cde4d0058ce522ddd9863457c29560679fac53dd','results_artifact':{'id':9699087138,'sha256':'00751734da3428a1ce9c1c4b020bbf12264289782b12e82d24a781caf1506203'},'preflight_artifact':{'id':9697512658,'sha256':'0201df1570bf13d55535e1445c4f592b448c423d3917cd3bab225cd36089d74a'},'durable_archive':{'path':'raw-canonical-evidence.tar.gz','sha256':sha},'model':{'id':'diffcipline-llama3.2-3b-q4km','revision':'54651d07cdbbd900b46c652cbf6672c935a22236','file_sha256':'6c1a2b41161032677be168d354123594c0e6e67d2b9227c84f296ad037c728ff','quantization':'Q4_K_M','license':'Llama 3.2 Community License'},'runtime':{'name':'llama.cpp','release':'b10621','source_revision':'c1d0e7a004015f23bc0233470b747b596f29b264','asset_sha256':'91d7b03ddae498a39f28fdb85d84d2b4a0fd3838d10b4f897e0ef8975bb9b583','chat_template_blob':'1bad6a0f648dccdbec523ca79ba90fbcfc806af0','agent_harness_sha256':'c5a343d641bc2f2d52b200ed36cd8ccad22101609b20b3db7e2d1c1cbea16622','run_arm_sha256':'435d29d227161a19fc6e676d2cab1bba803ba512bedd95819e0d526cc0c1f88f'},'matched_base_commits':audit['matched_base_commits'],'results':audit['arms'],'correctness_wilson_95_percent':ci,'tokens':'NOT AVAILABLE','cost':'NOT AVAILABLE','excluded_run_ledger':'raw archive: EXCLUSIONS.txt'}
+          (O/'MANIFEST.json').write_text(json.dumps(manifest,indent=2,sort_keys=True)+'\n')
+          labels={'baseline':'Baseline','karpathy':'Karpathy','ponytail':'Ponytail','diffcipline':'Diffcipline'}
+          rows='\n'.join(f"| {labels[a]} | {audit['arms'][a]['summary']['correct']}/6 | {audit['arms'][a]['summary']['passed']}/6 | {audit['arms'][a]['summary']['changed_files']} | {audit['arms'][a]['total_duration_seconds']:.3f} | {audit['arms'][a]['clean_agent_exits']}/6 | {audit['arms'][a]['bash_calls']} |" for a in arms)
+          report=f'''# Diffcipline v0.1 benchmark evidence\n\n## Result\n\nThe canonical matched run does **not** show a correctness advantage for Diffcipline or either comparison treatment. All four arms finished at **1/6 correct** and **1/6 scorer-pass**, with zero changed files across every arm. The only correct task was the already-minimal no-op fixture (`f06`). Diffcipline also had the largest observed total wall-clock time.\n\n## Canonical execution\n\n- Run: `33200332207` (`benchmark-arms` #27)\n- Repository revision: `b640461cfdf08c25b8cf8b0404aa6b5a8ccae1bc`\n- Repaired frozen fixture/preparer/scorer boundary: `cde4d0058ce522ddd9863457c29560679fac53dd`\n- Results artifact SHA-256: `00751734da3428a1ce9c1c4b020bbf12264289782b12e82d24a781caf1506203`\n- Durable archive SHA-256: `{sha}`\n- Arm order: baseline -> Karpathy -> Ponytail -> Diffcipline\n\n| Arm | Correct | Scorer pass | Changed files | Total seconds | Clean agent exits | Bash calls |\n| --- | ---: | ---: | ---: | ---: | ---: | ---: |\n{rows}\n\nFor 1 success in 6 tasks, the Wilson 95% interval is approximately **{ci[0]}% to {ci[1]}%** for every arm. Six tasks and a four-way tie do not support a treatment-effect inference.\n\n## Interpretation and limitations\n\nThe pinned local 3B Q4 model/agent combination was not a reliable code-editing agent: sessions included provider/tool-parser HTTP 500 responses, internal timeouts, max-tool-step exhaustion, and assistant prose/code without repository edits. `f06` is a no-op task, so scorer correctness and clean agent exit are reported separately. These results do not establish how the treatments would behave with a stronger model or different runtime. Tokens and monetary cost are **NOT AVAILABLE**.\n\nAll arms made zero repository changes, so diff-size, dependency, and unrelated-churn metrics are tied at zero and do not demonstrate useful minimality. Diffcipline was slower than every other arm in this run.\n\n## Raw evidence\n\n`raw-canonical-evidence.tar.gz` contains all 24 task transcripts, stdout/stderr, scorer JSON, metadata, patches, status files, arm summaries, runtime provenance, accepted preflight output, matched-base audit, and the exclusion ledger. Duplicated fixture workspaces and `llama-server.log` are omitted; fixture source bytes remain versioned in the repository.\n\n```sh\ncd benchmarks/results/v0.1\nsha256sum -c SHA256SUMS\ntar -tzf raw-canonical-evidence.tar.gz\n```\n\nRun #25 (`33195457215`) is invalidated because the old preparer produced different ephemeral base commits across arms. Earlier hosted/local preflights are enumerated in `EXCLUSIONS.txt` inside the archive; none is counted as task evidence. Individual canonical tasks were not silently retried.\n'''
+          (O/'REPORT.md').write_text(report)
           PY
-
-          cat > /tmp/t055/stage/EXCLUSIONS.txt <<'EOF'
-          Hosted #1: run 33177348082, head f5f17b9d0fa025bbed436075c462ce48a5766151, explicit gpt-5.3-codex unavailable; no benchmark task; no artifact.
-          Hosted #2: run 33177729891, head d20f6b615fc9c1285b01b74377aa6e53e7fa081a, explicit claude-sonnet-4.6 unavailable; no benchmark task; no artifact.
-          Hosted #3: run 33178142084, head c71d3f81016ae6bc1d8516b47d1b3c5cb7258e45, nine explicit hosted candidates unavailable and auto refused; no benchmark task; no artifact.
-          PR18: run 33181234505, head fbd7e84b41f8fbf216f5cb3c26abcb3a1e276562, Qwen2.5-Coder-1.5B returned JSON/plain text instead of executable calls; artifact sha256 eea6bd285f645f2754b71189943ab886c818bca879e18f4e8a1d830d25aa216f.
-          PR20: run 33186587083, head ca0876c45a72c8790718800683aabb1086f93c34, Qwen 7B returned fenced JSON instead of a tool invocation; artifact sha256 8add2429392c5b97e3f1d6632c8f7a9b96b865573948ccd64cc42da12e8b7aa6.
-          PR21: run 33189824912, head e4d4b429b3fb0c09d6a932363e0a5c82f998caf0, Copilot asynchronous-shell schema mismatch; artifact sha256 3f49c7b5616d776c57f7232521ffd2f2a50b1f024dceb0d5505c521e518a0047.
-          PR22 b1a8: run 33191295481, duplicate treatment exposure risk; artifact sha256 e19b25d38f8fe710c0595277c80c660123828f7ddc6a7d67c6b360a01a3cd840.
-          PR22 2329: run 33191633859, repeated skill-call loop; no artifact.
-          PR22 ae12: run 33194306246, unrealistic synthetic skill-only preflight; no artifact.
-          PR22 7606: run 33194507949, external HTTP 429 on first attempt followed by an exact-head rerun; repeated successful bash reads exposed an overly strict preflight; artifact sha256 9fa6675cd2d75286b9d08c7722f33c10ef0abd92b71bd1d1be24162f4c541335.
-          PR22 ca2b: run 33194820682, provider peg-native parser HTTP 500 after the model referenced a removed skill schema; artifact sha256 30a7bf74007273869fb0d5584dd62ed6f95ae2b60b544cb3922a54e406fc22aa.
-          PR22 final preflight: run 33195158003, accepted pre-execution evidence; artifact sha256 876dfeb72b226eaeca26f274cc1ffd2560c7602ef4e78abc0924cdd1fdb2b128.
-          Run #25 invalidated: run 33195457215, head 70bbe62d2cc516e2d465e5ef861ab7a5b975ead3. All 24 sessions ran, but each task had four different ephemeral fixture base commit SHAs because prepare_fixture.py did not pin commit timestamps. Results artifact sha256 5def2fd78f8cf4886a0dde3e8fdf5b3f86420fde67a2352ff81b8a251652843c. It is not comparative benchmark evidence.
-          EOF
-
-          mkdir -p benchmarks/results/v0.1
-          tar --sort=name --owner=0 --group=0 --numeric-owner \
-            --mtime='UTC 2026-08-29 00:00:00' \
-            -C /tmp/t055/stage -czf benchmarks/results/v0.1/raw-canonical-evidence.tar.gz .
-          archive_sha="$(sha256sum benchmarks/results/v0.1/raw-canonical-evidence.tar.gz | awk '{print $1}')"
-          printf '%s  raw-canonical-evidence.tar.gz\n' "$archive_sha" > benchmarks/results/v0.1/SHA256SUMS
-
-          ARCHIVE_SHA="$archive_sha" python - <<'PY'
-          import json, math, os
-          from pathlib import Path
-
-          audit = json.loads(Path('/tmp/t055/stage/canonical-audit.json').read_text())
-          arms = ['baseline', 'karpathy', 'ponytail', 'diffcipline']
-          labels = {'baseline':'Baseline','karpathy':'Karpathy','ponytail':'Ponytail','diffcipline':'Diffcipline'}
-          expected = {
-              'baseline': (1, 1, 0, 746.668, 4, 79),
-              'karpathy': (1, 1, 0, 797.091, 4, 63),
-              'ponytail': (1, 1, 0, 702.127, 1, 29),
-              'diffcipline': (1, 1, 0, 981.263, 3, 76),
-          }
-          for arm in arms:
-              data = audit['arms'][arm]
-              s = data['summary']
-              exp = expected[arm]
-              assert (s['correct'], s['passed'], s['changed_files']) == exp[:3]
-              assert abs(data['total_duration_seconds'] - exp[3]) < 0.01
-              assert data['clean_agent_exits'] == exp[4]
-              assert data['bash_calls'] == exp[5]
-
-          z = 1.959963984540054
-          n, k = 6, 1
-          p = k/n
-          den = 1 + z*z/n
-          center = (p + z*z/(2*n))/den
-          half = z*math.sqrt(p*(1-p)/n + z*z/(4*n*n))/den
-          wilson = [round((center-half)*100, 1), round((center+half)*100, 1)]
-
-          manifest = {
-              'schema_version': 1,
-              'publication': 'v0.1',
-              'canonical_execution_run': 33200332207,
-              'canonical_execution_revision': 'b640461cfdf08c25b8cf8b0404aa6b5a8ccae1bc',
-              'fixture_preparer_scorer_boundary_revision': 'cde4d0058ce522ddd9863457c29560679fac53dd',
-              'actions_results_artifact': {'id': 9699087138, 'sha256': '00751734da3428a1ce9c1c4b020bbf12264289782b12e82d24a781caf1506203'},
-              'actions_preflight_artifact': {'id': 9697512658, 'sha256': '0201df1570bf13d55535e1445c4f592b448c423d3917cd3bab225cd36089d74a'},
-              'durable_archive': {'path': 'raw-canonical-evidence.tar.gz', 'sha256': os.environ['ARCHIVE_SHA']},
-              'model': {
-                  'id': 'diffcipline-llama3.2-3b-q4km',
-                  'repository': 'bartowski/Llama-3.2-3B-Instruct-GGUF',
-                  'revision': '54651d07cdbbd900b46c652cbf6672c935a22236',
-                  'file': 'Llama-3.2-3B-Instruct-Q4_K_M.gguf',
-                  'sha256': '6c1a2b41161032677be168d354123594c0e6e67d2b9227c84f296ad037c728ff',
-                  'quantization': 'Q4_K_M',
-                  'license': 'Llama 3.2 Community License',
-              },
-              'runtime': {
-                  'name': 'llama.cpp', 'release': 'b10621',
-                  'source_revision': 'c1d0e7a004015f23bc0233470b747b596f29b264',
-                  'asset_sha256': '91d7b03ddae498a39f28fdb85d84d2b4a0fd3838d10b4f897e0ef8975bb9b583',
-                  'chat_template_blob': '1bad6a0f648dccdbec523ca79ba90fbcfc806af0',
-                  'agent_harness_sha256': 'c5a343d641bc2f2d52b200ed36cd8ccad22101609b20b3db7e2d1c1cbea16622',
-                  'run_arm_sha256': '435d29d227161a19fc6e676d2cab1bba803ba512bedd95819e0d526cc0c1f88f',
-              },
-              'treatments': {
-                  'karpathy': {'revision':'2c606141936f1eeef17fa3043a72095b4765b9c2','blob':'6a62d0441753157ca6ca50479e490c2948033adb','sha256':'6e22cc54cb02a5e98ae42d06d9d7292db0c1b43894831b32879beb0166b2aea7'},
-                  'ponytail': {'revision':'2ed6c52c9d7e5e56942508591085fd45dea277d3','blob':'02c0712c86277d49d18a77da3a2b825657bf02d1','sha256':'1316a2f3f95741d2300b116fe0c2d81ce4a9568656ed0a62643f54aaf09957f2'},
-                  'diffcipline': {'revision':'6bbeb59bab21724c92ed3456953a94e5202f0e53','blob':'0ca69dc046c7ba41d9b361b734a776ff536695ac','sha256':'1ea34f6557ed259f8f653841f1fbc8bd82c370d52bd3036aa0371605a988312b'},
-              },
-              'matched_base_commits': audit['matched_base_commits'],
-              'results': audit['arms'],
-              'correctness_wilson_95_percent': wilson,
-              'tokens': 'NOT AVAILABLE',
-              'cost': 'NOT AVAILABLE',
-              'excluded_run_ledger': 'raw archive: EXCLUSIONS.txt',
-          }
-          Path('benchmarks/results/v0.1/MANIFEST.json').write_text(json.dumps(manifest, indent=2, sort_keys=True) + '\n')
-
-          rows = []
-          for arm in arms:
-              d = audit['arms'][arm]
-              s = d['summary']
-              rows.append(f"| {labels[arm]} | {s['correct']}/6 | {s['passed']}/6 | {s['changed_files']} | {d['total_duration_seconds']:.3f} | {d['clean_agent_exits']}/6 | {d['bash_calls']} |")
-          report = f'''# Diffcipline v0.1 benchmark evidence\n\n## Result\n\nThe canonical matched run does **not** show a correctness advantage for Diffcipline or either comparison treatment. All four arms finished at **1/6 correct** and **1/6 scorer-pass**, with zero changed files across every arm. The only correct task was the already-minimal no-op fixture (`f06`).\n\nDiffcipline also had the largest observed total wall-clock time in this run. These results are published as falsification evidence, not converted into a favorable marketing claim.\n\n## Canonical execution\n\n- Run: `33200332207` (`benchmark-arms` #27)\n- Repository revision: `b640461cfdf08c25b8cf8b0404aa6b5a8ccae1bc`\n- Frozen repaired fixture/preparer/scorer boundary: `cde4d0058ce522ddd9863457c29560679fac53dd`\n- Results artifact SHA-256: `00751734da3428a1ce9c1c4b020bbf12264289782b12e82d24a781caf1506203`\n- Durable archive SHA-256: `{os.environ['ARCHIVE_SHA']}`\n- Arm order: baseline -> Karpathy -> Ponytail -> Diffcipline\n- Per-task timeout: 480 seconds\n- Task network tools: denied\n- Git push: denied\n\n## Aggregate outcomes\n\n| Arm | Correct | Scorer pass | Changed files | Total seconds | Clean agent exits | Bash calls |\n| --- | ---: | ---: | ---: | ---: | ---: | ---: |\n{chr(10).join(rows)}\n\nFor 1 success in 6 tasks, the Wilson 95% interval is approximately **{wilson[0]}% to {wilson[1]}%** for every arm. With six tasks and a four-way tie, this experiment does not support a treatment-effect inference.\n\n## Runtime failures and interpretation\n\nThe pinned local 3B Q4 model/agent combination was not a reliable code-editing agent on this corpus. Several sessions ended in provider/tool-parser HTTP 500 responses, internal agent timeouts, or max-tool-step exhaustion. Other sessions produced prose/code in assistant output without changing the repository.\n\n`f06` is intentionally a no-op task: its scorer can report a correct final repository state even when the agent process itself is not clean. Runtime exit status is therefore reported separately from scorer correctness.\n\nThe benchmark measures the tested model/harness/treatment combination. It does not establish that a treatment would be ineffective with a stronger model or different agent runtime.\n\n## Raw evidence\n\n`raw-canonical-evidence.tar.gz` contains all 24 canonical task transcripts, stdout/stderr, scorer JSON, metadata, patches, status files, arm summaries, runtime provenance, the accepted preflight outputs, the matched-base audit, and the exclusion ledger. Duplicated fixture workspaces and `llama-server.log` are omitted because they are not required result evidence; fixture source bytes remain versioned in this repository.\n\nVerify with:\n\n```sh\ncd benchmarks/results/v0.1\nsha256sum -c SHA256SUMS\ntar -tzf raw-canonical-evidence.tar.gz\n```\n\nTokens: **NOT AVAILABLE**. Cost: **NOT AVAILABLE**. Wall-clock durations are preserved in task metadata and summarized above.\n\n## Invalidated and excluded attempts\n\nRun #25 (`33195457215`) executed all 24 sessions but is invalidated as comparative evidence: the old preparer created different ephemeral Git base commits for each arm because commit timestamps were not pinned. PR #23 repaired that defect, established the new frozen boundary, and forced a whole-experiment restart.\n\nEarlier hosted-model and local-transport preflights are enumerated in `EXCLUSIONS.txt` inside the raw archive with run IDs, exact heads where applicable, reasons, and artifact SHA-256 digests when artifacts existed. None is counted as benchmark task evidence.\n\n## Limitations\n\n- Six tasks are too few for a precise treatment-effect estimate.\n- The tested model is a small quantized 3B model and exhibited substantial tool/parser instability.\n- No token or monetary cost telemetry was available.\n- All arms made zero repository changes, so diff-size/dependency/unrelated-churn metrics are tied at zero and do not demonstrate useful minimality.\n- The valid execution was one matched whole experiment; individual tasks were not silently retried.\n'''
-          Path('benchmarks/results/v0.1/REPORT.md').write_text(report)
-          PY
-
-          test "$(find /tmp/t055/stage/canonical-run27 -name transcript.md | wc -l)" -eq 24
-          test "$(find /tmp/t055/stage/canonical-run27 -name score.json | wc -l)" -eq 24
-          test "$(find /tmp/t055/stage/canonical-run27 -name metadata.json | wc -l)" -eq 24
-          sha256sum -c benchmarks/results/v0.1/SHA256SUMS
-
+          (cd benchmarks/results/v0.1 && sha256sum -c SHA256SUMS)
           git config user.name 'Diffcipline Evidence Publisher'
           git config user.email 'benchmark@diffcipline.invalid'
           git rm .github/workflows/t055-publish.yml
