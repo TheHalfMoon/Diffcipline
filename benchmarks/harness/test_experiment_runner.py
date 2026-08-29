@@ -14,7 +14,7 @@ CONFIG = json.loads((ROOT / "benchmarks/v0.3/experiment.json").read_text(encodin
 
 
 class ExperimentRunnerTests(unittest.TestCase):
-    def test_matrix_is_deterministic_and_matched(self) -> None:
+    def test_matrix_is_deterministic_matched_and_canonically_ordered(self) -> None:
         first = MODULE.expand_matrix(CONFIG)
         reordered = copy.deepcopy(CONFIG)
         reordered["executors"].reverse()
@@ -22,6 +22,10 @@ class ExperimentRunnerTests(unittest.TestCase):
         second = MODULE.expand_matrix(reordered)
         self.assertEqual(first, second)
         self.assertEqual(len(first), 24)
+        self.assertEqual(
+            [row["treatment_id"] for row in first[::6]],
+            ["baseline", "karpathy", "ponytail", "diffcipline"],
+        )
         MODULE.assert_matched(first)
         by_fixture = {}
         for row in first:
