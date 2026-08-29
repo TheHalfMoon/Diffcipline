@@ -7,6 +7,10 @@ inputs:
     description: Optional Git ref or commit to compare against HEAD. Leave empty to inspect the working tree.
     required: false
     default: ""
+  risk:
+    description: Optional verification profile. Leave empty for default commands; otherwise use R0, R1, R2, or R3.
+    required: false
+    default: ""
   run-verification:
     description: Execute verification commands from .diffcipline.toml. Review repository policy before enabling this on untrusted code.
     required: false
@@ -28,6 +32,7 @@ runs:
       shell: bash
       env:
         DIFFCIPLINE_BASE: ${{ inputs.base }}
+        DIFFCIPLINE_RISK: ${{ inputs.risk }}
         DIFFCIPLINE_RUN_VERIFICATION: ${{ inputs.run-verification }}
         DIFFCIPLINE_WORKING_DIRECTORY: ${{ inputs.working-directory }}
       run: |
@@ -38,6 +43,18 @@ runs:
         if [[ -n "$DIFFCIPLINE_BASE" ]]; then
           args+=(--base "$DIFFCIPLINE_BASE")
         fi
+
+        case "$DIFFCIPLINE_RISK" in
+          "")
+            ;;
+          R0|R1|R2|R3)
+            args+=(--risk "$DIFFCIPLINE_RISK")
+            ;;
+          *)
+            echo "risk must be empty or one of R0, R1, R2, R3" >&2
+            exit 64
+            ;;
+        esac
 
         case "$DIFFCIPLINE_RUN_VERIFICATION" in
           true)
@@ -51,9 +68,38 @@ runs:
             ;;
         esac
 
+        proof_file="$(mktemp)"
+        trap 'rm -f "$proof_file"' EXIT
+
+        set +e
         cargo run --quiet --locked \
           --manifest-path "${{ github.action_path }}/crates/diffcipline-cli/Cargo.toml" \
-          -- "${args[@]}"
+          -- "${args[@]}" >"$proof_file" 2>&1
+        status=$?
+        set -e
+
+        cat "$proof_file"
+
+        if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+          {
+            printf '## Diffcipline proof\n\n'
+            proof_started=false
+            while IFS= read -r line || [[ -n "$line" ]]; do
+              if [[ "$line" == "DIFFCIPLINE PROOF" ]]; then
+                proof_started=true
+              fi
+              if [[ "$proof_started" == true ]]; then
+                printf '    %s\n' "$line"
+              fi
+            done < "$proof_file"
+            if [[ "$proof_started" == false ]]; then
+              printf '    Diffcipline exited before producing proof output.\n'
+            fi
+            printf '\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+        fi
+
+        exit "$status"
 
 branding:
   icon: check-circle
