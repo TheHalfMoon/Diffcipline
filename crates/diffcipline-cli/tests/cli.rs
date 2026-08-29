@@ -258,9 +258,10 @@ fn json_proof_exposes_risk_intent_and_verification() {
     assert!(stdout.contains("\"expected_files\":[\"tracked.txt\"]"));
     assert!(stdout.contains("\"forbidden_surfaces\":[\"secrets/**\"]"));
     assert!(stdout.contains("\"scope_violations\":[]"));
-    assert!(stdout.contains(
-        "\"verification\":[{\"command\":\"git status --short\",\"state\":\"PASS\"}]"
-    ));
+    assert!(
+        stdout
+            .contains("\"verification\":[{\"command\":\"git status --short\",\"state\":\"PASS\"}]")
+    );
 }
 
 #[test]
@@ -271,13 +272,11 @@ fn json_proof_exposes_scope_violations_without_removing_reasons() {
     assert_eq!(output.status.code(), Some(2));
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("\"risk\":null"));
-    assert!(stdout.contains(
-        "\"scope_violations\":[\"unexpected changed file: tracked.txt\"]"
-    ));
+    assert!(stdout.contains("\"scope_violations\":[\"unexpected changed file: tracked.txt\"]"));
     assert!(stdout.contains("\"reasons\":[\"unexpected changed file: tracked.txt\"]"));
-    assert!(stdout.contains(
-        "\"verification\":[{\"command\":\"git diff --check\",\"state\":\"PASS\"}]"
-    ));
+    assert!(
+        stdout.contains("\"verification\":[{\"command\":\"git diff --check\",\"state\":\"PASS\"}]")
+    );
 }
 
 #[test]
