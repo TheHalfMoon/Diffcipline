@@ -38,17 +38,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          parse_request() {
-            body="$1"
-            read -r command target_sha extra <<< "$body"
-            test "$command" = "/run-v0.3-reference"
-            test -z "${extra:-}"
-            [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
-          }
-          parse_request "/run-v0.3-reference 0123456789abcdef0123456789abcdef01234567"
-          ! parse_request "/run-v0.3-reference deadbeef"
-          ! parse_request "/run-v0.3-reference 0123456789abcdef0123456789abcdef01234567 extra"
-          ! parse_request "/run-v0.3-other 0123456789abcdef0123456789abcdef01234567"
+          python - <<'PY'
+          import re
+
+          def valid(body: str) -> bool:
+              parts = body.split()
+              return (
+                  len(parts) == 2
+                  and parts[0] == "/run-v0.3-reference"
+                  and re.fullmatch(r"[0-9a-f]{40}", parts[1]) is not None
+              )
+
+          assert valid("/run-v0.3-reference 0123456789abcdef0123456789abcdef01234567")
+          assert not valid("/run-v0.3-reference deadbeef")
+          assert not valid("/run-v0.3-reference 0123456789abcdef0123456789abcdef01234567 extra")
+          assert not valid("/run-v0.3-other 0123456789abcdef0123456789abcdef01234567")
+          PY
       - name: Validate fail-closed authorization contract
         shell: bash
         run: |
@@ -86,6 +91,9 @@ jobs:
           assert evidence["private_credentials_required"] is False
           assert evidence["comparative_model_execution"] is False
           assert len(plan) == evidence["matrix_rows"] == 24
+          assert [row["treatment_id"] for row in plan[::6]] == [
+              "baseline", "karpathy", "ponytail", "diffcipline"
+          ]
           PY
 
   preflight:
@@ -110,7 +118,7 @@ jobs:
           read -r command target_sha extra <<< "$REQUEST_BODY"
           test "$command" = "/run-v0.3-reference"
           test -z "${extra:-}"
-          [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
+          printf '%s\n' "$target_sha" | grep -Eq '^[0-9a-f]{40}$'
           echo "target_sha=$target_sha" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -176,7 +184,9 @@ jobs:
           import json, sys
           plan = json.load(open(sys.argv[1], encoding="utf-8"))
           assert len(plan) == 24
-          assert [row["treatment_id"] for row in plan[::6]] == ["baseline", "diffcipline", "karpathy", "ponytail"]
+          assert [row["treatment_id"] for row in plan[::6]] == [
+              "baseline", "karpathy", "ponytail", "diffcipline"
+          ]
           PY
       - name: Stop before Phase F comparative execution body
         shell: bash
