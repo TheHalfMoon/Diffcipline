@@ -41,6 +41,19 @@ jobs:
           ! parse_request "/release v0.1.0 0123456789abcdef0123456789abcdef01234567 extra"
           crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
           test "$crate_version" = "0.1.0"
+      - name: Verify immutable release precondition is observable and enabled
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          enabled="$(
+            gh api \
+              -H "X-GitHub-Api-Version: 2026-03-10" \
+              "repos/$GITHUB_REPOSITORY/immutable-releases" \
+              --jq '.enabled'
+          )"
+          test "$enabled" = "true"
 
   tag:
     name: create verified v0.1.0 tag
