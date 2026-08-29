@@ -33,12 +33,20 @@ T110–T115 exact evidence:
 
 ## Phase C — Risk-aware verification
 
-- [ ] T120 Add `check --risk R0|R1|R2|R3` parsing.
-- [ ] T121 Add R0–R3 verification profile policy keys.
-- [ ] T122 Select only the explicitly requested risk profile when `--risk` is supplied.
-- [ ] T123 Fail closed when an explicitly requested risk profile is absent or empty.
-- [ ] T124 Preserve v0.1 default `commands` behavior when `--risk` is omitted.
-- [ ] T125 Add unit and integration coverage for profile selection and missing-profile failure.
+- [x] T120 Add `check --risk R0|R1|R2|R3` parsing.
+- [x] T121 Add R0–R3 verification profile policy keys.
+- [x] T122 Select only the explicitly requested risk profile when `--risk` is supplied.
+- [x] T123 Fail closed when an explicitly requested risk profile is absent or empty.
+- [x] T124 Preserve v0.1 default `commands` behavior when `--risk` is omitted.
+- [x] T125 Add unit and integration coverage for profile selection and missing-profile failure.
+
+T120–T125 exact evidence:
+
+- PR #36 exact head `a744174a1337a94e9ac0c90d0798dae63df2da01` passed `ci` run `33251448181` and `release` run `33251448146`;
+- exact-head CI observed formatting, clippy with warnings denied, locked tests, and cross-platform proof gates as successful;
+- no submitted reviews or review threads remained;
+- PR #36 was squash-merged to canonical `main` as `ef6b66a94029c102d5c798fdc8e71c68eeab61be`;
+- exact post-merge push runs `ci` `33251565005` and `release` `33251564986` both completed successfully.
 
 ## Phase D — Proof output
 
