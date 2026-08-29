@@ -48,6 +48,7 @@ Review release notes, source changes, and repository policy when the change itse
 - Pull requests build all three host-native binaries and verify the combined checksum manifest, but do **not** receive signing permissions.
 - Trusted pushes to `main` additionally create and verify signed artifact attestations. This exercises the signing path before a release tag is published.
 - `v*` tag pushes repeat the same build, checksum, and attestation path, verify that the tag matches the crate version, and then publish the signed release candidate with GitHub CLI.
+- The release workflow verifies the published release is immutable and cryptographically verifies every uploaded asset against the release after publication.
 
 Third-party Actions are pinned to exact commit SHAs. Release publishing is performed with the GitHub CLI already present on GitHub-hosted runners rather than a third-party release action.
 
@@ -68,6 +69,17 @@ The workflow fails closed unless all of the following are true:
 3. the checked-out commit and current `origin/main` both equal that requested SHA;
 4. `crates/diffcipline-cli/Cargo.toml` declares exactly `0.1.0`;
 5. successful `push` runs of `ci.yml`, `skills-compat.yml`, and `release.yml` exist for that same SHA;
-6. `refs/tags/v0.1.0` does not already exist.
+6. repository release immutability is enabled before any tag-triggered release can begin;
+7. `refs/tags/v0.1.0` does not already exist.
 
 Only after those checks pass does the workflow create and push a lightweight `v0.1.0` tag whose ref resolves directly to the verified canonical commit. The workflow never replaces an existing tag.
+
+After publication, the release workflow requires all of the following to succeed:
+
+```bash
+gh release verify v0.1.0 --repo TheHalfMoon/Diffcipline
+gh release view v0.1.0 --repo TheHalfMoon/Diffcipline --json isImmutable
+gh release verify-asset v0.1.0 <asset> --repo TheHalfMoon/Diffcipline
+```
+
+`isImmutable` must be `true`, and `verify-asset` is run for every uploaded file in `dist/`.
