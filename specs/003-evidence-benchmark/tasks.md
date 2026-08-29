@@ -27,12 +27,12 @@
 
 ## Phase D — Matrix orchestration and evidence
 
-- [ ] T230 Add deterministic `executor × treatment × fixture` matrix expansion.
-- [ ] T231 Enforce matched task/revision/model/permissions/limits across treatment arms for each executor.
-- [ ] T232 Produce attempt-aware per-run metadata without overwriting prior attempts.
-- [ ] T233 Produce an experiment manifest covering included, failed, timed-out, and excluded runs.
-- [ ] T234 Keep objective scoring independent from executor implementation.
-- [ ] T235 Add matrix, matching-invariant, manifest, and scorer-boundary tests.
+- [x] T230 Add deterministic `executor × treatment × fixture` matrix expansion.
+- [x] T231 Enforce matched task/revision/model/permissions/limits across treatment arms for each executor.
+- [x] T232 Produce attempt-aware per-run metadata without overwriting prior attempts.
+- [x] T233 Produce an experiment manifest covering included, failed, timed-out, and excluded runs.
+- [x] T234 Keep objective scoring independent from executor implementation.
+- [x] T235 Add matrix, matching-invariant, manifest, and scorer-boundary tests.
 
 ## Phase E — Reproducibility qualification
 
