@@ -804,10 +804,7 @@ fn print_result(result: &CheckResult, base: Option<&str>) {
     println!("Untracked     {}", result.stats.untracked.len());
 
     for (command, state) in &result.verification {
-        println!(
-            "Verification  {} — {command}",
-            verification_state(*state)
-        );
+        println!("Verification  {} — {command}", verification_state(*state));
     }
 
     if !result.reasons.is_empty() {
@@ -971,9 +968,7 @@ r2_commands = [\"cargo clippy\"]\nr3_commands = [\"cargo test --all\"]\n",
         assert!(json.contains("\"risk\":\"R2\""));
         assert!(json.contains("\"expected_files\":[\"src/**\",\"quote\\\".txt\"]"));
         assert!(json.contains("\"forbidden_surfaces\":[\"secrets/**\"]"));
-        assert!(json.contains(
-            "\"scope_violations\":[\"unexpected changed file: line\\nbreak\"]"
-        ));
+        assert!(json.contains("\"scope_violations\":[\"unexpected changed file: line\\nbreak\"]"));
         assert!(json.contains("\"reasons\":[\"reason\\tvalue\"]"));
         assert!(json.contains(
             "\"verification\":[{\"command\":\"echo \\\"ok\\\"\",\"state\":\"PASS\"},{\"command\":\"path\\\\check\",\"state\":\"NOT RUN\"}]"
