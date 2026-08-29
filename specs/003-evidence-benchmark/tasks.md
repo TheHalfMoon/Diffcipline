@@ -5,16 +5,16 @@
 - [x] T200 Define the v0.3 evidence-benchmark contract from canonical roadmap and benchmark truth.
 - [x] T201 Define executor-profile, treatment-arm, adapter, evidence, and reporting invariants.
 - [x] T202 Define implementation phases, experiment authorization boundary, and fail-closed stop conditions.
-- [ ] T203 Merge Spec 003 authority to canonical `main` with exact-head and post-merge gates.
+- [x] T203 Merge Spec 003 authority to canonical `main` with exact-head and post-merge gates.
 
 ## Phase B — Executor/profile schema
 
-- [ ] T210 Add a versioned v0.3 experiment configuration separate from frozen v0.1 `run-config.json`.
-- [ ] T211 Define executor profiles independently from treatment arms.
-- [ ] T212 Validate IDs, adapter kinds, treatment references, revisions/digests, and resource limits fail-closed.
-- [ ] T213 Preserve explicit network/Git-push/workspace restrictions in executor profiles.
-- [ ] T214 Add deterministic config normalization/serialization for evidence manifests.
-- [ ] T215 Add unit coverage for valid and invalid profile/treatment configurations.
+- [x] T210 Add a versioned v0.3 experiment configuration separate from frozen v0.1 `run-config.json`.
+- [x] T211 Define executor profiles independently from treatment arms.
+- [x] T212 Validate IDs, adapter kinds, treatment references, revisions/digests, and resource limits fail-closed.
+- [x] T213 Preserve explicit network/Git-push/workspace restrictions in executor profiles.
+- [x] T214 Add deterministic config normalization/serialization for evidence manifests.
+- [x] T215 Add unit coverage for valid and invalid profile/treatment configurations.
 
 ## Phase C — Adapter boundary
 
