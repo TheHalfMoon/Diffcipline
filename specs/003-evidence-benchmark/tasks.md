@@ -36,12 +36,12 @@
 
 ## Phase E — Reproducibility qualification
 
-- [ ] T240 Add secret-free harness qualification using deterministic fixtures/adapters.
-- [ ] T241 Add CI validation for configuration, adapters, matrix, and evidence completeness.
-- [ ] T242 Prove the reference qualification path requires no private credentials.
-- [ ] T243 Preserve frozen v0.1 evidence and scorer/fixture history.
-- [ ] T244 Define an explicit real-experiment workflow path that does not run on ordinary pull requests.
-- [ ] T245 Merge the qualified public harness before authorizing comparative execution.
+- [x] T240 Add secret-free harness qualification using deterministic fixtures/adapters.
+- [x] T241 Add CI validation for configuration, adapters, matrix, and evidence completeness.
+- [x] T242 Prove the reference qualification path requires no private credentials.
+- [x] T243 Preserve frozen v0.1 evidence and scorer/fixture history.
+- [x] T244 Define an explicit real-experiment workflow path that does not run on ordinary pull requests.
+- [x] T245 Merge the qualified public harness before authorizing comparative execution.
 
 ## Phase F — Public reference experiment
 
