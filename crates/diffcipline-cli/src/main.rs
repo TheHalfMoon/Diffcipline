@@ -768,7 +768,15 @@ forbidden_surfaces = [\"secrets/**\"]\n[verification]\ncommands = [\"cargo test\
         for valid in ["README.md", "src/**", "*.rs"] {
             assert!(validate_path_pattern(valid).is_ok(), "{valid}");
         }
-        for invalid in ["", "/root", "src\\file.rs", "../secret", "src/*.rs", "foo*", "**"] {
+        for invalid in [
+            "",
+            "/root",
+            "src\\file.rs",
+            "../secret",
+            "src/*.rs",
+            "foo*",
+            "**",
+        ] {
             assert!(validate_path_pattern(invalid).is_err(), "{invalid}");
         }
 
