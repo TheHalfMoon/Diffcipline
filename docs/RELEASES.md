@@ -1,6 +1,6 @@
 # Release verification
 
-Diffcipline release artifacts are built from the tagged repository state with locked Cargo inputs. The release workflow produces one host-native binary on each supported GitHub runner, a deterministic SHA-256 manifest, and GitHub artifact provenance signed with a short-lived Sigstore certificate.
+Diffcipline release artifacts are built from locked Cargo inputs. The canonical v0.1 release candidate was built on the exact tagged commit, combined into a deterministic SHA-256 manifest, and signed with GitHub/Sigstore provenance before the tag was created.
 
 ## Release artifacts
 
@@ -48,10 +48,12 @@ Review release notes, source changes, and repository policy when the change itse
 
 - Pull requests build all three host-native binaries and verify the combined checksum manifest, but do **not** receive signing permissions.
 - Trusted pushes to `main` additionally create and verify signed artifact attestations. This exercises the signing path before a release tag is created.
-- A `v*` tag push repeats the exact build, checksum, benchmark-evidence, and provenance path. It then creates a **draft** GitHub Release, uploads every signed candidate asset, downloads the draft assets again, and byte-compares them to the workflow outputs.
-- The tag-triggered workflow never publishes the draft. This prevents repository automation from accidentally creating a mutable public release when the repository-level immutable-release setting cannot be inspected with the ordinary `GITHUB_TOKEN`.
+- An independently authenticated `v*` tag push can run `.github/workflows/release.yml`, repeat the build/checksum/provenance path, and stage a draft release.
+- The repository-native `v0.1.0` tag authority uses the workflow `GITHUB_TOKEN`. GitHub suppresses new workflow runs caused by events created with that token, except explicit workflow/repository dispatch events, so the successful guarded tag push did not create a second tag-push `release` run.
+- `v0.1.0` therefore uses the reviewed `.github/workflows/stage-v0.1.0-release.yml` recovery. It recovers the already-signed `signed-release-candidate` from exact canonical T062 release run `33237553641`, verifies tag lineage, T062/T063 run evidence, checksums, binary attestations, and the exact five-file set, then creates and byte-verifies a **draft** release. It does not rebuild a different candidate or move the tag.
+- No repository workflow publishes the draft. This prevents automation from accidentally creating a mutable public release when the repository-level immutable-release setting cannot be inspected with the ordinary `GITHUB_TOKEN`.
 - After an administrator independently confirms **Enable release immutability** in repository settings, that administrator publishes the already-verified draft through GitHub's administrative release surface.
-- Publication triggers `.github/workflows/verify-v0.1.0-release.yml`, which fails unless the release is immutable, the tag is still the exact canonical `main` commit, the crate version is `0.1.0`, the release attestation verifies, all five assets are present, the three binary checksums verify, every binary provenance attestation verifies, and every published asset verifies against the GitHub Release attestation.
+- Publication triggers `.github/workflows/verify-v0.1.0-release.yml`, which fails unless the release is immutable, the fixed tag target remains an ancestor of canonical `main`, the crate version is `0.1.0`, the release attestation verifies, all five assets are present, the three binary checksums verify, every binary provenance attestation verifies, and every published asset verifies against the GitHub Release attestation.
 - The verifier preserves a 90-day `v0.1.0-release-verification` workflow artifact for the post-tag canonical evidence PR.
 
 Third-party Actions are pinned to exact commit SHAs. Release staging and verification use the GitHub CLI already present on GitHub-hosted runners rather than a third-party release action.
@@ -60,28 +62,31 @@ Third-party Actions are pinned to exact commit SHAs. Release staging and verific
 
 The connected repository tooling does not expose direct Git-tag mutation, so `v0.1.0` uses the reviewed repository-native authority in `.github/workflows/tag-v0.1.0.yml`.
 
-After the v0.1 closeout pull request is merged and T062 succeeds again on the exact canonical `main` commit, the repository owner may post exactly:
+The canonical v0.1 release commit is:
 
 ```text
-/release v0.1.0 <40-character-canonical-main-sha>
+ab434ae114b5f11ea9eb882bf572831dc7634531
 ```
 
-The workflow fails closed unless all of the following are true:
+Before tag creation, that exact commit passed successful `push` runs of `ci.yml`, `skills-compat.yml`, and `release.yml`, including signed provenance verification. Guarded tag-authority run `33237861972` then created lightweight `v0.1.0` directly at that SHA. The workflow never replaces an existing tag, and the existing tag must not be moved or recreated.
 
-1. the request comes from the repository owner on a pull-request conversation;
-2. the requested SHA is a full 40-character Git commit SHA;
-3. the checked-out commit and current `origin/main` both equal that requested SHA;
-4. `crates/diffcipline-cli/Cargo.toml` declares exactly `0.1.0`;
-5. successful `push` runs of `ci.yml`, `skills-compat.yml`, and `release.yml` exist for that same SHA;
-6. `refs/tags/v0.1.0` does not already exist.
+## v0.1 staging recovery authorization
 
-Only after those checks pass does the workflow create and push a lightweight `v0.1.0` tag whose ref resolves directly to the verified canonical commit. The workflow never replaces an existing tag.
+After the staging-recovery workflow is reviewed and canonical, the repository owner may post exactly:
+
+```text
+/stage-release v0.1.0 ab434ae114b5f11ea9eb882bf572831dc7634531
+```
+
+The workflow fails closed unless the request comes from the repository owner, the existing tag still resolves to that exact SHA, the tagged commit remains an ancestor of canonical `main`, exact successful T062/T063 runs exist, and the unique non-expired `signed-release-candidate` artifact from the exact T062 release run can be recovered and fully verified.
+
+Only after those checks pass may it create a draft release. It then downloads the draft assets and byte-compares them with the recovered signed candidate, and preserves `v0.1.0-draft-staging-evidence` for 90 days.
 
 ## Immutable publication authorization
 
 GitHub's repository-level immutable-release setting requires repository Administration access to inspect or modify. The ordinary workflow `GITHUB_TOKEN` deliberately used by this repository does not receive that administrative permission. Repository automation therefore does not treat an administrative `403 Resource not accessible by integration` as evidence that immutability is enabled or disabled.
 
-The tag-triggered workflow stops at a verified draft. There is deliberately no repository workflow that can publish that draft.
+There is deliberately no repository workflow that can publish the draft.
 
 Before T064 publication, a repository administrator must independently confirm in GitHub repository settings that **Enable release immutability** is active and then publish the existing `v0.1.0` draft through GitHub's administrative release surface. That publication is an external administrative prerequisite, not an ordinary repository automation step.
 
