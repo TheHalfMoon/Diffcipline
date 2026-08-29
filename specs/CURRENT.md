@@ -43,8 +43,16 @@ Phase C T220–T225 became canonical at `8e84a013296ae6cf62d41f68068eb1094c422b2
 
 Phase D T230–T235 became canonical at `b4900b45d4ff3cb2e26ef3f4134b0d72087672a9`. PR #46 exact head `927e37cbbaec7db5dfccbd32002f71181c081d37` passed `benchmark-fixtures` `33260403823` and `ci` `33260403827`; after merge, exact canonical push runs `benchmark-fixtures` `33260476350` and `ci` `33260476379` were SUCCESS.
 
+Phase E qualification T240–T243 merged at `35b3a0de5e17d1ce2a20ab3ffdc224d440313363`. Its canonical qualification push `33261050250` was SUCCESS and produced `v0.3-harness-qualification` artifact `9717258339`; the artifact proved `PASS`, 24 deterministic matrix rows, `private_credentials_required=false`, `comparative_model_execution=false`, and preservation of the frozen v0.1 benchmark blobs.
+
+Phase E guarded-entry T244 and the final T245 merge boundary merged at `3be4df7e19b7fd4410bb1127fdd91da9d2f27fc8`. PR #49 exact head `e1722417ec64200c0d218c1ba3a84d33c9fd247d` passed `benchmark-v0.3-reference` `33262020518`, `benchmark-v0.3-qualification` `33262020492`, `benchmark-fixtures` `33262020534`, and `ci` `33262020505`. Exact post-merge push runs `benchmark-v0.3-qualification` `33262094960`, `benchmark-fixtures` `33262095055`, and `ci` `33262094948` were SUCCESS. Canonical qualification artifact `9717538620` has digest `sha256:c8a5ccc984d86d58f18fc495c1d485b42434f4e51f12b8a03dde305655616a8d` and records repository revision `3be4df7e19b7fd4410bb1127fdd91da9d2f27fc8`, `PASS`, 24 rows, no private credentials, and no comparative model execution.
+
+The guarded reference workflow intentionally has no push trigger. Its PR validation proves the owner-command entry contract without executing a model. Comparative execution remains available only through `/run-v0.3-reference <canonical-main-sha>` after the Phase F entry gates are canonical.
+
 ## Active frontier
 
-T240–T245 are the active Phase E unit: qualify the public harness without private credentials, run deterministic CI checks for config/adapters/matrix/evidence completeness, preserve the frozen v0.1 scorer/fixture boundary, and define an explicit real-experiment workflow that cannot run on ordinary pull requests.
+T250–T251 are the immediate Phase F authority unit: freeze the exact secret-free reference executor/runtime/model/treatment provenance and prove that task revision, permissions, prompt suffix, timeout, and resource constraints are identical across treatment arms.
 
-No real comparative v0.3 experiment is authorized before T245 becomes canonical. Contract fixtures and deterministic adapters may qualify the harness, but their outputs are not model-comparison evidence.
+Before T252/T253 execution is enabled, the real experiment path must enforce the declared workspace/network/Git-push containment rather than merely recording those permissions in configuration. Baseline and eligible comparison skills must execute before Diffcipline under the canonical deterministic order `baseline → karpathy → ponytail → diffcipline`.
+
+No comparative result may be selectively rerun, dropped, or rewritten because it is unfavorable. T252/T253 remain unauthorized until T250/T251 are canonical and the guarded workflow's execution body has passed exact-head and post-merge verification.
