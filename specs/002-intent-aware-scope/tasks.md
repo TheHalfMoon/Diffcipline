@@ -50,9 +50,17 @@ T120–T125 exact evidence:
 
 ## Phase D — Proof output
 
-- [ ] T130 Add scope and risk evidence to human proof output.
-- [ ] T131 Add risk, intent contract, scope violations, and verification states to JSON output.
-- [ ] T132 Add regression tests for structured output escaping and compatibility.
+- [x] T130 Add scope and risk evidence to human proof output.
+- [x] T131 Add risk, intent contract, scope violations, and verification states to JSON output.
+- [x] T132 Add regression tests for structured output escaping and compatibility.
+
+T130–T132 exact evidence:
+
+- PR #38 exact head `73de8af1ae368432d0ccfb29c7db31a354bd99cd` passed `ci` run `33254922245` and `release` run `33254922255`;
+- exact-head CI observed formatting, clippy with warnings denied, locked tests, and cross-platform Diffcipline proof gates as successful;
+- no submitted reviews or review threads remained; automated comments contained no valid code finding;
+- PR #38 was squash-merged to canonical `main` as `fb231e21bc8e6ff0435e4056b196057ffc39d042`;
+- exact post-merge push runs `ci` `33254995550` and `release` `33254995552` both completed successfully.
 
 ## Phase E — GitHub Action annotation
 

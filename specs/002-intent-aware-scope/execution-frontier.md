@@ -33,39 +33,43 @@ T110–T115 are canonical at `b35ae01f7a83964ed1c5ab2431f8cf00f4fe3779` after PR
 
 ## Phase C canonical evidence
 
-PR #36 implemented T120–T125 on exact head:
+T120–T125 are canonical at `ef6b66a94029c102d5c798fdc8e71c68eeab61be` after PR #36 exact head `a744174a1337a94e9ac0c90d0798dae63df2da01` passed `ci` `33251448181` and `release` `33251448146`, followed by successful post-merge `ci` `33251565005` and `release` `33251564986`.
 
-`a744174a1337a94e9ac0c90d0798dae63df2da01`
+## Phase D canonical evidence
+
+PR #38 implemented T130–T132 on exact head:
+
+`73de8af1ae368432d0ccfb29c7db31a354bd99cd`
 
 Exact-head evidence:
 
-- `ci` run `33251448181`: SUCCESS;
-- `release` run `33251448146`: SUCCESS;
-- no submitted review or review thread remained.
+- `ci` run `33254922245`: SUCCESS, including formatting, clippy with warnings denied, locked tests, and cross-platform Diffcipline proof gates;
+- `release` run `33254922255`: SUCCESS;
+- no submitted review or review thread remained; automated comments contained no valid code finding.
 
-PR #36 was squash-merged to canonical `main` as:
+PR #38 was squash-merged to canonical `main` as:
 
-`ef6b66a94029c102d5c798fdc8e71c68eeab61be`
+`fb231e21bc8e6ff0435e4056b196057ffc39d042`
 
 Exact post-merge push evidence:
 
-- `ci` run `33251565005`: SUCCESS;
-- `release` run `33251564986`: SUCCESS.
+- `ci` run `33254995550`: SUCCESS;
+- `release` run `33254995552`: SUCCESS.
 
-T120–T125 are complete.
+T130–T132 are complete.
 
 ## Immediate frontier
 
-T130–T132 are now eligible and must be implemented as one coherent proof-output unit:
+T140–T144 are now eligible and must be implemented as one coherent GitHub Action annotation unit:
 
-1. human proof explicitly identifies selected risk or default verification mode;
-2. human proof identifies configured expected and forbidden contracts and resulting scope state;
-3. JSON adds `risk`, `expected_files`, `forbidden_surfaces`, `scope_violations`, and verification command/state entries while preserving existing fields;
-4. JSON remains dependency-free and correctly escapes strings;
-5. existing v0.1 callers that consume existing fields remain compatible.
+1. add an optional `risk` Action input where empty means the existing default verification path and non-empty values are strictly limited to `R0`, `R1`, `R2`, or `R3`;
+2. forward a valid non-empty risk value to the same `diffcipline check --risk ...` CLI contract used locally;
+3. capture deterministic proof output without changing the CLI's verdict/exit semantics;
+4. write a concise Markdown proof to `$GITHUB_STEP_SUMMARY` and do not add repository write permissions, PR comments, or checkout mutation;
+5. add CI dogfood that executes and validates the Action annotation path on supported runners.
 
-Do not begin T140 until T130–T132 are merged canonical and exact post-merge gates succeed.
+Do not begin T150 until T140–T144 are merged canonical and exact post-merge gates succeed.
 
 ## Stop conditions
 
-Stop rather than weaken governance if canonical `main` changes unexpectedly during candidate evaluation, a required exact-head workflow is missing or failing, a valid review finding remains unresolved, a runtime dependency becomes necessary without demonstrated benefit, v0.1 compatibility cannot be preserved without a spec amendment, or requested behavior requires semantic/LLM judging rather than deterministic repository evidence.
+Stop rather than weaken governance if canonical `main` changes unexpectedly during candidate evaluation, a required exact-head workflow is missing or failing, a valid review finding remains unresolved, a runtime dependency becomes necessary without demonstrated benefit, v0.1 compatibility cannot be preserved without a spec amendment, Action annotation would require repository write access or PR comments, or requested behavior requires semantic/LLM judging rather than deterministic repository evidence.
