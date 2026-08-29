@@ -1,0 +1,136 @@
+name: verify-v0.1.0-release
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/verify-v0.1.0-release.yml"
+      - ".github/workflows/release.yml"
+      - "crates/diffcipline-cli/Cargo.toml"
+      - "docs/RELEASES.md"
+      - "specs/**"
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate immutable release verifier
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify exact candidate checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Validate version and release verification tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
+          test "$crate_version" = "0.1.0"
+          gh attestation verify --help >/dev/null
+          gh release verify --help >/dev/null
+          gh release verify-asset --help >/dev/null
+          gh release download --help >/dev/null
+
+  verify:
+    name: verify published immutable v0.1.0
+    if: github.event_name == 'release' && github.event.release.tag_name == 'v0.1.0'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+      - name: Verify exact canonical tag and crate version
+        shell: bash
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          tagged_sha="$(git rev-parse HEAD)"
+          git fetch origin main --no-tags
+          test "$(git rev-parse origin/main)" = "$tagged_sha"
+          git fetch origin "refs/tags/$TAG:refs/tags/$TAG" --no-tags
+          test "$(git rev-parse "refs/tags/$TAG")" = "$tagged_sha"
+          crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
+          test "$crate_version" = "0.1.0"
+          test "$TAG" = "v${crate_version}"
+      - name: Verify immutable release state and release attestation
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')" = "false"
+          verified=false
+          for attempt in $(seq 1 12); do
+            if [[ "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isImmutable --jq '.isImmutable')" == "true" ]] && \
+               gh release verify "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              verified=true
+              break
+            fi
+            sleep 5
+          done
+          test "$verified" = "true"
+          gh release verify "$TAG" --repo "$GITHUB_REPOSITORY"
+      - name: Download and verify every published asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          rm -rf published
+          mkdir published
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir published
+          cd published
+          test -f SHA256SUMS
+          test -f PROVENANCE.sigstore.json
+          test "$(wc -l < SHA256SUMS)" -eq 3
+          test "$(find . -maxdepth 1 -type f | wc -l)" -eq 5
+          sha256sum -c SHA256SUMS
+          for file in diffcipline-*; do
+            gh attestation verify "$file" --repo "$GITHUB_REPOSITORY"
+          done
+          for file in *; do
+            gh release verify-asset "$TAG" "$file" --repo "$GITHUB_REPOSITORY"
+          done
+      - name: Record canonical release verification evidence
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          tagged_sha="$(git rev-parse HEAD)"
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --json tagName,url,isDraft,isImmutable,publishedAt,assets \
+            > evidence/release.json
+          (
+            cd published
+            sha256sum *
+          ) > evidence/published-assets.sha256
+          cat > evidence/verification.txt <<EOF
+          tag=$TAG
+          tag_sha=$tagged_sha
+          workflow_run_id=$GITHUB_RUN_ID
+          workflow_run_attempt=$GITHUB_RUN_ATTEMPT
+          workflow_sha=$GITHUB_SHA
+          release_immutable=true
+          release_attestation=verified
+          release_assets=verified
+          EOF
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: v0.1.0-release-verification
+          path: evidence/*
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0

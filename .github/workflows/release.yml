@@ -4,17 +4,31 @@ on:
   pull_request:
     paths:
       - ".github/workflows/release.yml"
+      - ".github/workflows/tag-v0.1.0.yml"
+      - ".github/workflows/verify-v0.1.0-release.yml"
       - "Cargo.toml"
       - "Cargo.lock"
       - "crates/diffcipline-cli/**"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "docs/RELEASES.md"
+      - "specs/**"
+      - "benchmarks/results/**"
   push:
     branches: [main]
     tags: ["v*"]
     paths:
       - ".github/workflows/release.yml"
+      - ".github/workflows/tag-v0.1.0.yml"
+      - ".github/workflows/verify-v0.1.0-release.yml"
       - "Cargo.toml"
       - "Cargo.lock"
       - "crates/diffcipline-cli/**"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "docs/RELEASES.md"
+      - "specs/**"
+      - "benchmarks/results/**"
 
 permissions:
   contents: read
@@ -29,6 +43,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
       - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
       - name: Build locked release binary
         run: cargo build --release --locked --package diffcipline
@@ -57,6 +76,37 @@ jobs:
           retention-days: 7
           compression-level: 0
 
+  benchmark-evidence:
+    name: benchmark evidence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - name: Verify canonical v0.1 evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd benchmarks/results/v0.1
+          sha256sum -c SHA256SUMS
+          python - <<'PY'
+          import json
+          m = json.load(open("MANIFEST.json", encoding="utf-8"))
+          assert m["canonical_execution_run"] == 33200332207
+          assert m["canonical_execution_revision"] == "b640461cfdf08c25b8cf8b0404aa6b5a8ccae1bc"
+          assert m["fixture_preparer_scorer_boundary_revision"] == "cde4d0058ce522ddd9863457c29560679fac53dd"
+          assert set(m["results"]) == {"baseline", "karpathy", "ponytail", "diffcipline"}
+          for arm in m["results"].values():
+              assert arm["summary"]["tasks"] == 6
+              assert arm["summary"]["correct"] == 1
+          assert m["tokens"] == m["cost"] == "NOT AVAILABLE"
+          PY
+          tar -tzf raw-canonical-evidence.tar.gz > "$RUNNER_TEMP/v0.1-archive-list.txt"
+          grep -Fxq './EXCLUSIONS.txt' "$RUNNER_TEMP/v0.1-archive-list.txt"
+
   aggregate:
     name: checksums
     needs: build
@@ -76,8 +126,14 @@ jobs:
           sha256sum diffcipline-* | LC_ALL=C sort -k2 > SHA256SUMS
           test "$(wc -l < SHA256SUMS)" -eq 3
           sha256sum -c SHA256SUMS
-      - name: Confirm attestation verifier is available
-        run: gh attestation verify --help >/dev/null
+      - name: Confirm release verification tooling is available
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh attestation verify --help >/dev/null
+          gh release verify --help >/dev/null
+          gh release verify-asset --help >/dev/null
+          gh release download --help >/dev/null
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-candidate
@@ -89,7 +145,7 @@ jobs:
   attest:
     name: sign provenance
     if: github.event_name == 'push'
-    needs: aggregate
+    needs: [aggregate, benchmark-evidence]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -126,8 +182,8 @@ jobs:
           retention-days: 14
           compression-level: 0
 
-  publish:
-    name: publish GitHub release
+  stage-release:
+    name: stage GitHub release draft
     if: startsWith(github.ref, 'refs/tags/v')
     needs: attest
     runs-on: ubuntu-latest
@@ -135,12 +191,22 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Verify exact tagged checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git fetch origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME" --no-tags
+          test "$(git rev-parse "refs/tags/$GITHUB_REF_NAME")" = "$GITHUB_SHA"
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: signed-release-candidate
           path: dist
           digest-mismatch: error
-      - name: Verify tag matches crate version
+      - name: Verify tag matches crate version and staged bytes
         shell: bash
         run: |
           set -euo pipefail
@@ -148,7 +214,8 @@ jobs:
           test "$GITHUB_REF_NAME" = "v${crate_version}"
           cd dist
           sha256sum -c SHA256SUMS
-      - name: Publish immutable release inputs
+          test -f PROVENANCE.sigstore.json
+      - name: Create draft release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -158,4 +225,21 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --title "Diffcipline $GITHUB_REF_NAME" \
             --generate-notes \
+            --draft \
             --verify-tag
+      - name: Round-trip verify draft assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')" = "true"
+          rm -rf staged
+          mkdir staged
+          gh release download "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --dir staged
+          find dist -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort > expected-assets.txt
+          find staged -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort > staged-assets.txt
+          cmp expected-assets.txt staged-assets.txt
+          while IFS= read -r asset; do
+            cmp "dist/$asset" "staged/$asset"
+          done < expected-assets.txt

@@ -6,12 +6,14 @@ on:
       - ".github/workflows/skills-compat.yml"
       - "skills/**"
       - "docs/INSTALLATION.md"
+      - "specs/**"
   push:
     branches: [main]
     paths:
       - ".github/workflows/skills-compat.yml"
       - "skills/**"
       - "docs/INSTALLATION.md"
+      - "specs/**"
 
 permissions:
   contents: read
@@ -41,6 +43,11 @@ jobs:
       SKILLS_CLI_VERSION: "1.5.23"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
@@ -49,13 +56,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
-            echo "value=$GITHUB_WORKSPACE" >> "$GITHUB_OUTPUT"
-            echo "mode=local-exact-head" >> "$GITHUB_OUTPUT"
-          else
-            echo "value=TheHalfMoon/Diffcipline" >> "$GITHUB_OUTPUT"
-            echo "mode=public-github" >> "$GITHUB_OUTPUT"
-          fi
+          echo "value=$GITHUB_WORKSPACE" >> "$GITHUB_OUTPUT"
+          echo "mode=local-exact-head" >> "$GITHUB_OUTPUT"
       - name: Verify pinned installer version
         shell: bash
         run: |
