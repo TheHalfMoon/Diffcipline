@@ -5,7 +5,14 @@
 - [x] T100 Define v0.2 intent-aware scope contract from the repository roadmap.
 - [x] T101 Define deterministic path-pattern semantics and non-goals.
 - [x] T102 Define risk-profile and GitHub annotation contracts.
-- [ ] T103 Merge Spec 002 authority chain to canonical `main` with exact-head gates.
+- [x] T103 Merge Spec 002 authority chain to canonical `main` with exact-head gates.
+
+T103 exact evidence:
+
+- planning PR #32 exact head `2936f00420b8fa3cd8444812a05e736a2ecc0cc7` passed `ci` run `33249759142`, `skills-compat` run `33249759124`, `release` run `33249759126`, tag validation run `33249759105`, staging validation run `33249759106`, and immutable-release verifier validation run `33249759179`;
+- no submitted reviews or review threads remained; automated comments contained no valid code finding;
+- PR #32 was squash-merged to canonical `main` as `43aaf35c7a6b07b632e4707999cc664089f911ac`;
+- exact post-merge push runs `ci` `33249914994`, `skills-compat` `33249915085`, and `release` `33249915039` all completed successfully.
 
 ## Phase B — Expected and forbidden surfaces
 
