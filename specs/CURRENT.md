@@ -2,7 +2,7 @@
 
 Active: [`003-evidence-benchmark`](003-evidence-benchmark/spec.md)
 
-Status: `PLANNING`
+Status: `IMPLEMENTATION`
 
 ## Canonical read order
 
@@ -56,10 +56,24 @@ The existing repository already has a frozen six-task corpus, an objective score
 
 Spec 003 preserves the frozen v0.1 evidence boundary and does not authorize semantic/LLM-as-judge scoring, selective reruns, hidden exclusions, v1.0 work, or a v0.3 release tag.
 
+## Canonical planning evidence
+
+Spec 003 planning authority reached canonical `main` at:
+
+`c392d372564b55cc7d55aee8bed1b2641dee6820`
+
+Post-merge runs on that exact commit:
+
+- `ci` `33256584608`: SUCCESS;
+- `skills-compat` `33256584575`: SUCCESS;
+- `release` `33256584593`: SUCCESS.
+
+T200–T203 are therefore canonical.
+
 ## Active frontier
 
-T200–T202 are defined by the Spec 003 planning candidate. T203 is the only eligible task until the authority chain itself passes exact-head gates, has no unresolved valid review finding, merges to unchanged canonical `main`, and passes exact post-merge gates.
+T210–T215 are the active Phase B unit: introduce and validate a versioned v0.3 experiment configuration that separates executor profiles from treatment arms while leaving frozen v0.1 `benchmarks/run-config.json` unchanged.
 
-Do not begin T210 implementation before T203 is canonical.
+T220 adapter work remains blocked until T210–T215 pass exact-head gates, review reconciliation, canonical merge, and exact post-merge verification.
 
 No real comparative v0.3 experiment is authorized before T245. Contract fixtures and deterministic test adapters may qualify the harness before that boundary, but their outputs are not comparative model evidence.
