@@ -7,6 +7,10 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "crates/diffcipline-cli/**"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "specs/**"
+      - "benchmarks/results/**"
   push:
     branches: [main]
     tags: ["v*"]
@@ -15,6 +19,10 @@ on:
       - "Cargo.toml"
       - "Cargo.lock"
       - "crates/diffcipline-cli/**"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "specs/**"
+      - "benchmarks/results/**"
 
 permissions:
   contents: read
@@ -29,6 +37,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
       - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
       - name: Build locked release binary
         run: cargo build --release --locked --package diffcipline
@@ -56,6 +70,37 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
+
+  benchmark-evidence:
+    name: benchmark evidence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Verify canonical v0.1 evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd benchmarks/results/v0.1
+          sha256sum -c SHA256SUMS
+          python - <<'PY'
+          import json
+          m = json.load(open("MANIFEST.json", encoding="utf-8"))
+          assert m["canonical_execution_run"] == 33200332207
+          assert m["canonical_execution_revision"] == "b640461cfdf08c25b8cf8b0404aa6b5a8ccae1bc"
+          assert m["fixture_preparer_scorer_boundary_revision"] == "cde4d0058ce522ddd9863457c29560679fac53dd"
+          assert set(m["results"]) == {"baseline", "karpathy", "ponytail", "diffcipline"}
+          for arm in m["results"].values():
+              assert arm["summary"]["tasks"] == 6
+              assert arm["summary"]["correct"] == 1
+          assert m["tokens"] == m["cost"] == "NOT AVAILABLE"
+          PY
+          tar -tzf raw-canonical-evidence.tar.gz | grep -Fq './EXCLUSIONS.txt'
 
   aggregate:
     name: checksums
@@ -89,7 +134,7 @@ jobs:
   attest:
     name: sign provenance
     if: github.event_name == 'push'
-    needs: aggregate
+    needs: [aggregate, benchmark-evidence]
     runs-on: ubuntu-latest
     permissions:
       contents: read
