@@ -45,20 +45,28 @@ The canonical README roadmap defines v0.2 as `Intent-aware scope` with exactly t
 
 Spec 002 translates those roadmap goals into deterministic, dependency-free acceptance criteria. It does not authorize semantic AI judging, inferred risk, arbitrary glob semantics, PR write access, or unrelated roadmap work.
 
-PR #32 exact planning head `2936f00420b8fa3cd8444812a05e736a2ecc0cc7` passed all six triggered exact-head workflows and was squash-merged as canonical Spec 002 authority:
+T103 planning authority is canonical at `43aaf35c7a6b07b632e4707999cc664089f911ac` with successful post-merge `ci` `33249914994`, `skills-compat` `33249915085`, and `release` `33249915039`.
 
-`43aaf35c7a6b07b632e4707999cc664089f911ac`
+## Completed Phase B
 
-Post-merge push evidence on that exact canonical SHA:
+T110–T115 expected/forbidden scope implementation is canonical at:
 
-- `ci` run `33249914994`: SUCCESS;
-- `skills-compat` run `33249915085`: SUCCESS;
-- `release` run `33249915039`: SUCCESS.
+`b35ae01f7a83964ed1c5ab2431f8cf00f4fe3779`
 
-T103 is complete.
+Exact candidate evidence:
+
+- PR #34 head `e0214a75a2e65319618d9b4b4529ac280843bc86`;
+- `ci` `33250895497`: SUCCESS;
+- `release` `33250895562`: SUCCESS;
+- no submitted reviews or review threads and no valid automated finding.
+
+Post-merge evidence:
+
+- `ci` `33250973190`: SUCCESS;
+- `release` `33250973214`: SUCCESS.
 
 ## Active frontier
 
-T110–T115 are the next eligible unit: implement deterministic `expected_files` and `forbidden_surfaces` policy parsing, pattern validation, scope evaluation, and unit/integration coverage while preserving v0.1 behavior when the new fields are absent.
+T120–T125 are the next eligible unit: implement explicit `check --risk R0|R1|R2|R3`, corresponding verification profile keys, strict selected-profile execution, missing/empty-profile fail-closed behavior, v0.1 default-command compatibility when risk is omitted, and unit/integration coverage.
 
-Do not begin risk-profile implementation until the Phase B unit is canonical and exact post-merge gates are verified.
+Do not begin proof-output work until T120–T125 are canonical with successful exact post-merge gates.

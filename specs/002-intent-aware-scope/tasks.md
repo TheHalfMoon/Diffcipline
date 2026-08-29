@@ -16,12 +16,20 @@ T103 exact evidence:
 
 ## Phase B — Expected and forbidden surfaces
 
-- [ ] T110 Extend policy parsing with `expected_files` and `forbidden_surfaces`.
-- [ ] T111 Validate the supported path-pattern grammar and fail closed on unsupported wildcard placement.
-- [ ] T112 Evaluate expected-file scope against every changed path.
-- [ ] T113 Evaluate forbidden-surface scope against every changed path.
-- [ ] T114 Add unit coverage for exact, directory-recursive, filename-suffix, invalid, expected, and forbidden matching.
-- [ ] T115 Add fixture-repository integration coverage for intent PASS/FAIL behavior.
+- [x] T110 Extend policy parsing with `expected_files` and `forbidden_surfaces`.
+- [x] T111 Validate the supported path-pattern grammar and fail closed on unsupported wildcard placement.
+- [x] T112 Evaluate expected-file scope against every changed path.
+- [x] T113 Evaluate forbidden-surface scope against every changed path.
+- [x] T114 Add unit coverage for exact, directory-recursive, filename-suffix, invalid, expected, and forbidden matching.
+- [x] T115 Add fixture-repository integration coverage for intent PASS/FAIL behavior.
+
+T110–T115 exact evidence:
+
+- PR #34 exact head `e0214a75a2e65319618d9b4b4529ac280843bc86` passed `ci` run `33250895497` and `release` run `33250895562`;
+- the exact-head CI observed `cargo fmt --all -- --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings`, `cargo test --workspace --all-targets --locked`, and cross-platform Diffcipline proof gates as successful;
+- no submitted reviews or review threads remained; automated comments contained no valid code finding;
+- PR #34 was squash-merged to canonical `main` as `b35ae01f7a83964ed1c5ab2431f8cf00f4fe3779`;
+- exact post-merge push runs `ci` `33250973190` and `release` `33250973214` both completed successfully.
 
 ## Phase C — Risk-aware verification
 

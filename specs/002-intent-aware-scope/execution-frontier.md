@@ -19,75 +19,52 @@ Read in this order before acting:
 11. `action.yml`
 12. `.github/workflows/ci.yml`
 
-## Starting canonical state
+## Preserved v0.1 truth
 
-Spec 001 / v0.1 reached `COMPLETE_CANONICAL` at canonical `main`:
-
-`d74ed5f8789fb255e24f124e3283939cdc080cd0`
-
-Published immutable `v0.1.0` remains fixed at:
-
-`ab434ae114b5f11ea9eb882bf572831dc7634531`
-
-Do not move or replace that tag or mutate Release ID `378936458`.
+Spec 001 / v0.1 reached `COMPLETE_CANONICAL` at `d74ed5f8789fb255e24f124e3283939cdc080cd0`. Published immutable `v0.1.0` remains fixed at `ab434ae114b5f11ea9eb882bf572831dc7634531`; do not move or replace that tag or mutate Release ID `378936458`.
 
 The v0.1 benchmark conclusion remains canonical and must not be rewritten: all four arms scored `1/6`, all changed zero files, Diffcipline was slowest by observed wall-clock time, and no correctness advantage is supported.
 
-## Spec 002 authority
+## Spec 002 planning authority
 
-The canonical README roadmap explicitly defines `v0.2 — Intent-aware scope` with:
+PR #32 planning head `2936f00420b8fa3cd8444812a05e736a2ecc0cc7` passed all six exact-head workflows and merged canonical as `43aaf35c7a6b07b632e4707999cc664089f911ac`. Post-merge `ci` `33249914994`, `skills-compat` `33249915085`, and `release` `33249915039` all succeeded. T103 is complete.
 
-- proof contract for expected files and forbidden surfaces;
-- risk-aware verification profiles;
-- GitHub PR annotation.
+## Phase B canonical evidence
 
-PR #32 narrowed only that roadmap scope into the Spec 002 authority chain. Exact planning head:
+PR #34 implemented T110–T115 on exact head:
 
-`2936f00420b8fa3cd8444812a05e736a2ecc0cc7`
+`e0214a75a2e65319618d9b4b4529ac280843bc86`
 
-All six exact-head workflows succeeded:
+Exact-head evidence:
 
-- `ci` `33249759142`;
-- `skills-compat` `33249759124`;
-- `release` `33249759126`;
-- `tag-v0.1.0` validation `33249759105`;
-- `stage-v0.1.0-release` validation `33249759106`;
-- `verify-v0.1.0-release` validation `33249759179`.
+- `ci` run `33250895497`: SUCCESS, including formatting, clippy with warnings denied, locked tests, and cross-platform proof gates;
+- `release` run `33250895562`: SUCCESS;
+- no submitted review or review thread remained; automated comments contained no valid code finding.
 
-No valid review finding remained. PR #32 was squash-merged to canonical `main` as:
+PR #34 was squash-merged to canonical `main` as:
 
-`43aaf35c7a6b07b632e4707999cc664089f911ac`
+`b35ae01f7a83964ed1c5ab2431f8cf00f4fe3779`
 
-Post-merge exact push gates:
+Exact post-merge push evidence:
 
-- `ci` `33249914994`: SUCCESS;
-- `skills-compat` `33249915085`: SUCCESS;
-- `release` `33249915039`: SUCCESS.
+- `ci` run `33250973190`: SUCCESS;
+- `release` run `33250973214`: SUCCESS.
 
-T103 is therefore complete.
+T110–T115 are therefore complete.
 
 ## Immediate frontier
 
-T110–T115 are now eligible and must be executed as one coherent Phase B unit:
+T120–T125 are now eligible and must be implemented as one coherent risk-profile unit:
 
-1. extend policy parsing with optional `expected_files` and `forbidden_surfaces`;
-2. validate only the documented deterministic matcher grammar;
-3. evaluate expected-file constraints against every changed repository-relative path;
-4. evaluate forbidden-surface constraints against every changed repository-relative path;
-5. add unit tests for exact, recursive-directory, suffix, invalid, expected, and forbidden behavior;
-6. add fixture-repository integration coverage for PASS/FAIL behavior.
+1. accept only explicit `check --risk R0|R1|R2|R3` values;
+2. parse `r0_commands`, `r1_commands`, `r2_commands`, and `r3_commands` under `[verification]`;
+3. execute only the explicitly selected profile when risk is supplied;
+4. fail closed with execution/configuration error if that selected profile is absent or empty;
+5. preserve the existing `commands` path exactly when `--risk` is omitted;
+6. cover selection, invalid risk, absent/empty profile, and backward compatibility in unit and fixture-repository integration tests.
 
-For intent evaluation, treat tracked diff paths and untracked repository-relative paths as changed paths. Preserve the existing independent untracked-file policy decision as well.
-
-Do not start T120 until T110–T115 are merged canonical and their post-merge exact gates are successful.
+Do not begin T130 until T120–T125 are merged canonical and exact post-merge gates succeed.
 
 ## Stop conditions
 
-Stop rather than weaken governance if:
-
-- canonical `main` changes unexpectedly while a candidate is being evaluated;
-- an exact-head required workflow is missing or failing;
-- a valid review finding remains unresolved;
-- implementation would require a runtime dependency without a demonstrated necessity;
-- backward compatibility with v0.1 policy behavior cannot be preserved without an explicit spec amendment;
-- the requested behavior requires semantic/LLM judging rather than deterministic repository evidence.
+Stop rather than weaken governance if canonical `main` changes unexpectedly during candidate evaluation, an exact-head required workflow is missing or failing, a valid review finding remains unresolved, a runtime dependency becomes necessary without demonstrated benefit, v0.1 compatibility cannot be preserved without a spec amendment, or requested behavior requires semantic/LLM judging rather than deterministic repository evidence.
