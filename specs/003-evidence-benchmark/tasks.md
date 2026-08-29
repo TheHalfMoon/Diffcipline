@@ -18,12 +18,12 @@
 
 ## Phase C — Adapter boundary
 
-- [ ] T220 Remove hardcoded `local_agent.py` selection from arm orchestration.
-- [ ] T221 Define the process-level executor adapter contract.
-- [ ] T222 Add a reference adapter for the existing local OpenAI-compatible tool loop.
-- [ ] T223 Add a deterministic contract-test adapter that is excluded from comparative evidence.
-- [ ] T224 Preserve timeout, exit, stdout, stderr, transcript, and treatment-input evidence across adapters.
-- [ ] T225 Add adapter contract and failure-path tests.
+- [x] T220 Remove hardcoded `local_agent.py` selection from arm orchestration.
+- [x] T221 Define the process-level executor adapter contract.
+- [x] T222 Add a reference adapter for the existing local OpenAI-compatible tool loop.
+- [x] T223 Add a deterministic contract-test adapter that is excluded from comparative evidence.
+- [x] T224 Preserve timeout, exit, stdout, stderr, transcript, and treatment-input evidence across adapters.
+- [x] T225 Add adapter contract and failure-path tests.
 
 ## Phase D — Matrix orchestration and evidence
 

@@ -27,39 +27,35 @@ The canonical v0.1 benchmark remains unfavorable: every arm scored `1/6`, all ar
 
 Do not rewrite v0.1 evidence, fixtures, scorer history, or published limitations to improve later results.
 
-## Planning authority evidence
+## Canonical Spec 003 evidence
 
-T203 became canonical at `c392d372564b55cc7d55aee8bed1b2641dee6820` after PR #43 passed exact-head gates, merged to unchanged `main`, and the following push runs succeeded on that exact commit:
+Planning T200–T203 became canonical at `c392d372564b55cc7d55aee8bed1b2641dee6820` with post-merge `ci` `33256584608`, `skills-compat` `33256584575`, and `release` `33256584593` all SUCCESS.
 
-- `ci` `33256584608`: SUCCESS;
-- `skills-compat` `33256584575`: SUCCESS;
-- `release` `33256584593`: SUCCESS.
+Phase B T210–T215 became canonical at `5726c54f1b807a8d0976d71308c61cf70687d621` after PR #44 exact-head gates and these push runs succeeded on that exact commit:
+
+- `benchmark-fixtures` `33257309999`: SUCCESS;
+- `ci` `33257309939`: SUCCESS;
+- `skills-compat` `33257309945`: SUCCESS;
+- `release` `33257309947`: SUCCESS.
 
 ## Current benchmark truth
 
-The repository already contains:
-
-- a six-task deterministic fixture corpus;
-- an objective repository-state scorer;
-- a pinned v0.1 local model/runtime configuration;
-- a repository-local OpenAI-compatible bash-tool agent loop;
-- arm orchestration that currently hardcodes that local agent;
-- raw v0.1 evidence and publication artifacts.
-
-The v0.3 gap is the executor-independent public harness and reproducible multi-executor evidence contract, not a missing scorer.
+The repository contains a frozen six-task corpus, objective scorer, pinned v0.1 experiment, repository-local OpenAI-compatible agent loop, and a versioned v0.3 executor/treatment configuration. The remaining Phase C gap is a process-level adapter boundary so arm orchestration no longer selects `local_agent.py` directly.
 
 ## Immediate frontier
 
-Phase B implements T210–T215 only:
+Phase C implements T220–T225 only:
 
-- a new `benchmarks/v0.3/experiment.json` schema separate from frozen v0.1 `run-config.json`;
-- executor profiles independent from treatment arms;
-- fail-closed validation of IDs, adapter kinds, revisions/digests, and resource limits;
-- explicit denied network/Git-push permissions and disposable workspace policy;
-- deterministic normalized serialization;
-- standard-library unit coverage for valid and invalid configurations.
+- route `run_arm.py` through `executor_adapter.py`;
+- keep the existing local OpenAI-compatible loop as the reference adapter;
+- add a deterministic `contract-test` adapter used only for qualification;
+- reject `contract-test` from comparative arm orchestration;
+- preserve process exit, stdout, stderr, timeout state, transcript, treatment digest, adapter digest, and local-agent digest evidence;
+- add standard-library contract and failure-path tests, including workspace-escape rejection.
 
-T220 adapter work remains blocked until T210–T215 are canonical with exact-head and post-merge evidence.
+T230 matrix work remains blocked until T220–T225 are canonical with exact-head and post-merge evidence.
+
+The legacy `benchmark-arms` workflow may run after a canonical `run_arm.py` change. Any such run is legacy regression evidence only and cannot satisfy v0.3 T250–T255 or alter the frozen v0.1 canonical result.
 
 ## Real-experiment authorization boundary
 
@@ -69,15 +65,4 @@ After T245, execute only the exact pinned reference experiment defined by T250�
 
 ## Stop conditions
 
-Stop rather than weaken governance if:
-
-- canonical `main` changes unexpectedly during candidate evaluation;
-- a required exact-head or post-merge workflow is missing or failing;
-- a valid review finding remains unresolved;
-- executor and treatment identity cannot be separated deterministically;
-- a proposed canonical qualification requires private credentials;
-- the scorer would need executor-specific or semantic/LLM judging;
-- a dependency becomes necessary without demonstrated benefit;
-- v0.1 frozen evidence would need rewriting;
-- comparative execution is requested before T245;
-- publication would require hiding failed, timed-out, excluded, or losing evidence.
+Stop rather than weaken governance if canonical `main` changes unexpectedly, required exact-head/post-merge gates fail or disappear, a valid review finding remains unresolved, executor/treatment identity cannot be separated, qualification requires private credentials, scoring becomes executor-specific or semantic, a dependency is proposed without demonstrated need, v0.1 evidence would need rewriting, comparative v0.3 execution is requested before T245, or publication would hide failed/timed-out/excluded/losing evidence.
