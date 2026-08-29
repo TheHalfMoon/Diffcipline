@@ -15,6 +15,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: benchmark-v0.3-reference
+  cancel-in-progress: false
+
 jobs:
   validate:
     name: validate guarded v0.3 reference entry
@@ -68,6 +72,46 @@ jobs:
           grep -Fq "github.event_name == 'issue_comment'" "$workflow"
           grep -Fq "github.event.comment.user.login == github.repository_owner" "$workflow"
           grep -Fq "startsWith(github.event.comment.body, '/run-v0.3-reference ')" "$workflow"
+          grep -Fq "Reserve exact experiment target" "$workflow"
+          grep -Fq "Run reference experiment once" "$workflow"
+          grep -Fq "v0.3-reference-reservation-" "$workflow"
+      - name: Validate complete pinned reference contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -S benchmarks/harness/experiment_config.py benchmarks/v0.3/experiment.json
+          python - <<'PY'
+          import json
+          v03 = json.load(open("benchmarks/v0.3/experiment.json", encoding="utf-8"))
+          frozen = json.load(open("benchmarks/run-config.json", encoding="utf-8"))
+          executor = v03["executors"][0]
+          runtime, model = executor["runtime"], executor["model"]
+          provider = frozen["provider"]
+          assert v03["fixture_revision"] == frozen["fixture_revision"]
+          assert v03["prompt_suffix"] == frozen["prompt_suffix"]
+          assert runtime["name"] == provider["runtime"]
+          assert runtime["release"] == provider["release"]
+          assert runtime["revision"] == provider["source_revision"]
+          assert runtime["download_url"] == provider["download_url"]
+          assert runtime["sha256"] == provider["sha256"]
+          assert runtime["base_url"] == provider["base_url"]
+          assert runtime["server_args"] == provider["server_args"]
+          assert runtime["chat_template"]["revision"] == provider["chat_template"]["revision"]
+          assert runtime["chat_template"]["path"] == provider["chat_template"]["path"]
+          assert runtime["chat_template"]["digest"]["value"] == provider["chat_template"]["blob_sha"]
+          for key in ("id", "repository", "revision", "file", "download_url", "sha256", "quantization", "license"):
+              assert model[key] == frozen["model"][key]
+          arms = frozen["arms"]
+          treatments = {item["id"]: item for item in v03["treatments"]}
+          assert treatments["baseline"] == {"id": "baseline", "kind": "none"}
+          for treatment_id in ("karpathy", "ponytail", "diffcipline"):
+              source = treatments[treatment_id]["source"]
+              legacy = arms[treatment_id]
+              assert source["repository"] == legacy["repository"]
+              assert source["revision"] == legacy["revision"]
+              assert source["path"] == legacy["path"]
+              assert source["digest"]["value"] == legacy["blob_sha"]
+          PY
       - name: Requalify harness without comparative execution
         shell: bash
         run: |
@@ -76,6 +120,7 @@ jobs:
             benchmarks.harness.test_experiment_config \
             benchmarks.harness.test_executor_adapter \
             benchmarks.harness.test_experiment_runner \
+            benchmarks.harness.test_sandbox_exec \
             -v
           python -S benchmarks/harness/qualify_v03.py --output "$RUNNER_TEMP/v0.3-entry-qualification.json"
           python -S benchmarks/harness/experiment_runner.py \
@@ -96,14 +141,15 @@ jobs:
           ]
           PY
 
-  preflight:
-    name: authorize canonical v0.3 reference experiment entry
+  experiment:
+    name: execute canonical v0.3 reference experiment
     if: >-
       github.event_name == 'issue_comment' &&
       github.event.issue.pull_request &&
       github.event.comment.user.login == github.repository_owner &&
       startsWith(github.event.comment.body, '/run-v0.3-reference ')
     runs-on: ubuntu-latest
+    timeout-minutes: 240
     permissions:
       contents: read
       actions: read
@@ -146,6 +192,7 @@ jobs:
           grep -Fqx -- '- [x] T250 Pin one secret-free reference executor/model/runtime configuration and all treatment revisions/digests.' "$tasks"
           grep -Fqx -- '- [x] T251 Verify identical task revisions, permissions, prompt suffix, timeouts, and resource limits across arms.' "$tasks"
       - name: Require exact canonical qualification evidence
+        id: qualification
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -162,35 +209,281 @@ jobs:
           test -n "$run_id"
           mkdir -p "$RUNNER_TEMP/qualification"
           gh run download "$run_id" -n v0.3-harness-qualification -D "$RUNNER_TEMP/qualification"
-          python - "$RUNNER_TEMP/qualification/v0.3-qualification.json" "$TARGET_SHA" <<'PY'
-          import json, sys
-          evidence = json.load(open(sys.argv[1], encoding="utf-8"))
-          assert evidence["repository_revision"] == sys.argv[2]
-          assert evidence["result"] == "PASS"
-          assert evidence["private_credentials_required"] is False
-          assert evidence["comparative_model_execution"] is False
+          python - "$RUNNER_TEMP/qualification/v0.3-qualification.json" "$RUNNER_TEMP/qualification/containment.json" "$TARGET_SHA" <<'PY'
+          import hashlib, json, sys
+          qualification = json.load(open(sys.argv[1], encoding="utf-8"))
+          containment = json.load(open(sys.argv[2], encoding="utf-8"))
+          config = json.load(open("benchmarks/v0.3/experiment.json", encoding="utf-8"))
+          assert qualification["repository_revision"] == sys.argv[3]
+          assert qualification["result"] == "PASS"
+          assert qualification["private_credentials_required"] is False
+          assert qualification["comparative_model_execution"] is False
+          assert qualification["matrix_rows"] == 24
+          assert qualification["config_sha256"] == hashlib.sha256(open("benchmarks/v0.3/experiment.json", "rb").read()).hexdigest()
+          assert containment["repository_revision"] == sys.argv[3]
+          assert containment["result"] == "PASS"
+          assert containment["private_credentials_exposed"] is False
+          assert containment["image"] == config["executors"][0]["sandbox"]["image"]
           PY
-      - name: Verify deterministic reference matrix preflight
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+      - name: Verify deterministic reference matrix and frozen source lineage
         shell: bash
         run: |
           set -euo pipefail
-          python -S benchmarks/harness/qualify_v03.py --output "$RUNNER_TEMP/preflight-qualification.json"
+          python -S benchmarks/harness/experiment_config.py benchmarks/v0.3/experiment.json
           python -S benchmarks/harness/experiment_runner.py \
             --config benchmarks/v0.3/experiment.json \
             --output "$RUNNER_TEMP/not-executed" \
             --treatments-root "$RUNNER_TEMP/not-used" \
             --plan > "$RUNNER_TEMP/reference-plan.json"
-          python - "$RUNNER_TEMP/reference-plan.json" <<'PY'
-          import json, sys
-          plan = json.load(open(sys.argv[1], encoding="utf-8"))
+          python - <<'PY'
+          import json
+          v03 = json.load(open("benchmarks/v0.3/experiment.json", encoding="utf-8"))
+          frozen = json.load(open("benchmarks/run-config.json", encoding="utf-8"))
+          plan = json.load(open("%s/reference-plan.json" % __import__('os').environ['RUNNER_TEMP'], encoding="utf-8"))
+          executor = v03["executors"][0]
+          runtime, model, provider = executor["runtime"], executor["model"], frozen["provider"]
           assert len(plan) == 24
-          assert [row["treatment_id"] for row in plan[::6]] == [
-              "baseline", "karpathy", "ponytail", "diffcipline"
-          ]
+          assert [row["treatment_id"] for row in plan[::6]] == ["baseline", "karpathy", "ponytail", "diffcipline"]
+          assert v03["fixture_revision"] == frozen["fixture_revision"]
+          assert v03["prompt_suffix"] == frozen["prompt_suffix"]
+          assert runtime["repository"] == "ggml-org/llama.cpp"
+          assert runtime["release"] == provider["release"] and runtime["revision"] == provider["source_revision"]
+          assert runtime["download_url"] == provider["download_url"] and runtime["sha256"] == provider["sha256"]
+          assert runtime["base_url"] == provider["base_url"] and runtime["server_args"] == provider["server_args"]
+          assert runtime["chat_template"]["digest"]["value"] == provider["chat_template"]["blob_sha"]
+          for key in ("id", "repository", "revision", "file", "download_url", "sha256", "quantization", "license"):
+              assert model[key] == frozen["model"][key]
           PY
-      - name: Stop before Phase F comparative execution body
+      - name: Reserve exact experiment target
+        id: reservation
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+          QUALIFICATION_RUN_ID: ${{ steps.qualification.outputs.run_id }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          set -euo pipefail
+          artifact_name="v0.3-reference-reservation-$TARGET_SHA"
+          existing="$(gh api -X GET "repos/$GITHUB_REPOSITORY/actions/artifacts" \
+            -f name="$artifact_name" -f per_page=100 \
+            --jq '[.artifacts[] | select(.expired == false)] | length')"
+          test "$existing" -eq 0
+          python - <<'PY' > "$RUNNER_TEMP/reservation.json"
+          import json, os
+          print(json.dumps({
+              "schema_version": 1,
+              "target_sha": os.environ["TARGET_SHA"],
+              "qualification_run_id": int(os.environ["QUALIFICATION_RUN_ID"]),
+              "owner_comment_id": int(os.environ["COMMENT_ID"]),
+              "status": "RESERVED_ONCE",
+          }, indent=2, sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: v0.3-reference-reservation-${{ steps.request.outputs.target_sha }}
+          path: ${{ runner.temp }}/reservation.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Prepare pinned public runtime and treatments
+        shell: bash
+        env:
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+          QUALIFICATION_RUN_ID: ${{ steps.qualification.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/runtime/provider" "$RUNNER_TEMP/runtime/treatments"
+          python - <<'PY' > "$RUNNER_TEMP/runtime/env"
+          import json, shlex
+          c = json.load(open("benchmarks/v0.3/experiment.json", encoding="utf-8"))
+          e = c["executors"][0]; runtime = e["runtime"]; model = e["model"]
+          values = {
+              "EXECUTOR_ID": e["id"], "PROVIDER_URL": runtime["download_url"], "PROVIDER_SHA": runtime["sha256"],
+              "BASE_URL": runtime["base_url"], "MODEL_URL": model["download_url"], "MODEL_SHA": model["sha256"],
+              "MODEL_FILE": model["file"], "MODEL_ID": model["id"], "SANDBOX_IMAGE": e["sandbox"]["image"],
+              "CPU_CORES": str(e["resource_limits"]["cpu_cores"]), "MEMORY_GB": str(e["resource_limits"]["memory_gb"]),
+          }
+          for key, value in values.items(): print(f"{key}={shlex.quote(value)}")
+          PY
+          source "$RUNNER_TEMP/runtime/env"
+          curl -fsSL "$PROVIDER_URL" -o "$RUNNER_TEMP/runtime/provider.tgz"
+          echo "$PROVIDER_SHA  $RUNNER_TEMP/runtime/provider.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/runtime/provider.tgz" -C "$RUNNER_TEMP/runtime/provider"
+          curl -fsSL "$MODEL_URL" -o "$RUNNER_TEMP/runtime/$MODEL_FILE"
+          echo "$MODEL_SHA  $RUNNER_TEMP/runtime/$MODEL_FILE" | sha256sum -c -
+          python - <<'PY' > "$RUNNER_TEMP/runtime/sources.tsv"
+          import json
+          c = json.load(open("benchmarks/v0.3/experiment.json", encoding="utf-8"))
+          runtime = c["executors"][0]["runtime"]
+          template = runtime["chat_template"]
+          print("template\thttps://raw.githubusercontent.com/%s/%s/%s\t%s" % (
+              runtime["repository"], template["revision"], template["path"], template["digest"]["value"]))
+          for treatment in c["treatments"]:
+              if treatment["kind"] != "skill": continue
+              source = treatment["source"]
+              print("%s\thttps://raw.githubusercontent.com/%s/%s/%s\t%s" % (
+                  treatment["id"], source["repository"], source["revision"], source["path"], source["digest"]["value"]))
+          PY
+          while IFS=$'\t' read -r id url blob; do
+            if [[ "$id" == template ]]; then
+              path="$RUNNER_TEMP/runtime/tool-template.jinja"
+            else
+              mkdir -p "$RUNNER_TEMP/runtime/treatments/$id"
+              path="$RUNNER_TEMP/runtime/treatments/$id/SKILL.md"
+            fi
+            curl -fsSL "$url" -o "$path"
+            test "$(git hash-object "$path")" = "$blob"
+          done < "$RUNNER_TEMP/runtime/sources.tsv"
+          docker pull "$SANDBOX_IMAGE"
+          python - <<'PY' > "$RUNNER_TEMP/runtime/provenance.json"
+          import hashlib, json, os, subprocess
+          c = json.load(open("benchmarks/v0.3/experiment.json", encoding="utf-8"))
+          hashes = {}
+          for path in [
+              "benchmarks/v0.3/experiment.json", "benchmarks/harness/experiment_config.py",
+              "benchmarks/harness/experiment_runner.py", "benchmarks/harness/run_arm.py",
+              "benchmarks/harness/executor_adapter.py", "benchmarks/harness/local_agent.py",
+              "benchmarks/harness/sandbox_exec.py", "benchmarks/harness/score_run.py",
+              "benchmarks/harness/prepare_fixture.py",
+          ]:
+              hashes[path] = hashlib.sha256(open(path, "rb").read()).hexdigest()
+          print(json.dumps({
+              "schema_version": 1,
+              "repository_revision": os.environ["TARGET_SHA"],
+              "qualification_run_id": int(os.environ["QUALIFICATION_RUN_ID"]),
+              "experiment_config": c,
+              "harness_sha256": hashes,
+              "sandbox_image_id": subprocess.check_output([
+                  "docker", "image", "inspect", "--format={{.Id}}", c["executors"][0]["sandbox"]["image"]
+              ], text=True).strip(),
+          }, indent=2, sort_keys=True))
+          PY
+          { nproc; free -b; df -B1 "$RUNNER_TEMP"; stat -c '%n %s' "$RUNNER_TEMP/runtime/$MODEL_FILE"; } > "$RUNNER_TEMP/runtime/resource-observation.txt"
+      - name: Start pinned local model
         shell: bash
         run: |
-          echo "Reference experiment entry is authorized only through this owner-command path." >&2
-          echo "Comparative execution remains fail-closed until T252/T253 execution steps are canonical in this workflow." >&2
-          exit 1
+          set -euo pipefail
+          source "$RUNNER_TEMP/runtime/env"
+          server="$(find "$RUNNER_TEMP/runtime/provider" -type f -name llama-server -print -quit)"
+          test -n "$server"; chmod +x "$server"
+          mapfile -t args < <(python -c 'import json; print("\n".join(json.load(open("benchmarks/v0.3/experiment.json"))["executors"][0]["runtime"]["server_args"]))')
+          "$server" --model "$RUNNER_TEMP/runtime/$MODEL_FILE" "${args[@]}" --chat-template-file "$RUNNER_TEMP/runtime/tool-template.jinja" > "$RUNNER_TEMP/runtime/llama-server.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/runtime/llama-server.pid"
+          for _ in $(seq 1 180); do curl -fsS http://127.0.0.1:8080/health > "$RUNNER_TEMP/runtime/health.json" && break || sleep 1; done
+          grep -Fq '"status":"ok"' "$RUNNER_TEMP/runtime/health.json"
+          curl -fsS http://127.0.0.1:8080/props > "$RUNNER_TEMP/runtime/props.json"
+          grep -Fq '"supports_tool_calls":true' <(tr -d ' ' < "$RUNNER_TEMP/runtime/props.json")
+          ps -o pid,rss,vsz,cmd -p "$(cat "$RUNNER_TEMP/runtime/llama-server.pid")" >> "$RUNNER_TEMP/runtime/resource-observation.txt"
+      - name: Run reference experiment once
+        shell: bash
+        run: |
+          set -euo pipefail
+          source "$RUNNER_TEMP/runtime/env"
+          python -S benchmarks/harness/experiment_runner.py \
+            --config benchmarks/v0.3/experiment.json \
+            --output "$RUNNER_TEMP/v0.3-reference" \
+            --treatments-root "$RUNNER_TEMP/runtime/treatments" \
+            --endpoint "$EXECUTOR_ID=$BASE_URL"
+          mapfile -t attempts < <(find "$RUNNER_TEMP/v0.3-reference" -mindepth 1 -maxdepth 1 -type d -name 'attempt-*' -print | sort)
+          test "${#attempts[@]}" -eq 1
+          cp "$RUNNER_TEMP/runtime/provenance.json" "${attempts[0]}/runtime-provenance.json"
+          echo "${attempts[0]}" > "$RUNNER_TEMP/accepted-attempt-path.txt"
+      - name: Validate complete raw evidence without filtering
+        shell: bash
+        env:
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          attempt="$(cat "$RUNNER_TEMP/accepted-attempt-path.txt")"
+          ATTEMPT="$attempt" python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          attempt = Path(os.environ["ATTEMPT"])
+          config = json.load(open("benchmarks/v0.3/experiment.json", encoding="utf-8"))
+          manifest = json.load(open(attempt / "manifest.json", encoding="utf-8"))
+          executor = config["executors"][0]
+          runs = manifest["runs"]
+          assert len(runs) == 24 and sum(manifest["counts"].values()) == 24
+          assert [row["treatment_id"] for row in runs[::6]] == ["baseline", "karpathy", "ponytail", "diffcipline"]
+          expected_skill_sha = {}
+          for treatment in config["treatments"]:
+              if treatment["kind"] == "skill":
+                  path = Path(os.environ["RUNNER_TEMP"]) / "runtime" / "treatments" / treatment["id"] / "SKILL.md"
+                  expected_skill_sha[treatment["id"]] = hashlib.sha256(path.read_bytes()).hexdigest()
+          bases = {}
+          for row in runs:
+              bundle = attempt / row["executor_id"] / row["treatment_id"] / row["fixture_id"]
+              for name in ("transcript.md", "stdout.txt", "stderr.txt", "score.json", "changes.patch", "status.txt", "metadata.json"):
+                  assert (bundle / name).is_file(), f"{row}: missing {name}"
+              assert (bundle / "workspace").is_dir(), f"{row}: missing workspace"
+              metadata = json.load(open(bundle / "metadata.json", encoding="utf-8"))
+              assert metadata["executor_id"] == row["executor_id"] == executor["id"]
+              assert metadata["treatment_id"] == row["treatment_id"]
+              assert metadata["comparison_contract_sha256"] == row["contract_sha256"]
+              assert metadata["model"] == executor["model"]["id"]
+              assert metadata["timeout_seconds"] == executor["resource_limits"]["per_task_timeout_seconds"]
+              assert metadata["sandbox"]["image"] == executor["sandbox"]["image"]
+              assert metadata["sandbox"]["cpu_cores"] == executor["resource_limits"]["cpu_cores"]
+              assert metadata["sandbox"]["memory_gb"] == executor["resource_limits"]["memory_gb"]
+              expected = expected_skill_sha.get(row["treatment_id"])
+              assert metadata["treatment_sha256"] == expected
+              bases.setdefault(row["fixture_id"], set()).add(metadata["base_commit"])
+          assert all(len(values) == 1 for values in bases.values()), bases
+          validation = {
+              "schema_version": 1,
+              "repository_revision": os.environ["TARGET_SHA"],
+              "attempt": manifest["attempt"],
+              "matrix_rows": len(runs),
+              "counts": manifest["counts"],
+              "canonical_treatment_order": ["baseline", "karpathy", "ponytail", "diffcipline"],
+              "matching_base_commits": True,
+              "complete_artifacts": True,
+              "result": "ACCEPTED_RAW_EVIDENCE",
+          }
+          (attempt / "evidence-validation.json").write_text(json.dumps(validation, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          PY
+          (
+            cd "$attempt"
+            find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+          )
+          ATTEMPT="$attempt" python - <<'PY' > "$RUNNER_TEMP/accepted-experiment.json"
+          import hashlib, json, os
+          from pathlib import Path
+          attempt = Path(os.environ["ATTEMPT"])
+          manifest = attempt / "manifest.json"
+          provenance = attempt / "runtime-provenance.json"
+          print(json.dumps({
+              "schema_version": 1,
+              "repository_revision": os.environ["TARGET_SHA"],
+              "attempt": attempt.name,
+              "manifest_sha256": hashlib.sha256(manifest.read_bytes()).hexdigest(),
+              "runtime_provenance_sha256": hashlib.sha256(provenance.read_bytes()).hexdigest(),
+              "sha256_manifest": "SHA256SUMS",
+              "status": "ACCEPTED_RAW_EVIDENCE",
+          }, indent=2, sort_keys=True))
+          PY
+      - name: Stop pinned local model
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f "$RUNNER_TEMP/runtime/llama-server.pid" ]]; then
+            kill "$(cat "$RUNNER_TEMP/runtime/llama-server.pid")" 2>/dev/null || true
+          fi
+      - name: Upload complete reference experiment evidence
+        if: always() && steps.request.outputs.target_sha != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: v0.3-reference-experiment-${{ steps.request.outputs.target_sha }}
+          path: |
+            ${{ runner.temp }}/reservation.json
+            ${{ runner.temp }}/qualification
+            ${{ runner.temp }}/runtime/provenance.json
+            ${{ runner.temp }}/runtime/resource-observation.txt
+            ${{ runner.temp }}/runtime/health.json
+            ${{ runner.temp }}/runtime/props.json
+            ${{ runner.temp }}/runtime/llama-server.log
+            ${{ runner.temp }}/v0.3-reference
+            ${{ runner.temp }}/accepted-experiment.json
+          if-no-files-found: warn
+          retention-days: 90
