@@ -2,12 +2,15 @@
 import argparse, json, os, re, subprocess, time, urllib.error, urllib.request
 from pathlib import Path
 
+from sandbox_exec import run_sandboxed
+
 BLOCKED = re.compile(
     r"(?ix)(\bcurl\b|\bwget\b|\bssh\b|\bscp\b|\bsftp\b|\bftp\b|\btelnet\b|\bnc\b|\bncat\b|"
     r"\bgh\b|\bgit\s+(push|fetch|pull|clone)\b|\bpip3?\s+install\b|\bnpm\s+install\b|"
     r"\bpnpm\s+(add|install)\b|\bcargo\s+add\b|\bapt(-get)?\b|https?://)"
 )
 MAX_OUTPUT = 12000
+
 
 def post_json(url, payload, timeout):
     req = urllib.request.Request(url, data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"})
@@ -17,30 +20,42 @@ def post_json(url, payload, timeout):
     except urllib.error.HTTPError as error:
         raise RuntimeError(f"provider HTTP {error.code}: {error.read().decode(errors='replace')}") from error
 
+
 def trim(text):
     if len(text) <= MAX_OUTPUT:
         return text
     half = MAX_OUTPUT // 2
     return text[:half] + "\n...[truncated]...\n" + text[-half:]
 
+
 def record(path, title, body):
     with path.open("a", encoding="utf-8") as handle:
         handle.write(f"## {title}\n\n{body.rstrip()}\n\n")
 
-def bash_tool(command, cwd, timeout):
+
+def bash_tool(command, cwd, timeout, sandbox_image=None, cpu_cores=None, memory_gb=None):
     if BLOCKED.search(command):
         return json.dumps({"exit_code": 126, "stdout": "", "stderr": "rejected by no-network/no-push policy"}, sort_keys=True)
     env = os.environ.copy()
     for key in ("GITHUB_TOKEN", "GH_TOKEN", "ACTIONS_RUNTIME_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN"):
         env.pop(key, None)
     try:
-        done = subprocess.run(["bash", "-lc", command], cwd=cwd, env=env, text=True, capture_output=True, timeout=max(1, timeout))
+        if sandbox_image:
+            done = run_sandboxed(
+                sandbox_image, cwd, command, max(1, timeout), cpu_cores, memory_gb, env
+            )
+        else:
+            done = subprocess.run(
+                ["bash", "-lc", command], cwd=cwd, env=env, text=True,
+                capture_output=True, timeout=max(1, timeout)
+            )
         result = {"exit_code": done.returncode, "stdout": trim(done.stdout), "stderr": trim(done.stderr)}
     except subprocess.TimeoutExpired as error:
         stdout = error.stdout.decode(errors="replace") if isinstance(error.stdout, bytes) else error.stdout or ""
         stderr = error.stderr.decode(errors="replace") if isinstance(error.stderr, bytes) else error.stderr or ""
         result = {"exit_code": 124, "stdout": trim(stdout), "stderr": trim(stderr + "\ncommand timed out")}
     return json.dumps(result, sort_keys=True)
+
 
 def tools():
     return [{"type": "function", "function": {
@@ -49,13 +64,18 @@ def tools():
         "parameters": {"type": "object", "properties": {"command": {"type": "string"}}, "required": ["command"], "additionalProperties": False},
     }}]
 
+
 def arguments(value):
     value = json.loads(value) if isinstance(value, str) else value
     if not isinstance(value, dict):
         raise ValueError("tool arguments must be an object")
     return value
 
-def run_agent(base_url, model, workdir, prompt, transcript, timeout_seconds, skill=None):
+
+def run_agent(
+    base_url, model, workdir, prompt, transcript, timeout_seconds, skill=None,
+    sandbox_image=None, sandbox_cpu_cores=None, sandbox_memory_gb=None,
+):
     deadline = time.monotonic() + timeout_seconds
     transcript.parent.mkdir(parents=True, exist_ok=True)
     transcript.write_text("# Local agent transcript\n\n", encoding="utf-8")
@@ -103,7 +123,10 @@ def run_agent(base_url, model, workdir, prompt, transcript, timeout_seconds, ski
                     if not isinstance(command, str) or not command.strip():
                         result = json.dumps({"error": "bash.command must be a non-empty string"})
                     else:
-                        result = bash_tool(command, workdir, min(120, max(1, deadline - time.monotonic())))
+                        result = bash_tool(
+                            command, workdir, min(120, max(1, deadline - time.monotonic())),
+                            sandbox_image, sandbox_cpu_cores, sandbox_memory_gb,
+                        )
                         record(transcript, "Tool: bash", f"```sh\n{command}\n```\n\n```json\n{result}\n```")
                 else:
                     result = json.dumps({"error": f"unknown or unavailable tool: {function.get('name')}"})
@@ -112,6 +135,7 @@ def run_agent(base_url, model, workdir, prompt, transcript, timeout_seconds, ski
             messages.append({"role": "tool", "tool_call_id": call["id"], "content": result})
     record(transcript, "Failure", "Maximum agent tool steps reached.")
     return 2, ""
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -122,11 +146,18 @@ def main():
     parser.add_argument("--transcript", required=True, type=Path)
     parser.add_argument("--timeout-seconds", type=int, default=480)
     parser.add_argument("--skill", type=Path)
+    parser.add_argument("--sandbox-image")
+    parser.add_argument("--sandbox-cpu-cores", type=int)
+    parser.add_argument("--sandbox-memory-gb", type=int)
     args = parser.parse_args()
+    sandbox_values = (args.sandbox_image, args.sandbox_cpu_cores, args.sandbox_memory_gb)
+    if any(value is not None for value in sandbox_values) and not all(value is not None for value in sandbox_values):
+        parser.error("sandbox image, cpu cores, and memory must be supplied together")
     try:
         code, final = run_agent(
             args.base_url, args.model, args.workdir.resolve(), args.prompt, args.transcript.resolve(),
             args.timeout_seconds, args.skill.resolve() if args.skill else None,
+            args.sandbox_image, args.sandbox_cpu_cores, args.sandbox_memory_gb,
         )
     except Exception as error:
         record(args.transcript.resolve(), "Agent error", repr(error))
@@ -135,6 +166,7 @@ def main():
     if final:
         print(final)
     return code
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
