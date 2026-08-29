@@ -45,7 +45,55 @@ jobs:
       - name: Verify exact checkout
         shell: bash
         run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
-      - uses: ./
+      - name: Dogfood default Action proof
+        uses: ./
         with:
           base: ${{ github.event.pull_request.base.sha || github.event.before }}
           run-verification: "true"
+      - name: Prepare risk-annotation fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="../diffcipline-action-fixture"
+          rm -rf "$fixture"
+          mkdir -p "$fixture"
+          git -C "$fixture" init --quiet
+          git -C "$fixture" config user.name "Diffcipline CI"
+          git -C "$fixture" config user.email "diffcipline-ci@example.invalid"
+          printf 'before\n' > "$fixture/tracked.txt"
+          cat > "$fixture/.diffcipline.toml" <<'EOF'
+          version = 1
+
+          [policy]
+          max_changed_files = 4
+          max_added_lines = 20
+          dependency_manifest_changes = "allow"
+          lockfile_changes = "allow"
+          untracked_files = "allow"
+          expected_files = ["tracked.txt"]
+          forbidden_surfaces = ["secrets/**"]
+
+          [verification]
+          commands = ["git diff --check"]
+          r0_commands = ["git diff --check"]
+          EOF
+          git -C "$fixture" add tracked.txt .diffcipline.toml
+          git -C "$fixture" commit --quiet -m "fixture base"
+          printf 'after\n' > "$fixture/tracked.txt"
+      - name: Dogfood risk Action annotation
+        uses: ./
+        with:
+          working-directory: ../diffcipline-action-fixture
+          risk: R0
+          run-verification: "true"
+      - name: Reject invalid Action risk
+        id: invalid-risk
+        continue-on-error: true
+        uses: ./
+        with:
+          risk: R4
+      - name: Verify invalid Action risk rejection
+        shell: bash
+        env:
+          INVALID_RISK_OUTCOME: ${{ steps.invalid-risk.outcome }}
+        run: test "$INVALID_RISK_OUTCOME" = "failure"
