@@ -9,6 +9,8 @@ on:
       - "crates/diffcipline-cli/Cargo.toml"
       - "docs/RELEASES.md"
       - "specs/**"
+  issue_comment:
+    types: [created]
   release:
     types: [published]
 
@@ -40,24 +42,31 @@ jobs:
 
   verify:
     name: verify published immutable v0.1.0
-    if: github.event_name == 'release' && github.event.release.tag_name == 'v0.1.0'
+    if: >-
+      (github.event_name == 'release' && github.event.release.tag_name == 'v0.1.0') ||
+      (github.event_name == 'issue_comment' &&
+       github.event.comment.user.login == github.repository_owner &&
+       github.event.comment.body == '/verify-release v0.1.0 ab434ae114b5f11ea9eb882bf572831dc7634531')
     runs-on: ubuntu-latest
+    env:
+      TAG: v0.1.0
+      EXPECTED_TAG_SHA: ab434ae114b5f11ea9eb882bf572831dc7634531
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: v0.1.0
           fetch-depth: 0
-      - name: Verify immutable canonical tag lineage and crate version
+      - name: Verify fixed canonical tag lineage and crate version
         shell: bash
-        env:
-          TAG: ${{ github.event.release.tag_name }}
         run: |
           set -euo pipefail
           tagged_sha="$(git rev-parse HEAD)"
+          test "$tagged_sha" = "$EXPECTED_TAG_SHA"
           git fetch origin main --no-tags
-          git merge-base --is-ancestor "$tagged_sha" origin/main
-          git fetch origin "refs/tags/$TAG:refs/tags/$TAG" --no-tags
-          test "$(git rev-parse "refs/tags/$TAG")" = "$tagged_sha"
+          canonical_main_sha="$(git rev-parse origin/main)"
+          git merge-base --is-ancestor "$tagged_sha" "$canonical_main_sha"
+          remote_tag_sha="$(git ls-remote --refs origin "refs/tags/$TAG" | awk '{print $1}')"
+          test "$remote_tag_sha" = "$tagged_sha"
           crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
           test "$crate_version" = "0.1.0"
           test "$TAG" = "v${crate_version}"
@@ -65,7 +74,6 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
         run: |
           set -euo pipefail
           test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')" = "false"
@@ -84,7 +92,6 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
         run: |
           set -euo pipefail
           rm -rf published
@@ -106,7 +113,6 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.event.release.tag_name }}
         run: |
           set -euo pipefail
           mkdir -p evidence
@@ -123,9 +129,13 @@ jobs:
           tag=$TAG
           tag_sha=$tagged_sha
           canonical_main_sha=$canonical_main_sha
+          release_id=378936458
+          publication_time=2026-08-29T10:35:12Z
+          original_release_event_run_id=33248168681
           workflow_run_id=$GITHUB_RUN_ID
           workflow_run_attempt=$GITHUB_RUN_ATTEMPT
           workflow_sha=$GITHUB_SHA
+          source_event=$GITHUB_EVENT_NAME
           release_immutable=true
           release_attestation=verified
           release_assets=verified
