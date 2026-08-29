@@ -1,8 +1,8 @@
 # Execution frontier — Spec 001
 
-This document is the canonical continuation handoff for `001-proof-before-done`.
+This document is the canonical continuation and closeout handoff for `001-proof-before-done`.
 
-Live GitHub/repository truth always overrides this snapshot. Re-verify `main`, open pull requests, Actions runs, tags, releases, and the files in the read order below before acting.
+Live GitHub/repository truth always overrides this snapshot. Re-verify `main`, pull requests, Actions runs, tags, releases, and the files below before making any future claim.
 
 ## Canonical read order
 
@@ -23,31 +23,30 @@ Live GitHub/repository truth always overrides this snapshot. Re-verify `main`, o
 15. `.github/workflows/verify-v0.1.0-release.yml`
 16. `docs/RELEASES.md`
 17. `docs/v0.1.0-draft-staging-evidence.md`
+18. `docs/v0.1.0-release-evidence.md`
 
-## Last verified canonical state
+## Canonical release lineage before final evidence merge
 
-Canonical `main` after the reviewed staging-recovery merge:
+Canonical `main` containing the reviewed verifier-recovery path is:
 
-`528a1fd5a722bcd4c40e05b7e54a293c287e14b7`
+`aa8dbe5f3d0e67355517c7d02f56a7e2d763b744`
 
 The fixed v0.1 release commit and lightweight tag target remain:
 
 `ab434ae114b5f11ea9eb882bf572831dc7634531`
 
-Never move, replace, or recreate `v0.1.0`.
+Never move, replace, delete, or recreate `v0.1.0`.
 
 T062 exact canonical evidence on the release commit:
 
-- `ci` push run `33237553577`: SUCCESS, including Rust and Diffcipline proof gates on Ubuntu, macOS, and Windows;
-- `skills-compat` push run `33237553599`: SUCCESS for Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI;
+- `ci` push run `33237553577`: SUCCESS;
+- `skills-compat` push run `33237553599`: SUCCESS;
 - `release` push run `33237553641`: SUCCESS, including canonical benchmark evidence validation, three locked native builds, SHA-256 aggregation, Sigstore provenance creation, and GitHub attestation verification.
 
 T063 exact evidence:
 
 - guarded tag-authority run `33237861972`: SUCCESS;
 - lightweight `refs/tags/v0.1.0` resolves directly to `ab434ae114b5f11ea9eb882bf572831dc7634531`.
-
-PR #28 staging-recovery exact candidate head `a36c5328231210ac3f1f6e5f4f21627b9f00e7d2` passed `ci`, `skills-compat`, `release`, tag validation, staging-recovery validation, and immutable-release-verifier validation before squash merge. The canonical recovery commit then passed `ci` run `33245573788`, `skills-compat` run `33245573759`, and `release` run `33245573820` on exact SHA `528a1fd5a722bcd4c40e05b7e54a293c287e14b7`.
 
 ## Canonical benchmark result
 
@@ -66,82 +65,94 @@ Valid matched benchmark run `33200332207` used execution revision `b640461cfdf08
 
 The evidence does **not** show a correctness advantage for Diffcipline. Diffcipline was the slowest arm by observed total wall-clock time. The only correct fixture was the already-minimal no-op fixture `f06`. Run `33195457215` remains invalid comparative evidence. Never modify or selectively rerun benchmark evidence to improve the result.
 
-## Verified draft staging
+## Draft staging evidence
 
-The intended tag-push `release.yml` path did not run after T063 because the guarded tag workflow pushed `v0.1.0` with the workflow `GITHUB_TOKEN`. GitHub suppresses new workflow runs caused by events created with that token, except explicit workflow/repository dispatch events. The tag itself is valid.
+The guarded tag workflow created `v0.1.0` with `GITHUB_TOKEN`, so GitHub's workflow-recursion guard did not emit the intended tag-push release workflow. The valid tag itself was unchanged.
 
-The reviewed recovery at `.github/workflows/stage-v0.1.0-release.yml` was merged canonically before use.
-
-Owner staging request:
+PR #28 added the reviewed staging recovery. Owner command:
 
 `/stage-release v0.1.0 ab434ae114b5f11ea9eb882bf572831dc7634531`
 
-Staging recovery run `33245697424`: SUCCESS.
+Staging run `33245697424`: SUCCESS.
 
-The workflow proved:
+The staging path reused signed release-candidate artifact `9710422207` with digest `sha256:586ebf4c711b1d746e7664a1a71f4f2dd4542ee3eff98df2dfeb1443e4021e7e`; it did not rebuild binaries or rerun the benchmark. GitHub Release ID `378936458` was created as a draft containing exactly five byte-verified explicit assets.
 
-1. the request came from the repository owner;
-2. `v0.1.0` still resolved to the fixed release commit;
-3. the fixed release commit remained an ancestor of canonical `main`;
-4. the tagged crate version remained exactly `0.1.0`;
-5. the exact T062 run IDs were `33237553577`, `33237553599`, and `33237553641`;
-6. the exact T063 tag-authority run was `33237861972`;
-7. signed candidate artifact `9710422207` remained non-expired with digest `sha256:586ebf4c711b1d746e7664a1a71f4f2dd4542ee3eff98df2dfeb1443e4021e7e`;
-8. the artifact contained exactly three native binaries, `SHA256SUMS`, and `PROVENANCE.sigstore.json`;
-9. all three checksums and binary attestations verified;
-10. no prior GitHub Release existed;
-11. GitHub Release ID `378936458` was created as a draft;
-12. all five uploaded draft assets were downloaded and byte-compared successfully.
-
-Durable staging evidence:
+Durable draft staging evidence:
 
 - repository record: `docs/v0.1.0-draft-staging-evidence.md`;
 - workflow artifact: `9712760016`;
-- artifact digest: `sha256:22f6606a28900558a3a79c8782f44d3807f615346d356fb5613fbdc1ece20d18`;
-- retention expiry: `2026-11-27T09:31:39Z`.
+- artifact digest: `sha256:22f6606a28900558a3a79c8782f44d3807f615346d356fb5613fbdc1ece20d18`.
 
-T064 is still open. A draft reporting `immutable=false` is not a failed immutable release because immutability must be proven after publication.
+## Immutable publication
 
-## Immutable publication authority and blocker
+A repository administrator enabled release immutability and published the already-verified draft without changing the tag or assets.
 
-The draft is intentionally not published by repository automation. GitHub's repository immutable-release setting requires repository Administration access to inspect or change. Ordinary repository workflow tokens do not provide the required administrative authority.
+Live publication identity:
 
-The remaining authorized sequence is:
+- Release ID: `378936458`;
+- URL: `https://github.com/TheHalfMoon/Diffcipline/releases/tag/v0.1.0`;
+- published at: `2026-08-29T10:35:12Z`;
+- `draft=false`;
+- `immutable=true`.
 
-1. a repository administrator independently confirms **Enable release immutability** for `TheHalfMoon/Diffcipline`;
-2. the administrator publishes the already-verified GitHub Release ID `378936458` without replacing assets or moving the tag;
-3. the `release.published` event triggers `.github/workflows/verify-v0.1.0-release.yml`;
-4. that verifier must succeed before T064 closes.
+The five explicit published assets remain the three native binaries, `PROVENANCE.sigstore.json`, and `SHA256SUMS` with the exact IDs and SHA-256 digests recorded in `docs/v0.1.0-release-evidence.md`.
 
-The verifier must machine-prove:
+## Post-publication verifier recovery and proof
 
-- the fixed tag still resolves to `ab434ae114b5f11ea9eb882bf572831dc7634531`;
-- the tag target remains an ancestor of canonical `main`;
-- crate version is `0.1.0`;
-- `isDraft=false` and `isImmutable=true`;
-- `gh release verify` succeeds;
-- exactly five release assets are present;
-- `SHA256SUMS` validates all three native binaries;
-- each native binary verifies with `gh attestation verify`;
-- every published asset verifies with `gh release verify-asset`;
-- durable `v0.1.0-release-verification` workflow evidence is preserved.
+The real `release.published` event triggered verifier run `33248168681` on the exact tagged commit. The historical workflow definition at that commit required `origin/main == tag SHA`. Because canonical post-tag evidence had legitimately advanced `main`, that obsolete invariant failed before any release-state or asset-verification step executed. Preserve this failed run as provenance; do not treat it as evidence against release integrity.
 
-The connected repository action surface available to this execution environment does not expose release publication or repository immutable-release administration. A read attempt against the repository immutable-release administrative endpoint is not supported by that connector surface. Do not convert missing administrative access into evidence that immutability is enabled or disabled.
+PR #30 repaired only the verifier execution path. Exact PR head `35911dc7a9273262a4cbb61366a12b9d26ed9451` passed its exact-head `ci`, `release`, staging-verifier validation, and immutable-verifier validation gates with no valid review finding. It was squash-merged as:
 
-## T065 completion contract
+`aa8dbe5f3d0e67355517c7d02f56a7e2d763b744`
 
-T065 remains open until the exact post-publication verifier evidence is committed and merged to canonical `main`. The final evidence change must remain within `.diffcipline.toml` limits and pass exact-head repository gates before merge.
+Post-merge push evidence on that exact canonical SHA:
 
-Only after that final merge may `specs/CURRENT.md` and `tasks.md` record `COMPLETE_CANONICAL`.
+- `ci` run `33248380028`: SUCCESS;
+- `release` run `33248380047`: SUCCESS.
 
-## Stop conditions
+Owner recovery comment ID `5461857729` requested exactly:
 
-Stop instead of weakening governance if:
+`/verify-release v0.1.0 ab434ae114b5f11ea9eb882bf572831dc7634531`
 
-- a required exact-head or canonical gate is missing or failing;
-- a valid review finding remains unresolved;
-- the fixed tag cannot remain constrained to the verified release SHA;
-- the signed release artifact cannot be recovered or verified exactly;
-- repository release immutability cannot be independently confirmed before publication;
-- provenance, attestations, checksums, or published assets cannot be verified;
-- post-publication evidence cannot be made canonical without bypassing repository rules.
+Recovery verifier run `33248389195` executed from canonical `main` at `aa8dbe5f3d0e67355517c7d02f56a7e2d763b744`. Verification job `99089706027`: SUCCESS.
+
+The machine proof succeeded for:
+
+1. fixed tag SHA and unchanged remote tag ref;
+2. tag ancestry to canonical `main`;
+3. crate version `0.1.0`;
+4. `isDraft=false` and `isImmutable=true`;
+5. `gh release verify`;
+6. exactly five explicit release assets;
+7. the three native checksums in `SHA256SUMS`;
+8. `gh attestation verify` for all native binaries;
+9. `gh release verify-asset` for every explicit asset;
+10. durable evidence recording and upload.
+
+Durable verifier artifact:
+
+- ID: `9713577320`;
+- name: `v0.1.0-release-verification`;
+- digest: `sha256:59afe9908e14189b55d576f98fd81f7b9bd2c28341dcc42c9c4007c31fb85233`;
+- expires: `2026-11-27T10:41:03Z`;
+- workflow run: `33248389195`;
+- workflow head: `aa8dbe5f3d0e67355517c7d02f56a7e2d763b744`.
+
+The artifact contains `release.json`, `published-assets.sha256`, and `verification.txt`. Exact contents and asset digests are preserved in `docs/v0.1.0-release-evidence.md`.
+
+## Completion contract
+
+T064 is complete by the successful immutable post-publication machine proof above.
+
+T065 becomes canonical when this final evidence record, `specs/CURRENT.md`, and `tasks.md` are merged to canonical `main`, all exact-head PR gates are successful, and the exact post-merge canonical gates are successful.
+
+After that merge, re-verify live GitHub truth before claiming completion:
+
+- canonical `main` contains the final evidence ledger;
+- `v0.1.0` still resolves directly to `ab434ae114b5f11ea9eb882bf572831dc7634531`;
+- Release ID `378936458` remains `draft=false` and `immutable=true`;
+- the five explicit assets remain unchanged;
+- no required gate or valid review finding remains unresolved;
+- no additional active Spec 001 task exists.
+
+When all of those statements are machine-observed on the final canonical merge, Spec 001 / Diffcipline v0.1 is `COMPLETE_CANONICAL`.
