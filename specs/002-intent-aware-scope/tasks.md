@@ -64,11 +64,20 @@ T130–T132 exact evidence:
 
 ## Phase E — GitHub Action annotation
 
-- [ ] T140 Add optional Action `risk` input and strict validation.
-- [ ] T141 Forward risk to the same CLI proof contract used locally.
-- [ ] T142 Preserve CLI exit semantics while capturing deterministic proof output.
-- [ ] T143 Write a concise Markdown proof to `$GITHUB_STEP_SUMMARY` without write permissions or PR comments.
-- [ ] T144 Add CI dogfood coverage for the Action annotation path.
+- [x] T140 Add optional Action `risk` input and strict validation.
+- [x] T141 Forward risk to the same CLI proof contract used locally.
+- [x] T142 Preserve CLI exit semantics while capturing deterministic proof output.
+- [x] T143 Write a concise Markdown proof to `$GITHUB_STEP_SUMMARY` without write permissions or PR comments.
+- [x] T144 Add CI dogfood coverage for the Action annotation path.
+
+T140–T144 exact evidence:
+
+- PR #40 exact head `ec87a121ddf1958f9b57f300699da0457e219b43` passed `ci` run `33255469452`;
+- that exact-head CI passed Rust formatting, clippy with warnings denied, locked tests, default Action proof, explicit R0 annotation, invalid-R4 rejection, and proof-gate dogfood on Ubuntu, macOS, and Windows;
+- no submitted reviews or review threads remained; the only top-level automated comments were a Qodo billing notice and a CodeRabbit review-skip notice, neither of which contained a code finding;
+- PR #40 was squash-merged to canonical `main` as `c059fc76e4d836e7f9e10ce4bb0465428791ed40`;
+- exact post-merge push `ci` run `33255652466` completed successfully with Rust and default/risk-aware Action dogfood across Ubuntu, macOS, and Windows;
+- `skills-compat` and `release` were not triggered by the Phase E implementation paths, so they are not represented as Phase E PASS evidence and remain required by T152 on the final v0.2 closeout candidate.
 
 ## Phase F — v0.2 canonical closeout
 
