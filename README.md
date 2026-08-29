@@ -95,13 +95,18 @@ diffcipline init
 diffcipline check
 diffcipline check --base origin/main
 diffcipline check --base origin/main --run
+diffcipline check --base origin/main --risk R2 --run
 ```
 
 `--run` executes the verification commands declared in `.diffcipline.toml`. Without `--run`, configured verification is reported as NOT RUN rather than silently treated as passing.
 
+`--risk R0|R1|R2|R3` selects the matching repository-configured verification profile. An explicitly requested profile must exist and contain at least one command; Diffcipline fails closed instead of silently falling back to weaker verification. Omitting `--risk` preserves the default `commands` behavior.
+
+When intent contracts are configured, every changed repository-relative path is checked against `expected_files` and `forbidden_surfaces`. A path outside all expected patterns or inside a forbidden surface produces FAIL. Human and JSON proof output expose the selected risk, configured intent contract, scope violations, and verification command state.
+
 ## GitHub Action
 
-Diffcipline can gate pull requests with the same CLI and repository policy. Before a tagged release exists, `@main` is suitable only for evaluation. Pin a release or exact commit for production workflows.
+Diffcipline can gate pull requests with the same CLI and repository policy. Pin the immutable `v0.1.0` release or an exact commit for production workflows; `@main` tracks current development behavior.
 
 ```yaml
 permissions:
@@ -115,18 +120,23 @@ steps:
   - uses: TheHalfMoon/Diffcipline@main
     with:
       base: ${{ github.event.pull_request.base.sha }}
+      risk: R2
       run-verification: "true"
 ```
 
+The optional `risk` input accepts only `R0`, `R1`, `R2`, or `R3`; leaving it empty preserves default verification behavior. The Action forwards the value to the same CLI proof contract used locally.
+
 The Action requires explicit `run-verification: "true"` before executing commands from `.diffcipline.toml`. Treat repository policy as executable code and review it before enabling verification on untrusted changes.
+
+The Action preserves the CLI exit status, keeps full proof output in the job log, and writes the deterministic `DIFFCIPLINE PROOF` section to `$GITHUB_STEP_SUMMARY`. It requires only `contents: read` and does not post PR comments.
 
 A PASS exits `0`; REVIEW exits `1`; FAIL exits `2`. Missing evidence therefore fails the GitHub job instead of silently becoming green.
 
-The repository dogfoods this Action on Ubuntu, macOS, and Windows before T042 can be considered complete.
+The repository dogfoods the default and risk-aware Action paths on Ubuntu, macOS, and Windows, including rejection of an invalid risk input.
 
 ## Policy
 
-`diffcipline init` creates a small repository policy:
+`diffcipline init` creates a small repository policy. Teams can extend it with intent and risk contracts:
 
 ```toml
 version = 1
@@ -137,10 +147,18 @@ max_added_lines = 400
 dependency_manifest_changes = "review"
 lockfile_changes = "review"
 untracked_files = "review"
+expected_files = ["crates/diffcipline-cli/**", "README.md"]
+forbidden_surfaces = ["secrets/**", ".github/workflows/**"]
 
 [verification]
 commands = ["cargo test --workspace --all-targets"]
+r0_commands = ["cargo fmt --all -- --check"]
+r1_commands = ["cargo test --workspace --all-targets"]
+r2_commands = ["cargo clippy --workspace --all-targets --locked -- -D warnings", "cargo test --workspace --all-targets --locked"]
+r3_commands = ["cargo fmt --all -- --check", "cargo clippy --workspace --all-targets --locked -- -D warnings", "cargo test --workspace --all-targets --locked"]
 ```
+
+Supported intent patterns are deliberately narrow: exact repository-relative paths, directory-recursive `/**` suffixes, and leading filename suffix patterns such as `*.md`. Unsupported wildcard placement fails policy parsing.
 
 Policies are deterministic and repository-native. Teams can tighten them as risk increases.
 
@@ -186,7 +204,7 @@ Raw transcripts, scorer JSON, patches, metadata, runtime provenance, checksums, 
 **v0.2 — Intent-aware scope**
 - proof contract for expected files and forbidden surfaces
 - risk-aware verification profiles
-- GitHub PR annotation
+- GitHub job-summary annotation
 
 **v0.3 — Evidence benchmark**
 - public multi-agent benchmark harness
