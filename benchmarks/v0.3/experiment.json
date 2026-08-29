@@ -9,6 +9,7 @@
       "adapter_kind": "local-openai-tool-loop",
       "runtime": {
         "name": "llama.cpp",
+        "repository": "ggml-org/llama.cpp",
         "release": "b10621",
         "revision": "c1d0e7a004015f23bc0233470b747b596f29b264",
         "download_url": "https://github.com/ggml-org/llama.cpp/releases/download/b10621/llama-b10621-bin-ubuntu-x64.tar.gz",
