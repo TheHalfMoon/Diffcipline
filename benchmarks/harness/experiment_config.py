@@ -39,15 +39,55 @@ def positive_int(value: object, context: str) -> None:
     require(isinstance(value, int) and not isinstance(value, bool) and value > 0, f"{context}: must be a positive integer")
 
 
+def https_url(value: object, context: str) -> None:
+    require(isinstance(value, str) and value.startswith("https://") and " " not in value, f"{context}: invalid https URL")
+
+
+def repository_id(value: object, context: str) -> None:
+    require(isinstance(value, str) and value.count("/") == 1 and all(value.split("/")), f"{context}: invalid repository")
+
+
 def validate_source(source: object, context: str) -> None:
     require(isinstance(source, dict), f"{context}: source must be an object")
     require_keys(source, {"repository", "revision", "path", "digest"}, context)
-    require(isinstance(source["repository"], str) and source["repository"].count("/") == 1, f"{context}: invalid repository")
+    repository_id(source["repository"], context)
     require(isinstance(source["revision"], str) and HEX40_RE.fullmatch(source["revision"]), f"{context}: invalid revision")
     require(isinstance(source["path"], str) and source["path"] and not source["path"].startswith("/"), f"{context}: invalid path")
     digest = source["digest"]
     require(isinstance(digest, dict) and digest.get("algorithm") == "git-blob-sha1", f"{context}: unsupported digest")
     require(isinstance(digest.get("value"), str) and HEX40_RE.fullmatch(digest["value"]), f"{context}: invalid digest value")
+
+
+def validate_runtime(runtime: object, executor_id: str) -> None:
+    context = f"{executor_id}.runtime"
+    require(isinstance(runtime, dict), f"{context}: runtime must be an object")
+    require_keys(runtime, {"name", "repository", "release", "revision", "download_url", "sha256", "base_url", "server_args", "chat_template"}, context)
+    require(all(isinstance(runtime[key], str) and runtime[key] for key in ("name", "release")), f"{context}: invalid runtime identity")
+    repository_id(runtime["repository"], context)
+    require(isinstance(runtime["revision"], str) and HEX40_RE.fullmatch(runtime["revision"]), f"{context}: invalid runtime revision")
+    https_url(runtime["download_url"], f"{context}.download_url")
+    require(isinstance(runtime["sha256"], str) and HEX64_RE.fullmatch(runtime["sha256"]), f"{context}: invalid runtime sha256")
+    require(isinstance(runtime["base_url"], str) and runtime["base_url"].startswith("http://127.0.0.1:"), f"{context}: base_url must be loopback")
+    require(isinstance(runtime["server_args"], list) and runtime["server_args"] and all(isinstance(item, str) and item for item in runtime["server_args"]), f"{context}: invalid server_args")
+    template = runtime["chat_template"]
+    require(isinstance(template, dict), f"{context}.chat_template: must be an object")
+    require_keys(template, {"revision", "path", "digest"}, f"{context}.chat_template")
+    require(template["revision"] == runtime["revision"], f"{context}.chat_template: revision must match runtime")
+    require(isinstance(template["path"], str) and template["path"] and not template["path"].startswith("/"), f"{context}.chat_template: invalid path")
+    digest = template["digest"]
+    require(isinstance(digest, dict) and digest.get("algorithm") == "git-blob-sha1", f"{context}.chat_template: unsupported digest")
+    require(isinstance(digest.get("value"), str) and HEX40_RE.fullmatch(digest["value"]), f"{context}.chat_template: invalid digest")
+
+
+def validate_model(model: object, executor_id: str) -> None:
+    context = f"{executor_id}.model"
+    require(isinstance(model, dict), f"{context}: model must be an object")
+    require_keys(model, {"id", "repository", "revision", "file", "download_url", "sha256", "quantization", "license"}, context)
+    require(all(isinstance(model[key], str) and model[key] for key in ("id", "file", "quantization", "license")), f"{context}: invalid model identity")
+    repository_id(model["repository"], context)
+    require(isinstance(model["revision"], str) and HEX40_RE.fullmatch(model["revision"]), f"{context}: invalid model revision")
+    https_url(model["download_url"], f"{context}.download_url")
+    require(isinstance(model["sha256"], str) and HEX64_RE.fullmatch(model["sha256"]), f"{context}: invalid model sha256")
 
 
 def validate_executor(executor: object, ids: set[str]) -> None:
@@ -57,18 +97,8 @@ def validate_executor(executor: object, ids: set[str]) -> None:
     require(executor_id not in ids, f"duplicate executor id: {executor_id}")
     ids.add(executor_id)
     require(executor["adapter_kind"] in ADAPTER_KINDS, f"{executor_id}: unsupported adapter kind")
-    runtime = executor["runtime"]
-    require(isinstance(runtime, dict), f"{executor_id}: runtime must be an object")
-    require_keys(runtime, {"name", "release", "revision", "sha256"}, f"{executor_id}.runtime")
-    require(all(isinstance(runtime[key], str) and runtime[key] for key in ("name", "release")), f"{executor_id}: invalid runtime identity")
-    require(HEX40_RE.fullmatch(runtime["revision"]) is not None, f"{executor_id}: invalid runtime revision")
-    require(HEX64_RE.fullmatch(runtime["sha256"]) is not None, f"{executor_id}: invalid runtime sha256")
-    model = executor["model"]
-    require(isinstance(model, dict), f"{executor_id}: model must be an object")
-    require_keys(model, {"id", "repository", "revision", "sha256"}, f"{executor_id}.model")
-    require(all(isinstance(model[key], str) and model[key] for key in ("id", "repository")), f"{executor_id}: invalid model identity")
-    require(HEX40_RE.fullmatch(model["revision"]) is not None, f"{executor_id}: invalid model revision")
-    require(HEX64_RE.fullmatch(model["sha256"]) is not None, f"{executor_id}: invalid model sha256")
+    validate_runtime(executor["runtime"], executor_id)
+    validate_model(executor["model"], executor_id)
     require(executor["tools"] == ["bash"], f"{executor_id}: tools must be ['bash']")
     permissions = executor["permissions"]
     require(permissions == {"network_tools": "denied", "git_push": "denied", "workspace": "disposable-only"}, f"{executor_id}: unsafe permissions")

@@ -8,6 +8,7 @@ on:
       - "benchmarks/harness/**"
       - "benchmarks/v0.3/**"
       - "benchmarks/run-config.json"
+      - "specs/003-evidence-benchmark/tasks.md"
   push:
     branches: [main]
     paths:
@@ -16,6 +17,7 @@ on:
       - "benchmarks/harness/**"
       - "benchmarks/v0.3/**"
       - "benchmarks/run-config.json"
+      - "specs/003-evidence-benchmark/tasks.md"
 
 permissions:
   contents: read
