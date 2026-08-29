@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/tag-v0.1.0.yml"
       - "crates/diffcipline-cli/Cargo.toml"
+      - "specs/**"
   issue_comment:
     types: [created]
 
