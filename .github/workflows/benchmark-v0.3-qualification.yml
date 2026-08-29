@@ -57,7 +57,7 @@ jobs:
           docker pull "$image"
           work="$RUNNER_TEMP/sandbox-work"
           mkdir -p "$work"
-          cp -a benchmarks/fixtures/f06-already-minimal/. "$work/"
+          cp -a benchmarks/fixtures/f06-already-minimal/repo/. "$work/"
           sandbox=(python -S benchmarks/harness/sandbox_exec.py --image "$image" --workdir "$work" --timeout-seconds 20 --cpu-cores 4 --memory-gb 16)
           "${sandbox[@]}" "python -m unittest discover -s tests -v"
           "${sandbox[@]}" "python -c \"from pathlib import Path; Path('sandbox-write.txt').write_text('ok\\n')\""
