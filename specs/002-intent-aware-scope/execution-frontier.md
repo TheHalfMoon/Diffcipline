@@ -21,50 +21,51 @@ Read in this order before acting:
 
 ## Preserved v0.1 truth
 
-Spec 001 / v0.1 reached `COMPLETE_CANONICAL` at `d74ed5f8789fb255e24f124e3283939cdc080cd0`. Published immutable `v0.1.0` remains fixed at `ab434ae114b5f11ea9eb882bf572831dc7634531`; do not move or replace that tag or mutate Release ID `378936458`.
-
-The v0.1 benchmark conclusion remains canonical and must not be rewritten: all four arms scored `1/6`, all changed zero files, Diffcipline was slowest by observed wall-clock time, and no correctness advantage is supported.
+Spec 001 / v0.1 is `COMPLETE_CANONICAL` at `d74ed5f8789fb255e24f124e3283939cdc080cd0`. Published immutable `v0.1.0` remains fixed at `ab434ae114b5f11ea9eb882bf572831dc7634531`. Its benchmark remains unfavorable and unchanged: all four arms scored `1/6`, all changed zero files, Diffcipline was slowest, and no correctness advantage is supported.
 
 ## Spec 002 planning authority
 
-PR #32 planning head `2936f00420b8fa3cd8444812a05e736a2ecc0cc7` passed all six exact-head workflows and merged canonical as `43aaf35c7a6b07b632e4707999cc664089f911ac`. Post-merge `ci` `33249914994`, `skills-compat` `33249915085`, and `release` `33249915039` all succeeded. T103 is complete.
+T103 is canonical at `43aaf35c7a6b07b632e4707999cc664089f911ac` with successful post-merge `ci` `33249914994`, `skills-compat` `33249915085`, and `release` `33249915039`.
 
 ## Phase B canonical evidence
 
-PR #34 implemented T110–T115 on exact head:
+T110–T115 are canonical at `b35ae01f7a83964ed1c5ab2431f8cf00f4fe3779` after PR #34 exact head `e0214a75a2e65319618d9b4b4529ac280843bc86` passed `ci` `33250895497` and `release` `33250895562`, followed by successful post-merge `ci` `33250973190` and `release` `33250973214`.
 
-`e0214a75a2e65319618d9b4b4529ac280843bc86`
+## Phase C canonical evidence
+
+PR #36 implemented T120–T125 on exact head:
+
+`a744174a1337a94e9ac0c90d0798dae63df2da01`
 
 Exact-head evidence:
 
-- `ci` run `33250895497`: SUCCESS, including formatting, clippy with warnings denied, locked tests, and cross-platform proof gates;
-- `release` run `33250895562`: SUCCESS;
-- no submitted review or review thread remained; automated comments contained no valid code finding.
+- `ci` run `33251448181`: SUCCESS;
+- `release` run `33251448146`: SUCCESS;
+- no submitted review or review thread remained.
 
-PR #34 was squash-merged to canonical `main` as:
+PR #36 was squash-merged to canonical `main` as:
 
-`b35ae01f7a83964ed1c5ab2431f8cf00f4fe3779`
+`ef6b66a94029c102d5c798fdc8e71c68eeab61be`
 
 Exact post-merge push evidence:
 
-- `ci` run `33250973190`: SUCCESS;
-- `release` run `33250973214`: SUCCESS.
+- `ci` run `33251565005`: SUCCESS;
+- `release` run `33251564986`: SUCCESS.
 
-T110–T115 are therefore complete.
+T120–T125 are complete.
 
 ## Immediate frontier
 
-T120–T125 are now eligible and must be implemented as one coherent risk-profile unit:
+T130–T132 are now eligible and must be implemented as one coherent proof-output unit:
 
-1. accept only explicit `check --risk R0|R1|R2|R3` values;
-2. parse `r0_commands`, `r1_commands`, `r2_commands`, and `r3_commands` under `[verification]`;
-3. execute only the explicitly selected profile when risk is supplied;
-4. fail closed with execution/configuration error if that selected profile is absent or empty;
-5. preserve the existing `commands` path exactly when `--risk` is omitted;
-6. cover selection, invalid risk, absent/empty profile, and backward compatibility in unit and fixture-repository integration tests.
+1. human proof explicitly identifies selected risk or default verification mode;
+2. human proof identifies configured expected and forbidden contracts and resulting scope state;
+3. JSON adds `risk`, `expected_files`, `forbidden_surfaces`, `scope_violations`, and verification command/state entries while preserving existing fields;
+4. JSON remains dependency-free and correctly escapes strings;
+5. existing v0.1 callers that consume existing fields remain compatible.
 
-Do not begin T130 until T120–T125 are merged canonical and exact post-merge gates succeed.
+Do not begin T140 until T130–T132 are merged canonical and exact post-merge gates succeed.
 
 ## Stop conditions
 
-Stop rather than weaken governance if canonical `main` changes unexpectedly during candidate evaluation, an exact-head required workflow is missing or failing, a valid review finding remains unresolved, a runtime dependency becomes necessary without demonstrated benefit, v0.1 compatibility cannot be preserved without a spec amendment, or requested behavior requires semantic/LLM judging rather than deterministic repository evidence.
+Stop rather than weaken governance if canonical `main` changes unexpectedly during candidate evaluation, a required exact-head workflow is missing or failing, a valid review finding remains unresolved, a runtime dependency becomes necessary without demonstrated benefit, v0.1 compatibility cannot be preserved without a spec amendment, or requested behavior requires semantic/LLM judging rather than deterministic repository evidence.
