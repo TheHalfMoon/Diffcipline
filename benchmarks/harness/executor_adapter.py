@@ -28,6 +28,18 @@ def local_command(root: Path, args: argparse.Namespace) -> list[str]:
         "--transcript", str(args.transcript),
         "--timeout-seconds", str(args.timeout_seconds),
     ]
+    sandbox_image = getattr(args, "sandbox_image", None)
+    sandbox_cpu = getattr(args, "sandbox_cpu_cores", None)
+    sandbox_memory = getattr(args, "sandbox_memory_gb", None)
+    sandbox_values = (sandbox_image, sandbox_cpu, sandbox_memory)
+    if any(value is not None for value in sandbox_values):
+        if not all(value is not None for value in sandbox_values):
+            raise ValueError("sandbox image, cpu cores, and memory must be supplied together")
+        command += [
+            "--sandbox-image", sandbox_image,
+            "--sandbox-cpu-cores", str(sandbox_cpu),
+            "--sandbox-memory-gb", str(sandbox_memory),
+        ]
     if args.treatment:
         command += ["--skill", str(args.treatment)]
     return command
@@ -98,6 +110,9 @@ def main() -> int:
     parser.add_argument("--treatment", type=Path)
     parser.add_argument("--base-url")
     parser.add_argument("--model")
+    parser.add_argument("--sandbox-image")
+    parser.add_argument("--sandbox-cpu-cores", type=int)
+    parser.add_argument("--sandbox-memory-gb", type=int)
     args = parser.parse_args()
     args.workdir = args.workdir.resolve()
     args.transcript = args.transcript.resolve()
