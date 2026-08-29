@@ -45,8 +45,8 @@
 
 ## Phase F — Public reference experiment
 
-- [ ] T250 Pin one secret-free reference executor/model/runtime configuration and all treatment revisions/digests.
-- [ ] T251 Verify identical task revisions, permissions, prompt suffix, timeouts, and resource limits across arms.
+- [x] T250 Pin one secret-free reference executor/model/runtime configuration and all treatment revisions/digests.
+- [x] T251 Verify identical task revisions, permissions, prompt suffix, timeouts, and resource limits across arms.
 - [ ] T252 Execute baseline and eligible comparison-skill arms in canonical order.
 - [ ] T253 Execute the Diffcipline arm under the identical executor contract.
 - [ ] T254 Validate complete artifacts, matching base commits, runtime/treatment digests, and explicit exclusions.

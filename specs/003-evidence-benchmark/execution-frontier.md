@@ -39,58 +39,68 @@ Phase D T230–T235 became canonical at `b4900b45d4ff3cb2e26ef3f4134b0d72087672a
 
 Phase E T240–T243 qualification implementation merged at `35b3a0de5e17d1ce2a20ab3ffdc224d440313363`. Canonical `benchmark-v0.3-qualification` run `33261050250` succeeded and emitted artifact `9717258339`, proving a secret-free 24-row qualification path with no comparative model execution while preserving the frozen v0.1 fixture/preparer/scorer boundary.
 
-Phase E T244 guarded reference entry and the T245 merge boundary merged at `3be4df7e19b7fd4410bb1127fdd91da9d2f27fc8`. PR #49 exact head `e1722417ec64200c0d218c1ba3a84d33c9fd247d` passed:
+Phase E T244 guarded reference entry and the T245 merge boundary merged at `3be4df7e19b7fd4410bb1127fdd91da9d2f27fc8`. PR #49 exact head `e1722417ec64200c0d218c1ba3a84d33c9fd247d` passed `benchmark-v0.3-reference` `33262020518`, `benchmark-v0.3-qualification` `33262020492`, `benchmark-fixtures` `33262020534`, and `ci` `33262020505`. Exact post-merge `benchmark-v0.3-qualification` `33262094960`, `benchmark-fixtures` `33262095055`, and `ci` `33262094948` succeeded. Qualification artifact `9717538620` records 24 rows, no private credentials, no comparative model execution, and the frozen v0.1 boundary.
 
-- `benchmark-v0.3-reference` `33262020518`: SUCCESS;
-- `benchmark-v0.3-qualification` `33262020492`: SUCCESS;
-- `benchmark-fixtures` `33262020534`: SUCCESS;
-- `ci` `33262020505`: SUCCESS.
+## Phase F entry evidence
 
-Exact post-merge canonical push evidence on `3be4df7e19b7fd4410bb1127fdd91da9d2f27fc8` is:
+Containment implementation PR #51 exact head `82b701e43f3d64b57c9fc8da266cdc33489cdaf7` passed:
 
-- `benchmark-v0.3-qualification` `33262094960`: SUCCESS;
-- `benchmark-fixtures` `33262095055`: SUCCESS;
-- `ci` `33262094948`: SUCCESS.
+- `benchmark-v0.3-reference` `33263875157`: SUCCESS;
+- `benchmark-fixtures` `33263875156`: SUCCESS;
+- `benchmark-v0.3-qualification` `33263875174`: SUCCESS;
+- `ci` `33263875162`: SUCCESS;
+- legacy `benchmark-arms` `33263875194`: SUCCESS and regression-only.
 
-The post-merge qualification artifact is `9717538620`, digest `sha256:c8a5ccc984d86d58f18fc495c1d485b42434f4e51f12b8a03dde305655616a8d`, expires `2026-11-27T16:07:21Z`, and records:
+PR #51 merged as `f1f41f52a732230b39ac8cba082db262a0d58c9e`. Its qualification artifact `9718040977`, digest `sha256:f982a83cf9bfbff45ccbb5d7a1862e973e343de7845de3782161bcfff6ce71a6`, proved the pinned Docker containment on the exact head without comparative model execution.
 
-- repository revision `3be4df7e19b7fd4410bb1127fdd91da9d2f27fc8`;
-- result `PASS`;
-- 24 matrix rows;
-- `private_credentials_required=false`;
-- `comparative_model_execution=false`;
-- frozen v0.1 blobs unchanged.
+Pinned execution-body PR #52 exact head `b089c4b06c41aa62848bf8a5ae9f5eb420f5d0f3` passed:
 
-`benchmark-v0.3-reference` intentionally has no push trigger. Its exact-head PR validation is the T244 proof; no comparative run was triggered by merge.
+- `benchmark-v0.3-reference` `33264366591`: SUCCESS;
+- `benchmark-v0.3-qualification` `33264366617`: SUCCESS;
+- `benchmark-fixtures` `33264366590`: SUCCESS;
+- `ci` `33264366589`: SUCCESS.
+
+PR #52 had no submitted reviews or inline review comments and merged as canonical `743f3295cc2cf597dfa5eb9b16ffac53cc8183ea`.
+
+Exact post-merge evidence on `743f3295cc2cf597dfa5eb9b16ffac53cc8183ea` is:
+
+- `benchmark-fixtures` `33264509821`: SUCCESS;
+- `benchmark-v0.3-qualification` `33264509832`: SUCCESS;
+- `ci` `33264510009`: SUCCESS.
+
+Canonical qualification artifact `9718225574`, digest `sha256:2d9c782799b376b6c61ccb617941e4f7dbc6d93a1d7efa757c9d3794f2b2bd94`, records the exact canonical revision, result `PASS`, 24 matrix rows, the pinned runtime/model/resource/sandbox contract, `private_credentials_required=false`, `comparative_model_execution=false`, network denied, read-only root, verified workspace write, absent Docker socket, and no private credential exposure.
+
+The detailed ledger is `specs/003-evidence-benchmark/phase-f-entry-evidence.md`.
 
 ## Current benchmark truth
 
-The public harness now has a canonical secret-free qualification path, deterministic executor/treatment/fixture orchestration, complete attempt-aware evidence contracts, a canonical order of `baseline → comparison skills sorted by id → diffcipline`, and a guarded owner-command real-experiment entry.
+The reference experiment contract is now fully pinned and executable through one guarded owner-command path. The runtime/model/treatment source lineage is cross-checked against frozen v0.1 source provenance before execution. The agent's bash tool is contained in a digest-pinned Docker image with network disabled, a read-only root filesystem, an isolated temporary filesystem, no Docker socket, no inherited GitHub credentials, and only the disposable fixture workspace writable.
 
-The current v0.3 experiment configuration already names the intended secret-free local reference lineage, but Phase F must independently freeze and verify the exact runtime/model/treatment provenance and real execution containment before any comparative arm is allowed to run.
+The execution workflow reserves a canonical target SHA before runtime/model setup, rejects duplicate target execution, verifies exact successful qualification evidence for the target, downloads and checksum-verifies every pinned runtime/model/treatment input, executes one 24-row matrix in canonical treatment order, and uploads all raw evidence even when runs fail or time out.
+
+No v0.3 comparative model execution has yet been accepted or published.
 
 ## Immediate frontier
 
-Phase F begins with T250–T251 only:
+This evidence change records T250–T251 as complete. They become canonical only after this branch is merged and its exact post-merge gates succeed.
 
-- freeze the exact local executor/runtime/model identity and every treatment revision/digest;
-- verify every arm shares the same fixture revision, executor, model, prompt suffix, permissions, timeout, CPU, memory, and storage limits;
-- enforce the declared `network_tools=denied`, `git_push=denied`, and `workspace=disposable-only` contract at real execution time, not only in JSON;
-- extend the guarded reference workflow with a fully pinned execution body while keeping it inaccessible until T250/T251 are canonical;
-- preserve canonical execution order `baseline → karpathy → ponytail → diffcipline`.
-
-T252/T253 comparative execution remains blocked until T250/T251 and the execution body are canonical with exact-head and post-merge gates.
-
-## Real-experiment authorization boundary
-
-After T250/T251 become canonical, the only authorized real-experiment entry is an owner comment matching:
+After that merge, T252–T253 are authorized exactly once through:
 
 `/run-v0.3-reference <exact-canonical-main-sha>`
 
-The workflow must verify the requested SHA equals live `main`, require exact successful qualification evidence for that SHA, enforce containment, run the exact pinned reference experiment once in canonical arm order, and preserve every failed/timed-out/excluded/losing artifact.
+The requested SHA must equal live canonical `main`. Baseline and eligible comparison skills execute before Diffcipline in the canonical order `baseline → karpathy → ponytail → diffcipline`. The run may not be selectively rerun because an arm or fixture loses, fails, times out, or produces no edit.
 
-Do not selectively rerun losing tasks, drop failures, change task/scorer inputs after observing results, or substitute legacy v0.1 regression runs for v0.3 evidence.
+T254 begins only after the resulting artifact exists. It must validate:
+
+- all 24 matrix rows are represented;
+- every run bundle required by the workflow exists;
+- base commits match across treatments for each fixture;
+- runtime/model/treatment/sandbox identities match the pinned contract;
+- exclusions, failures, and timeouts are explicit;
+- reservation and provenance/checksum evidence are complete.
+
+T255 may freeze the experiment only after T254 succeeds. Publication remains blocked until T255 is canonical.
 
 ## Stop conditions
 
-Stop rather than weaken governance if canonical `main` changes unexpectedly, required exact-head/post-merge gates fail or disappear, a valid review finding remains unresolved, executor/treatment identity cannot be separated, qualification requires private credentials, real execution cannot enforce the declared containment contract, scoring becomes executor-specific or semantic, a dependency is proposed without demonstrated need, v0.1 evidence would need rewriting, comparative execution is requested before T250/T251 become canonical, or publication would hide failed/timed-out/excluded/losing evidence.
+Stop rather than weaken governance if canonical `main` changes unexpectedly, required exact-head/post-merge gates fail or disappear, a valid review finding remains unresolved, qualification requires private credentials, real execution cannot enforce containment, scoring becomes executor-specific or semantic, a dependency is proposed without demonstrated need, v0.1 evidence would need rewriting, the reference target has already been reserved/executed, or publication would hide failed/timed-out/excluded/losing evidence.
