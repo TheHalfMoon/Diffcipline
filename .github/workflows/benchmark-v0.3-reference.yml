@@ -1,0 +1,196 @@
+name: benchmark-v0.3-reference
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/benchmark-v0.3-reference.yml"
+      - ".github/workflows/benchmark-v0.3-qualification.yml"
+      - "benchmarks/harness/**"
+      - "benchmarks/v0.3/**"
+      - "benchmarks/run-config.json"
+      - "specs/003-evidence-benchmark/tasks.md"
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate guarded v0.3 reference entry
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Verify exact candidate checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Validate owner-command request contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import re
+
+          def valid(body: str) -> bool:
+              parts = body.split()
+              return (
+                  len(parts) == 2
+                  and parts[0] == "/run-v0.3-reference"
+                  and re.fullmatch(r"[0-9a-f]{40}", parts[1]) is not None
+              )
+
+          assert valid("/run-v0.3-reference 0123456789abcdef0123456789abcdef01234567")
+          assert not valid("/run-v0.3-reference deadbeef")
+          assert not valid("/run-v0.3-reference 0123456789abcdef0123456789abcdef01234567 extra")
+          assert not valid("/run-v0.3-other 0123456789abcdef0123456789abcdef01234567")
+          PY
+      - name: Validate fail-closed authorization contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          tasks="specs/003-evidence-benchmark/tasks.md"
+          for task in T245 T250 T251; do
+            test "$(grep -Ec "^- \[[ x]\] ${task} " "$tasks")" -eq 1
+          done
+          workflow=".github/workflows/benchmark-v0.3-reference.yml"
+          ! grep -Eq '^  push:' "$workflow"
+          ! grep -Eq '^  workflow_dispatch:' "$workflow"
+          grep -Fq "github.event_name == 'issue_comment'" "$workflow"
+          grep -Fq "github.event.comment.user.login == github.repository_owner" "$workflow"
+          grep -Fq "startsWith(github.event.comment.body, '/run-v0.3-reference ')" "$workflow"
+      - name: Requalify harness without comparative execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -S -m unittest \
+            benchmarks.harness.test_experiment_config \
+            benchmarks.harness.test_executor_adapter \
+            benchmarks.harness.test_experiment_runner \
+            -v
+          python -S benchmarks/harness/qualify_v03.py --output "$RUNNER_TEMP/v0.3-entry-qualification.json"
+          python -S benchmarks/harness/experiment_runner.py \
+            --config benchmarks/v0.3/experiment.json \
+            --output "$RUNNER_TEMP/not-executed" \
+            --treatments-root "$RUNNER_TEMP/not-used" \
+            --plan > "$RUNNER_TEMP/v0.3-matrix-plan.json"
+          python - "$RUNNER_TEMP/v0.3-entry-qualification.json" "$RUNNER_TEMP/v0.3-matrix-plan.json" <<'PY'
+          import json, sys
+          evidence = json.load(open(sys.argv[1], encoding="utf-8"))
+          plan = json.load(open(sys.argv[2], encoding="utf-8"))
+          assert evidence["result"] == "PASS"
+          assert evidence["private_credentials_required"] is False
+          assert evidence["comparative_model_execution"] is False
+          assert len(plan) == evidence["matrix_rows"] == 24
+          assert [row["treatment_id"] for row in plan[::6]] == [
+              "baseline", "karpathy", "ponytail", "diffcipline"
+          ]
+          PY
+
+  preflight:
+    name: authorize canonical v0.3 reference experiment entry
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      github.event.comment.user.login == github.repository_owner &&
+      startsWith(github.event.comment.body, '/run-v0.3-reference ')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Parse explicit owner request
+        id: request
+        shell: bash
+        env:
+          REQUEST_BODY: ${{ github.event.comment.body }}
+        run: |
+          set -euo pipefail
+          read -r command target_sha extra <<< "$REQUEST_BODY"
+          test "$command" = "/run-v0.3-reference"
+          test -z "${extra:-}"
+          printf '%s\n' "$target_sha" | grep -Eq '^[0-9a-f]{40}$'
+          echo "target_sha=$target_sha" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ steps.request.outputs.target_sha }}
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Verify exact canonical main target
+        shell: bash
+        env:
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          git fetch origin main --no-tags
+          test "$(git rev-parse origin/main)" = "$TARGET_SHA"
+      - name: Enforce canonical Phase E and Phase F entry gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          tasks="specs/003-evidence-benchmark/tasks.md"
+          grep -Fqx -- '- [x] T245 Merge the qualified public harness before authorizing comparative execution.' "$tasks"
+          grep -Fqx -- '- [x] T250 Pin one secret-free reference executor/model/runtime configuration and all treatment revisions/digests.' "$tasks"
+          grep -Fqx -- '- [x] T251 Verify identical task revisions, permissions, prompt suffix, timeouts, and resource limits across arms.' "$tasks"
+      - name: Require exact canonical qualification evidence
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          run_id="$(gh api -X GET \
+            "repos/$GITHUB_REPOSITORY/actions/workflows/benchmark-v0.3-qualification.yml/runs" \
+            -f head_sha="$TARGET_SHA" \
+            -f event=push \
+            -f status=completed \
+            -f per_page=100 \
+            --jq '.workflow_runs | map(select(.conclusion == "success")) | .[0].id // empty')"
+          test -n "$run_id"
+          mkdir -p "$RUNNER_TEMP/qualification"
+          gh run download "$run_id" -n v0.3-harness-qualification -D "$RUNNER_TEMP/qualification"
+          python - "$RUNNER_TEMP/qualification/v0.3-qualification.json" "$TARGET_SHA" <<'PY'
+          import json, sys
+          evidence = json.load(open(sys.argv[1], encoding="utf-8"))
+          assert evidence["repository_revision"] == sys.argv[2]
+          assert evidence["result"] == "PASS"
+          assert evidence["private_credentials_required"] is False
+          assert evidence["comparative_model_execution"] is False
+          PY
+      - name: Verify deterministic reference matrix preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -S benchmarks/harness/qualify_v03.py --output "$RUNNER_TEMP/preflight-qualification.json"
+          python -S benchmarks/harness/experiment_runner.py \
+            --config benchmarks/v0.3/experiment.json \
+            --output "$RUNNER_TEMP/not-executed" \
+            --treatments-root "$RUNNER_TEMP/not-used" \
+            --plan > "$RUNNER_TEMP/reference-plan.json"
+          python - "$RUNNER_TEMP/reference-plan.json" <<'PY'
+          import json, sys
+          plan = json.load(open(sys.argv[1], encoding="utf-8"))
+          assert len(plan) == 24
+          assert [row["treatment_id"] for row in plan[::6]] == [
+              "baseline", "karpathy", "ponytail", "diffcipline"
+          ]
+          PY
+      - name: Stop before Phase F comparative execution body
+        shell: bash
+        run: |
+          echo "Reference experiment entry is authorized only through this owner-command path." >&2
+          echo "Comparative execution remains fail-closed until T252/T253 execution steps are canonical in this workflow." >&2
+          exit 1
