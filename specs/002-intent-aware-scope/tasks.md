@@ -77,16 +77,32 @@ T140–T144 exact evidence:
 - no submitted reviews or review threads remained; the only top-level automated comments were a Qodo billing notice and a CodeRabbit review-skip notice, neither of which contained a code finding;
 - PR #40 was squash-merged to canonical `main` as `c059fc76e4d836e7f9e10ce4bb0465428791ed40`;
 - exact post-merge push `ci` run `33255652466` completed successfully with Rust and default/risk-aware Action dogfood across Ubuntu, macOS, and Windows;
-- `skills-compat` and `release` were not triggered by the Phase E implementation paths, so they are not represented as Phase E PASS evidence and remain required by T152 on the final v0.2 closeout candidate.
+- `skills-compat` and `release` were not triggered by the Phase E implementation paths, so they are not represented as Phase E PASS evidence and remained required by T152 on the final v0.2 closeout candidate.
 
 ## Phase F — v0.2 canonical closeout
 
-- [ ] T150 Update README with implemented v0.2 behavior only.
-- [ ] T151 Reconcile `specs/CURRENT.md`, tasks, and execution frontier with exact canonical evidence.
-- [ ] T152 Pass exact-head Rust, dogfood, skills compatibility, and release-candidate gates on the final v0.2 candidate.
-- [ ] T153 Merge final v0.2 evidence to canonical `main` and verify post-merge gates.
-- [ ] T154 Mark Spec 002 `COMPLETE_CANONICAL` only after T153 is machine-observed.
+- [x] T150 Update README with implemented v0.2 behavior only.
+- [x] T151 Reconcile `specs/CURRENT.md`, tasks, and execution frontier with exact canonical evidence.
+- [x] T152 Pass exact-head Rust, dogfood, skills compatibility, and release-candidate gates on the final v0.2 candidate.
+- [x] T153 Merge final v0.2 evidence to canonical `main` and verify post-merge gates.
+- [x] T154 Mark Spec 002 `COMPLETE_CANONICAL` only after T153 is machine-observed.
+
+T150–T154 exact evidence:
+
+- PR #41 exact head `6e10466fb28687aba48ca363135dbff5253bd1db` contained the README and Spec 002 closeout candidate within repository policy;
+- exact-head `ci` run `33255846426`: SUCCESS, including Rust formatting, clippy with warnings denied, locked tests, and default/risk-aware/invalid-risk Action dogfood on Ubuntu, macOS, and Windows;
+- exact-head `skills-compat` run `33255846412`: SUCCESS for `claude-code`, `codex`, `cursor`, `opencode`, `github-copilot`, and `gemini-cli` using the pinned installer and exact checkout;
+- exact-head `release` run `33255846514`: SUCCESS, including canonical v0.1 benchmark evidence and locked native release-candidate builds;
+- exact-head governance validation runs `tag-v0.1.0` `33255846439`, `stage-v0.1.0-release` `33255846449`, and `verify-v0.1.0-release` `33255846466` all completed successfully without moving or replacing the fixed v0.1 tag or release;
+- PR #41 had no submitted reviews or review threads; Qodo and CodeRabbit top-level comments contained no code finding;
+- canonical `main` remained at PR #41 base `c059fc76e4d836e7f9e10ce4bb0465428791ed40` until the verified head was squash-merged;
+- PR #41 was squash-merged as canonical commit `246cac79d8c1a2774b8fa7aad60ccb9efb4b40cd`, tree `ca9bfabdb3e4ebccae2781862237344e2a9f1531`;
+- exact post-merge `ci` run `33255959784`: SUCCESS;
+- exact post-merge `skills-compat` run `33255959806`: SUCCESS;
+- exact post-merge `release` run `33255959768`: SUCCESS;
+- T153 was therefore machine-observed before this T154 completion record was authored;
+- this evidence change records the `COMPLETE_CANONICAL` state, but that state may be claimed externally only after this evidence change itself is merged to canonical `main` and its post-merge state is verified.
 
 ## Ordering
 
-T103 gates all implementation. Phase B precedes Phase C because risk profiles must not obscure intent-scope failures. Phase D follows both core contracts. Phase E consumes the stable CLI proof shape. Phase F starts only after T110–T144 are canonical.
+T103 gated all implementation. Phase B preceded Phase C, Phase D followed both core contracts, Phase E consumed the stable CLI proof shape, and Phase F began only after T110–T144 were canonical. T154 was authored only after T153 was machine-observed.
