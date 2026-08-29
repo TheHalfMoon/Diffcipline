@@ -33,7 +33,7 @@ Do not move or replace that tag or mutate Release ID `378936458`.
 
 The v0.1 benchmark conclusion remains canonical and must not be rewritten: all four arms scored `1/6`, all changed zero files, Diffcipline was slowest by observed wall-clock time, and no correctness advantage is supported.
 
-## Why Spec 002 is authorized
+## Spec 002 authority
 
 The canonical README roadmap explicitly defines `v0.2 — Intent-aware scope` with:
 
@@ -41,19 +41,45 @@ The canonical README roadmap explicitly defines `v0.2 — Intent-aware scope` wi
 - risk-aware verification profiles;
 - GitHub PR annotation.
 
-The user has authorized ordinary repository work through the canonical roadmap. This spec narrows that roadmap into deterministic acceptance criteria; it does not add unrelated product scope.
+PR #32 narrowed only that roadmap scope into the Spec 002 authority chain. Exact planning head:
+
+`2936f00420b8fa3cd8444812a05e736a2ecc0cc7`
+
+All six exact-head workflows succeeded:
+
+- `ci` `33249759142`;
+- `skills-compat` `33249759124`;
+- `release` `33249759126`;
+- `tag-v0.1.0` validation `33249759105`;
+- `stage-v0.1.0-release` validation `33249759106`;
+- `verify-v0.1.0-release` validation `33249759179`.
+
+No valid review finding remained. PR #32 was squash-merged to canonical `main` as:
+
+`43aaf35c7a6b07b632e4707999cc664089f911ac`
+
+Post-merge exact push gates:
+
+- `ci` `33249914994`: SUCCESS;
+- `skills-compat` `33249915085`: SUCCESS;
+- `release` `33249915039`: SUCCESS.
+
+T103 is therefore complete.
 
 ## Immediate frontier
 
-T103 is first: merge this planning authority chain through a reviewed PR with exact-head repository gates. No implementation task is eligible until T103 is canonical.
+T110–T115 are now eligible and must be executed as one coherent Phase B unit:
 
-After T103, execute in order:
+1. extend policy parsing with optional `expected_files` and `forbidden_surfaces`;
+2. validate only the documented deterministic matcher grammar;
+3. evaluate expected-file constraints against every changed repository-relative path;
+4. evaluate forbidden-surface constraints against every changed repository-relative path;
+5. add unit tests for exact, recursive-directory, suffix, invalid, expected, and forbidden behavior;
+6. add fixture-repository integration coverage for PASS/FAIL behavior.
 
-1. T110–T115 expected/forbidden scope;
-2. T120–T125 risk-aware verification;
-3. T130–T132 proof output;
-4. T140–T144 GitHub Action annotation;
-5. T150–T154 canonical closeout.
+For intent evaluation, treat tracked diff paths and untracked repository-relative paths as changed paths. Preserve the existing independent untracked-file policy decision as well.
+
+Do not start T120 until T110–T115 are merged canonical and their post-merge exact gates are successful.
 
 ## Stop conditions
 
