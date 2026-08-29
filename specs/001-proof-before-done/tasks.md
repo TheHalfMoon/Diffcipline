@@ -78,7 +78,7 @@ Observed aggregate outcome:
 | Ponytail | 1/6 | 1/6 | 0 | 702.127 | 1/6 |
 | Diffcipline | 1/6 | 1/6 | 0 | 981.263 | 3/6 |
 
-The result does not show a correctness advantage for Diffcipline. Diffcipline was the slowest arm by observed total wall-clock time. The tested local 3B Q4 model/agent showed provider/tool-parser errors, timeouts, max-step exhaustion, and assistant output without repository edits, so the six-task result does not support a treatment-effect inference.
+The result does not show a correctness advantage for Diffcipline. Diffcipline was the slowest arm by observed total wall-clock time. The tested local 3B Q4 model/agent showed provider/tool-parser errors, timeouts, max-tool-step exhaustion, and assistant output without repository edits, so the six-task result does not support a treatment-effect inference.
 
 ### T055 durable publication
 
@@ -103,8 +103,8 @@ These gates are intentionally after T055.
 - [x] T061 Update CHANGELOG and final Spec 001 ledger/status.
 - [x] T062 Pass all required canonical Rust, Diffcipline, skills compatibility, benchmark-evidence, and release-candidate gates on the exact release commit.
 - [x] T063 Create `v0.1.0` tag only from that exact verified canonical `main` commit with matching crate version.
-- [ ] T064 Verify release binaries, SHA-256 manifest, signatures/provenance/attestations, immutable publication, and published release assets.
-- [ ] T065 Mark Spec 001 / v0.1 `COMPLETE_CANONICAL` only after post-tag evidence is recorded in the repository.
+- [x] T064 Verify release binaries, SHA-256 manifest, signatures/provenance/attestations, immutable publication, and published release assets.
+- [x] T065 Mark Spec 001 / v0.1 `COMPLETE_CANONICAL` only after post-tag evidence is recorded in the repository.
 
 PR #26 established the canonical exact-head release-gate foundation at `360c5c0e8fb5b5083b0ef0a3c6ad382a464bcf49`. PR #27 then merged the v0.1 closeout as canonical release commit:
 
@@ -123,4 +123,14 @@ T063 exact evidence:
 
 The tag must not be moved or replaced.
 
-T064 remains open. The repository-native tag was pushed from the guarded Actions workflow with `GITHUB_TOKEN`, so GitHub's workflow-recursion guard did not emit a new tag-push `release` run. The authorized recovery reuses the already-signed `signed-release-candidate` artifact from exact T062 run `33237553641`; it does not rerun the benchmark, rebuild a different candidate, or alter the tag. Immutable publication and post-publication verification remain required before T064 can close.
+T064 exact post-publication evidence:
+
+- GitHub Release ID `378936458` published at `2026-08-29T10:35:12Z` with `draft=false` and `immutable=true`;
+- first real `release.published` verifier run `33248168681` preserved as a failed historical-path attempt because the tagged workflow required obsolete `origin/main == tag` equality and stopped before release/asset verification;
+- PR #30 repaired only that verifier invariant and merged the recovery path as `aa8dbe5f3d0e67355517c7d02f56a7e2d763b744`;
+- owner recovery comment `5461857729` triggered run `33248389195`;
+- verifier job `99089706027`: SUCCESS;
+- fixed tag lineage, crate version, immutable release state, `gh release verify`, all three native checksums, all three binary attestations, and all five explicit release assets verified successfully;
+- durable verifier artifact `9713577320` has digest `sha256:59afe9908e14189b55d576f98fd81f7b9bd2c28341dcc42c9c4007c31fb85233`.
+
+T065 is fulfilled by merging the final completion ledger and `docs/v0.1.0-release-evidence.md` to canonical `main`, followed by exact post-merge gate verification. The canonical benchmark conclusion remains unchanged and unfavorable claims are preserved without spin.
