@@ -50,3 +50,24 @@ Review release notes, source changes, and repository policy when the change itse
 - `v*` tag pushes repeat the same build, checksum, and attestation path, verify that the tag matches the crate version, and then publish the signed release candidate with GitHub CLI.
 
 Third-party Actions are pinned to exact commit SHAs. Release publishing is performed with the GitHub CLI already present on GitHub-hosted runners rather than a third-party release action.
+
+## v0.1 tag authorization
+
+The connected repository tooling does not expose direct Git-tag mutation, so `v0.1.0` uses a repository-native guarded authority in `.github/workflows/tag-v0.1.0.yml`.
+
+After the v0.1 closeout pull request is merged and T062 succeeds again on the exact canonical `main` commit, the repository owner may post exactly:
+
+```text
+/release v0.1.0 <40-character-canonical-main-sha>
+```
+
+The workflow fails closed unless all of the following are true:
+
+1. the request comes from the repository owner on a pull-request conversation;
+2. the requested SHA is a full 40-character Git commit SHA;
+3. the checked-out commit and current `origin/main` both equal that requested SHA;
+4. `crates/diffcipline-cli/Cargo.toml` declares exactly `0.1.0`;
+5. successful `push` runs of `ci.yml`, `skills-compat.yml`, and `release.yml` exist for that same SHA;
+6. `refs/tags/v0.1.0` does not already exist.
+
+Only after those checks pass does the workflow create and push a lightweight `v0.1.0` tag whose ref resolves directly to the verified canonical commit. The workflow never replaces an existing tag.
