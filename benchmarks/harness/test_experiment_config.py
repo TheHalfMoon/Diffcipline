@@ -44,8 +44,10 @@ class ExperimentConfigTests(unittest.TestCase):
         self.invalid(lambda c: c["executors"][0]["runtime"].update(revision="main"))
         self.invalid(lambda c: c["treatments"][1]["source"]["digest"].update(value="0" * 39))
 
-    def test_unsafe_permissions_and_bad_limits_fail_closed(self) -> None:
+    def test_unsafe_permissions_sandbox_and_bad_limits_fail_closed(self) -> None:
         self.invalid(lambda c: c["executors"][0]["permissions"].update(network_tools="allowed"))
+        self.invalid(lambda c: c["executors"][0]["sandbox"].update(network="bridge"))
+        self.invalid(lambda c: c["executors"][0]["sandbox"].update(image="python:latest"))
         self.invalid(lambda c: c["executors"][0]["resource_limits"].update(per_task_timeout_seconds=0))
 
     def test_baseline_and_diffcipline_are_required(self) -> None:

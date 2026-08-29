@@ -44,24 +44,70 @@ jobs:
           benchmarks.harness.test_experiment_config
           benchmarks.harness.test_executor_adapter
           benchmarks.harness.test_experiment_runner
+          benchmarks.harness.test_sandbox_exec
           -v
+      - name: Prove reference sandbox containment
+        shell: bash
+        env:
+          GITHUB_TOKEN: private-qualification-sentinel
+          GH_TOKEN: private-qualification-sentinel
+        run: |
+          set -euo pipefail
+          image="$(python -c 'import json; print(json.load(open("benchmarks/v0.3/experiment.json"))["executors"][0]["sandbox"]["image"])')"
+          docker pull "$image"
+          work="$RUNNER_TEMP/sandbox-work"
+          mkdir -p "$work"
+          cp -a benchmarks/fixtures/f06-already-minimal/repo/. "$work/"
+          sandbox=(python -S benchmarks/harness/sandbox_exec.py --image "$image" --workdir "$work" --timeout-seconds 20 --cpu-cores 4 --memory-gb 16)
+          "${sandbox[@]}" "python -m unittest discover -s tests -v"
+          "${sandbox[@]}" "python -c \"from pathlib import Path; Path('sandbox-write.txt').write_text('ok\\n')\""
+          test "$(cat "$work/sandbox-write.txt")" = "ok"
+          if "${sandbox[@]}" "touch /etc/diffcipline-escape"; then
+            echo "sandbox unexpectedly wrote outside workspace" >&2
+            exit 1
+          fi
+          "${sandbox[@]}" "python -c \"import socket; s=socket.socket(); s.settimeout(1); raise SystemExit(0 if s.connect_ex(('1.1.1.1',53)) != 0 else 1)\""
+          "${sandbox[@]}" "test ! -e /var/run/docker.sock"
+          "${sandbox[@]}" "env" > "$RUNNER_TEMP/sandbox-env.txt"
+          ! grep -Eq 'GITHUB_TOKEN|GH_TOKEN|ACTIONS_RUNTIME_TOKEN|private-qualification-sentinel' "$RUNNER_TEMP/sandbox-env.txt"
+          IMAGE="$image" python - <<'PY' > "$RUNNER_TEMP/containment.json"
+          import json, os, subprocess
+          print(json.dumps({
+              "schema_version": 1,
+              "repository_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+              "image": os.environ["IMAGE"],
+              "image_id": subprocess.check_output(["docker", "image", "inspect", "--format={{.Id}}", os.environ["IMAGE"]], text=True).strip(),
+              "network": "denied",
+              "root_filesystem": "read-only",
+              "workspace_write": "verified",
+              "docker_socket": "absent",
+              "private_credentials_exposed": False,
+              "result": "PASS",
+          }, indent=2, sort_keys=True))
+          PY
       - name: Produce secret-free qualification evidence
         run: python -S benchmarks/harness/qualify_v03.py --output "$RUNNER_TEMP/v0.3-qualification.json"
       - name: Verify qualification evidence contract
         shell: bash
         run: |
           set -euo pipefail
-          python - "$RUNNER_TEMP/v0.3-qualification.json" <<'PY'
+          python - "$RUNNER_TEMP/v0.3-qualification.json" "$RUNNER_TEMP/containment.json" <<'PY'
           import json, sys
           evidence = json.load(open(sys.argv[1], encoding="utf-8"))
+          containment = json.load(open(sys.argv[2], encoding="utf-8"))
           assert evidence["result"] == "PASS"
           assert evidence["private_credentials_required"] is False
           assert evidence["comparative_model_execution"] is False
           assert evidence["matrix_rows"] == 24
+          assert containment["repository_revision"] == evidence["repository_revision"]
+          assert containment["result"] == "PASS"
+          assert containment["private_credentials_exposed"] is False
           PY
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: v0.3-harness-qualification
-          path: ${{ runner.temp }}/v0.3-qualification.json
+          path: |
+            ${{ runner.temp }}/v0.3-qualification.json
+            ${{ runner.temp }}/containment.json
           if-no-files-found: error
           retention-days: 90

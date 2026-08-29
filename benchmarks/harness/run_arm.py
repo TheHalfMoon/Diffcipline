@@ -60,6 +60,9 @@ def build_adapter_command(
     model: str | None,
     base_url: str | None,
     treatment: Path | None,
+    sandbox_image: str | None = None,
+    sandbox_cpu_cores: int | None = None,
+    sandbox_memory_gb: int | None = None,
 ) -> list[str]:
     command = [
         sys.executable,
@@ -76,6 +79,12 @@ def build_adapter_command(
         command += ["--base-url", base_url]
     if treatment:
         command += ["--treatment", str(treatment)]
+    if sandbox_image:
+        command += [
+            "--sandbox-image", sandbox_image,
+            "--sandbox-cpu-cores", str(sandbox_cpu_cores),
+            "--sandbox-memory-gb", str(sandbox_memory_gb),
+        ]
     return command
 
 
@@ -91,18 +100,25 @@ def main() -> int:
     parser.add_argument("--skill-name")
     parser.add_argument("--timeout-seconds", type=int, default=480)
     parser.add_argument("--prompt-suffix", required=True)
+    parser.add_argument("--sandbox-image")
+    parser.add_argument("--sandbox-cpu-cores", type=int)
+    parser.add_argument("--sandbox-memory-gb", type=int)
     args = parser.parse_args()
 
     try:
         validate_adapter_for_arm(args.adapter_kind)
     except ValueError as error:
         raise SystemExit(str(error))
+    sandbox_values = (args.sandbox_image, args.sandbox_cpu_cores, args.sandbox_memory_gb)
+    if any(value is not None for value in sandbox_values) and not all(value is not None for value in sandbox_values):
+        raise SystemExit("sandbox image, cpu cores, and memory must be supplied together")
     root = Path.cwd().resolve()
     fixtures = (root / args.fixtures).resolve()
     results = args.results.resolve()
     results.mkdir(parents=True, exist_ok=True)
     skill = args.skill.resolve() if args.skill else None
     adapter = root / "benchmarks/harness/executor_adapter.py"
+    sandbox_harness = root / "benchmarks/harness/sandbox_exec.py"
     if bool(skill) != bool(args.skill_name):
         raise SystemExit("--skill and --skill-name must be supplied together")
 
@@ -123,7 +139,8 @@ def main() -> int:
         transcript = out / "transcript.md"
         command = build_adapter_command(
             root, args.adapter_kind, work, prompt, transcript, args.timeout_seconds,
-            args.model, args.base_url, skill,
+            args.model, args.base_url, skill, args.sandbox_image,
+            args.sandbox_cpu_cores, args.sandbox_memory_gb,
         )
         started = datetime.now(timezone.utc).isoformat()
         clock = time.monotonic()
@@ -161,6 +178,13 @@ def main() -> int:
         }
         if args.adapter_kind == "local-openai-tool-loop":
             metadata["agent_harness_sha256"] = sha256(root / "benchmarks/harness/local_agent.py")
+        if args.sandbox_image:
+            metadata["sandbox"] = {
+                "image": args.sandbox_image,
+                "cpu_cores": args.sandbox_cpu_cores,
+                "memory_gb": args.sandbox_memory_gb,
+                "harness_sha256": sha256(sandbox_harness),
+            }
         (out / "metadata.json").write_text(
             json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
         )

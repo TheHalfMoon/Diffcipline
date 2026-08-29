@@ -9,6 +9,15 @@ ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 HEX40_RE = re.compile(r"^[0-9a-f]{40}$")
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 ADAPTER_KINDS = {"local-openai-tool-loop"}
+SANDBOX_CONTRACT = {
+    "kind": "docker-python-v1",
+    "image": "python:3.12.11-slim-bookworm@sha256:519591d6871b7bc437060736b9f7456b8731f1499a57e22e6c285135ae657bf7",
+    "network": "none",
+    "root_filesystem": "read-only",
+    "workspace_mount": "read-write-only",
+    "capabilities": "drop-all",
+    "no_new_privileges": True,
+}
 
 
 def require(condition: bool, message: str) -> None:
@@ -43,7 +52,7 @@ def validate_source(source: object, context: str) -> None:
 
 def validate_executor(executor: object, ids: set[str]) -> None:
     require(isinstance(executor, dict), "executor must be an object")
-    require_keys(executor, {"id", "adapter_kind", "runtime", "model", "tools", "permissions", "resource_limits"}, "executor")
+    require_keys(executor, {"id", "adapter_kind", "runtime", "model", "tools", "permissions", "resource_limits", "sandbox"}, "executor")
     executor_id = stable_id(executor["id"], "executor")
     require(executor_id not in ids, f"duplicate executor id: {executor_id}")
     ids.add(executor_id)
@@ -63,6 +72,7 @@ def validate_executor(executor: object, ids: set[str]) -> None:
     require(executor["tools"] == ["bash"], f"{executor_id}: tools must be ['bash']")
     permissions = executor["permissions"]
     require(permissions == {"network_tools": "denied", "git_push": "denied", "workspace": "disposable-only"}, f"{executor_id}: unsafe permissions")
+    require(executor["sandbox"] == SANDBOX_CONTRACT, f"{executor_id}: unsafe sandbox contract")
     limits = executor["resource_limits"]
     require(isinstance(limits, dict), f"{executor_id}: resource_limits must be an object")
     require_keys(limits, {"cpu_cores", "memory_gb", "storage_gb", "per_task_timeout_seconds"}, f"{executor_id}.resource_limits")

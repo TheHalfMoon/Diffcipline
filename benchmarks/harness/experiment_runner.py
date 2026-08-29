@@ -140,6 +140,12 @@ def build_arm_command(
         str(executor["resource_limits"]["per_task_timeout_seconds"]),
         "--prompt-suffix",
         config["prompt_suffix"],
+        "--sandbox-image",
+        executor["sandbox"]["image"],
+        "--sandbox-cpu-cores",
+        str(executor["resource_limits"]["cpu_cores"]),
+        "--sandbox-memory-gb",
+        str(executor["resource_limits"]["memory_gb"]),
     ]
     if treatment_file:
         command += ["--skill", str(treatment_file), "--skill-name", treatment["id"]]
