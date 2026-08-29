@@ -47,7 +47,7 @@ class SandboxExecTests(unittest.TestCase):
             self.assertIn(required, joined)
         self.assertNotIn("GITHUB_TOKEN", joined)
         self.assertNotIn("GH_TOKEN", joined)
-        self.assertEqual(PINNED_IMAGE, argv[-5])
+        self.assertEqual(PINNED_IMAGE, argv[-6])
 
     def test_invalid_resource_limits_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
