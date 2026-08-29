@@ -11,10 +11,22 @@ struct Fixture {
 
 impl Fixture {
     fn new(max_changed_files: usize) -> Self {
-        Self::with_policy(max_changed_files, "")
+        Self::with_parts(max_changed_files, "", "")
     }
 
     fn with_policy(max_changed_files: usize, extra_policy: &str) -> Self {
+        Self::with_parts(max_changed_files, extra_policy, "")
+    }
+
+    fn with_verification(max_changed_files: usize, extra_verification: &str) -> Self {
+        Self::with_parts(max_changed_files, "", extra_verification)
+    }
+
+    fn with_parts(
+        max_changed_files: usize,
+        extra_policy: &str,
+        extra_verification: &str,
+    ) -> Self {
         let unique = NEXT_FIXTURE_ID.fetch_add(1, Ordering::Relaxed);
         let root = std::env::temp_dir().join(format!(
             "diffcipline-fixture-{}-{unique}",
@@ -39,7 +51,7 @@ impl Fixture {
                 "version = 1\n\n[policy]\nmax_changed_files = {max_changed_files}\n\
 max_added_lines = 20\ndependency_manifest_changes = \"allow\"\n\
 lockfile_changes = \"allow\"\nuntracked_files = \"allow\"\n{extra_policy}\n\
-[verification]\ncommands = [\"git diff --check\"]\n"
+[verification]\ncommands = [\"git diff --check\"]\n{extra_verification}\n"
             ),
         )
         .expect("write fixture policy");
@@ -112,6 +124,69 @@ fn hard_policy_violation_fails_even_when_verification_passes() {
     assert!(stdout.contains("Verdict       FAIL"));
     assert!(stdout.contains("changed files 1 exceed maximum 0"));
     assert!(stdout.contains("Verification  PASS — git diff --check"));
+}
+
+#[test]
+fn explicit_risk_selects_only_requested_profile() {
+    let fixture = Fixture::with_verification(4, "r1_commands = [\"git status --short\"]");
+    let output = fixture.run(&["check", "--risk", "R1", "--run"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Verification  PASS — git status --short"));
+    assert!(!stdout.contains("Verification  PASS — git diff --check"));
+}
+
+#[test]
+fn omitted_risk_preserves_default_commands() {
+    let fixture = Fixture::with_verification(4, "r1_commands = [\"git status --short\"]");
+    let output = fixture.run(&["check", "--run"]);
+
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("Verification  PASS — git diff --check"));
+    assert!(!stdout.contains("Verification  PASS — git status --short"));
+}
+
+#[test]
+fn missing_risk_profile_fails_closed_without_fallback() {
+    let fixture = Fixture::new(4);
+    let output = fixture.run(&["check", "--risk", "R2", "--run"]);
+
+    assert_eq!(output.status.code(), Some(64));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("verification profile R2 is not configured or is empty"));
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("git diff --check"));
+}
+
+#[test]
+fn empty_risk_profile_fails_closed() {
+    let fixture = Fixture::with_verification(4, "r3_commands = []");
+    let output = fixture.run(&["check", "--risk", "R3", "--run"]);
+
+    assert_eq!(output.status.code(), Some(64));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("verification profile R3 is not configured or is empty"));
+}
+
+#[test]
+fn invalid_risk_value_is_usage_error() {
+    let fixture = Fixture::new(4);
+    let output = fixture.run(&["check", "--risk", "r1", "--run"]);
+
+    assert_eq!(output.status.code(), Some(64));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("invalid risk level: r1; expected R0, R1, R2, or R3"));
+}
+
+#[test]
+fn missing_risk_value_is_usage_error() {
+    let fixture = Fixture::new(4);
+    let output = fixture.run(&["check", "--risk"]);
+
+    assert_eq!(output.status.code(), Some(64));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("--risk requires R0, R1, R2, or R3"));
 }
 
 #[test]
