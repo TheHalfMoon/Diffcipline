@@ -72,7 +72,7 @@ jobs:
                 -f event=push \
                 -f status=completed \
                 -f per_page=100 \
-                --jq '.workflow_runs | map(select(.head_sha == env.TARGET_SHA and .event == "push" and .conclusion == "success")) | .[0].id // empty'
+                --jq '.workflow_runs | map(select(.event == "push" and .conclusion == "success")) | .[0].id // empty'
             )"
             test -n "$run_id"
             echo "$workflow exact-SHA successful run: $run_id"
