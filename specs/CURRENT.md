@@ -2,7 +2,7 @@
 
 Active: [`002-intent-aware-scope`](002-intent-aware-scope/spec.md)
 
-Status: `PLANNING_CANDIDATE`
+Status: `ACTIVE_IMPLEMENTATION`
 
 ## Canonical read order
 
@@ -45,6 +45,20 @@ The canonical README roadmap defines v0.2 as `Intent-aware scope` with exactly t
 
 Spec 002 translates those roadmap goals into deterministic, dependency-free acceptance criteria. It does not authorize semantic AI judging, inferred risk, arbitrary glob semantics, PR write access, or unrelated roadmap work.
 
-## Active gate
+PR #32 exact planning head `2936f00420b8fa3cd8444812a05e736a2ecc0cc7` passed all six triggered exact-head workflows and was squash-merged as canonical Spec 002 authority:
 
-T103 is the only eligible task until this planning candidate is merged to canonical `main` with exact-head repository gates. `PLANNING_CANDIDATE` must not be represented as canonical Spec 002 authority before that merge.
+`43aaf35c7a6b07b632e4707999cc664089f911ac`
+
+Post-merge push evidence on that exact canonical SHA:
+
+- `ci` run `33249914994`: SUCCESS;
+- `skills-compat` run `33249915085`: SUCCESS;
+- `release` run `33249915039`: SUCCESS.
+
+T103 is complete.
+
+## Active frontier
+
+T110–T115 are the next eligible unit: implement deterministic `expected_files` and `forbidden_surfaces` policy parsing, pattern validation, scope evaluation, and unit/integration coverage while preserving v0.1 behavior when the new fields are absent.
+
+Do not begin risk-profile implementation until the Phase B unit is canonical and exact post-merge gates are verified.
