@@ -123,8 +123,13 @@ jobs:
           sha256sum diffcipline-* | LC_ALL=C sort -k2 > SHA256SUMS
           test "$(wc -l < SHA256SUMS)" -eq 3
           sha256sum -c SHA256SUMS
-      - name: Confirm attestation verifier is available
-        run: gh attestation verify --help >/dev/null
+      - name: Confirm release verification tooling is available
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh attestation verify --help >/dev/null
+          gh release verify --help >/dev/null
+          gh release verify-asset --help >/dev/null
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-candidate
