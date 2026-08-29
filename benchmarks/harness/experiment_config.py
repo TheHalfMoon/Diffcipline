@@ -102,7 +102,7 @@ def validate_executor(executor: object, ids: set[str]) -> None:
     require(isinstance(limits, dict), f"{executor_id}: resource_limits must be an object")
     require_keys(limits, {"cpu_cores", "memory_gb", "storage_gb", "per_task_timeout_seconds"}, f"{executor_id}.resource_limits")
     for key in ("cpu_cores", "memory_gb", "storage_gb", "per_task_timeout_seconds"):
-        positive_int(limits[key], f"{executor_id}.{key")
+        positive_int(limits[key], f"{executor_id}.{key}")
 
 
 def validate_treatment(treatment: object, ids: set[str]) -> None:
