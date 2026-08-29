@@ -39,24 +39,30 @@ T110–T115 expected/forbidden scope implementation is canonical at `b35ae01f7a8
 
 ## Completed Phase C
 
-T120–T125 risk-aware verification implementation is canonical at:
+T120–T125 risk-aware verification implementation is canonical at `ef6b66a94029c102d5c798fdc8e71c68eeab61be` with exact post-merge `ci` `33251565005` and `release` `33251564986` successful.
 
-`ef6b66a94029c102d5c798fdc8e71c68eeab61be`
+## Completed Phase D
+
+T130–T132 proof-output implementation is canonical at:
+
+`fb231e21bc8e6ff0435e4056b196057ffc39d042`
 
 Exact candidate evidence:
 
-- PR #36 head `a744174a1337a94e9ac0c90d0798dae63df2da01`;
-- `ci` `33251448181`: SUCCESS;
-- `release` `33251448146`: SUCCESS;
-- no submitted reviews or review threads.
+- PR #38 head `73de8af1ae368432d0ccfb29c7db31a354bd99cd`;
+- `ci` `33254922245`: SUCCESS;
+- `release` `33254922255`: SUCCESS;
+- no submitted reviews or review threads and no valid automated finding.
 
 Post-merge evidence:
 
-- `ci` `33251565005`: SUCCESS;
-- `release` `33251564986`: SUCCESS.
+- `ci` `33254995550`: SUCCESS;
+- `release` `33254995552`: SUCCESS.
+
+The proof contract now exposes selected/default risk, expected and forbidden intent contracts, deterministic scope violations, and per-command verification state while preserving existing human and JSON fields.
 
 ## Active frontier
 
-T130–T132 are the next eligible unit: expose explicit risk and scope evidence in human proof, add risk/intent/scope/verification state to dependency-free JSON, and add structured-output escaping and compatibility regression coverage.
+T140–T144 are the next eligible unit: add an optional strictly validated GitHub Action `risk` input, forward it to the same CLI proof contract, preserve CLI exit semantics while capturing deterministic proof output, write a concise Markdown proof to `$GITHUB_STEP_SUMMARY` without write permissions or PR comments, and dogfood the annotation path in CI.
 
-Do not begin GitHub Action annotation work until T130–T132 are canonical with successful exact post-merge gates.
+Do not begin v0.2 canonical closeout until T140–T144 are canonical with successful exact post-merge gates.
