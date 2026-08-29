@@ -27,6 +27,14 @@ The canonical v0.1 benchmark remains unfavorable: every arm scored `1/6`, all ar
 
 Do not rewrite v0.1 evidence, fixtures, scorer history, or published limitations to improve later results.
 
+## Planning authority evidence
+
+T203 became canonical at `c392d372564b55cc7d55aee8bed1b2641dee6820` after PR #43 passed exact-head gates, merged to unchanged `main`, and the following push runs succeeded on that exact commit:
+
+- `ci` `33256584608`: SUCCESS;
+- `skills-compat` `33256584575`: SUCCESS;
+- `release` `33256584593`: SUCCESS.
+
 ## Current benchmark truth
 
 The repository already contains:
@@ -42,11 +50,16 @@ The v0.3 gap is the executor-independent public harness and reproducible multi-e
 
 ## Immediate frontier
 
-T200–T202 are satisfied by the Spec 003 planning candidate. T203 remains open until this exact planning authority passes all triggered exact-head gates, has no unresolved valid review finding, merges to unchanged canonical `main`, and exact post-merge gates succeed.
+Phase B implements T210–T215 only:
 
-Do not begin T210 implementation before T203 is canonical.
+- a new `benchmarks/v0.3/experiment.json` schema separate from frozen v0.1 `run-config.json`;
+- executor profiles independent from treatment arms;
+- fail-closed validation of IDs, adapter kinds, revisions/digests, and resource limits;
+- explicit denied network/Git-push permissions and disposable workspace policy;
+- deterministic normalized serialization;
+- standard-library unit coverage for valid and invalid configurations.
 
-After T203, the next eligible unit is T210–T215: add and validate a versioned v0.3 experiment configuration that separates executor profiles from treatment arms while leaving frozen v0.1 `run-config.json` unchanged.
+T220 adapter work remains blocked until T210–T215 are canonical with exact-head and post-merge evidence.
 
 ## Real-experiment authorization boundary
 
