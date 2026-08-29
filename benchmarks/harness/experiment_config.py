@@ -43,10 +43,14 @@ def https_url(value: object, context: str) -> None:
     require(isinstance(value, str) and value.startswith("https://") and " " not in value, f"{context}: invalid https URL")
 
 
+def repository_id(value: object, context: str) -> None:
+    require(isinstance(value, str) and value.count("/") == 1 and all(value.split("/")), f"{context}: invalid repository")
+
+
 def validate_source(source: object, context: str) -> None:
     require(isinstance(source, dict), f"{context}: source must be an object")
     require_keys(source, {"repository", "revision", "path", "digest"}, context)
-    require(isinstance(source["repository"], str) and source["repository"].count("/") == 1, f"{context}: invalid repository")
+    repository_id(source["repository"], context)
     require(isinstance(source["revision"], str) and HEX40_RE.fullmatch(source["revision"]), f"{context}: invalid revision")
     require(isinstance(source["path"], str) and source["path"] and not source["path"].startswith("/"), f"{context}: invalid path")
     digest = source["digest"]
@@ -57,8 +61,9 @@ def validate_source(source: object, context: str) -> None:
 def validate_runtime(runtime: object, executor_id: str) -> None:
     context = f"{executor_id}.runtime"
     require(isinstance(runtime, dict), f"{context}: runtime must be an object")
-    require_keys(runtime, {"name", "release", "revision", "download_url", "sha256", "base_url", "server_args", "chat_template"}, context)
+    require_keys(runtime, {"name", "repository", "release", "revision", "download_url", "sha256", "base_url", "server_args", "chat_template"}, context)
     require(all(isinstance(runtime[key], str) and runtime[key] for key in ("name", "release")), f"{context}: invalid runtime identity")
+    repository_id(runtime["repository"], context)
     require(isinstance(runtime["revision"], str) and HEX40_RE.fullmatch(runtime["revision"]), f"{context}: invalid runtime revision")
     https_url(runtime["download_url"], f"{context}.download_url")
     require(isinstance(runtime["sha256"], str) and HEX64_RE.fullmatch(runtime["sha256"]), f"{context}: invalid runtime sha256")
@@ -78,8 +83,8 @@ def validate_model(model: object, executor_id: str) -> None:
     context = f"{executor_id}.model"
     require(isinstance(model, dict), f"{context}: model must be an object")
     require_keys(model, {"id", "repository", "revision", "file", "download_url", "sha256", "quantization", "license"}, context)
-    require(all(isinstance(model[key], str) and model[key] for key in ("id", "repository", "file", "quantization", "license")), f"{context}: invalid model identity")
-    require(model["repository"].count("/") == 1, f"{context}: invalid repository")
+    require(all(isinstance(model[key], str) and model[key] for key in ("id", "file", "quantization", "license")), f"{context}: invalid model identity")
+    repository_id(model["repository"], context)
     require(isinstance(model["revision"], str) and HEX40_RE.fullmatch(model["revision"]), f"{context}: invalid model revision")
     https_url(model["download_url"], f"{context}.download_url")
     require(isinstance(model["sha256"], str) and HEX64_RE.fullmatch(model["sha256"]), f"{context}: invalid model sha256")
