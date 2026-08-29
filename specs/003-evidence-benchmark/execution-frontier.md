@@ -31,37 +31,46 @@ Do not rewrite v0.1 evidence, fixtures, scorer history, or published limitations
 
 Planning T200–T203 became canonical at `c392d372564b55cc7d55aee8bed1b2641dee6820` with post-merge `ci` `33256584608`, `skills-compat` `33256584575`, and `release` `33256584593` all SUCCESS.
 
-Phase B T210–T215 became canonical at `5726c54f1b807a8d0976d71308c61cf70687d621` after PR #44 exact-head gates and these push runs succeeded on that exact commit:
+Phase B T210–T215 became canonical at `5726c54f1b807a8d0976d71308c61cf70687d621` with post-merge `benchmark-fixtures` `33257309999`, `ci` `33257309939`, `skills-compat` `33257309945`, and `release` `33257309947` all SUCCESS.
 
-- `benchmark-fixtures` `33257309999`: SUCCESS;
-- `ci` `33257309939`: SUCCESS;
-- `skills-compat` `33257309945`: SUCCESS;
-- `release` `33257309947`: SUCCESS.
+Phase C T220–T225 became canonical at `8e84a013296ae6cf62d41f68068eb1094c422b2d`. Post-merge `benchmark-fixtures` `33257939873`, `ci` `33257939894`, `skills-compat` `33257939867`, and `release` `33257939883` all succeeded. Legacy `benchmark-arms` run `33257939909` also succeeded, but it is regression-only evidence and cannot satisfy v0.3 T250–T255 or alter frozen v0.1 results.
+
+Phase D T230–T235 became canonical at `b4900b45d4ff3cb2e26ef3f4134b0d72087672a9`. PR #46 exact head `927e37cbbaec7db5dfccbd32002f71181c081d37` passed `benchmark-fixtures` `33260403823` and `ci` `33260403827`; exact post-merge `benchmark-fixtures` `33260476350` and `ci` `33260476379` also succeeded.
 
 ## Current benchmark truth
 
-The repository contains a frozen six-task corpus, objective scorer, pinned v0.1 experiment, repository-local OpenAI-compatible agent loop, and a versioned v0.3 executor/treatment configuration. The remaining Phase C gap is a process-level adapter boundary so arm orchestration no longer selects `local_agent.py` directly.
+The repository now has:
+
+- the frozen six-task corpus and objective scorer;
+- the pinned historical v0.1 experiment and unfavorable canonical result;
+- a versioned v0.3 executor/treatment configuration;
+- a process-level executor adapter with the existing local OpenAI-compatible loop as reference adapter;
+- a deterministic qualification-only `contract-test` adapter excluded from comparative evidence;
+- deterministic executor × treatment × fixture expansion;
+- matched comparison-contract digests;
+- attempt-aware output directories that do not overwrite prior attempts;
+- explicit manifest states for included, failed, timed-out, and excluded runs.
+
+The next gap is reproducibility qualification and a guarded explicit real-experiment entry path.
 
 ## Immediate frontier
 
-Phase C implements T220–T225 only:
+Phase E implements T240–T245 only:
 
-- route `run_arm.py` through `executor_adapter.py`;
-- keep the existing local OpenAI-compatible loop as the reference adapter;
-- add a deterministic `contract-test` adapter used only for qualification;
-- reject `contract-test` from comparative arm orchestration;
-- preserve process exit, stdout, stderr, timeout state, transcript, treatment digest, adapter digest, and local-agent digest evidence;
-- add standard-library contract and failure-path tests, including workspace-escape rejection.
+- add secret-free harness qualification using deterministic fixtures/adapters;
+- run config, adapter, matrix, matching, evidence-completeness, and scorer-boundary tests in CI;
+- prove the canonical qualification path needs no private credentials;
+- prove frozen v0.1 fixture/scorer/history remain unchanged;
+- define an explicit real-experiment workflow that cannot execute on ordinary pull requests;
+- merge and post-merge verify the qualified public harness before authorizing comparative execution.
 
-T230 matrix work remains blocked until T220–T225 are canonical with exact-head and post-merge evidence.
-
-The legacy `benchmark-arms` workflow may run after a canonical `run_arm.py` change. Any such run is legacy regression evidence only and cannot satisfy v0.3 T250–T255 or alter the frozen v0.1 canonical result.
+CI qualification may use deterministic contract fixtures and adapters. Those outputs are qualification evidence only, never model-comparison evidence.
 
 ## Real-experiment authorization boundary
 
-No real comparative v0.3 experiment is authorized before T245. Contract fixtures/stubs may exercise the harness in CI, but their outputs must never be represented as model-comparison evidence.
+No real comparative v0.3 experiment is authorized before T245 becomes canonical.
 
-After T245, execute only the exact pinned reference experiment defined by T250–T251. Do not selectively rerun losing tasks, drop failures, or change task/scorer inputs after observing results.
+After T245, execute only the exact pinned reference experiment defined by T250–T251. Baseline and eligible comparison skills must run before the Diffcipline arm under the same executor/model/task/revision/permissions/prompt/timeout/resource contract. Do not selectively rerun losing tasks, drop failures, or change task/scorer inputs after observing results.
 
 ## Stop conditions
 
