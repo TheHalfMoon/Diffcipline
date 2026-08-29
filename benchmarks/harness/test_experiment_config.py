@@ -40,8 +40,11 @@ class ExperimentConfigTests(unittest.TestCase):
         self.invalid(lambda c: c["executors"][0].update(adapter_kind="unknown"))
         self.invalid(lambda c: c["treatments"][1].update(kind="prompt"))
 
-    def test_revision_and_digest_validation_fail_closed(self) -> None:
+    def test_revision_digest_and_runtime_source_validation_fail_closed(self) -> None:
         self.invalid(lambda c: c["executors"][0]["runtime"].update(revision="main"))
+        self.invalid(lambda c: c["executors"][0]["runtime"].update(download_url="http://example.com/runtime.tgz"))
+        self.invalid(lambda c: c["executors"][0]["runtime"]["chat_template"].update(revision="0" * 40))
+        self.invalid(lambda c: c["executors"][0]["model"].update(download_url="model.gguf"))
         self.invalid(lambda c: c["treatments"][1]["source"]["digest"].update(value="0" * 39))
 
     def test_unsafe_permissions_sandbox_and_bad_limits_fail_closed(self) -> None:
