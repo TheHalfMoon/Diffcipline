@@ -43,26 +43,39 @@ T120–T125 risk-aware verification implementation is canonical at `ef6b66a94029
 
 ## Completed Phase D
 
-T130–T132 proof-output implementation is canonical at:
+T130–T132 proof-output implementation is canonical at `fb231e21bc8e6ff0435e4056b196057ffc39d042` with exact post-merge `ci` `33254995550` and `release` `33254995552` successful.
 
-`fb231e21bc8e6ff0435e4056b196057ffc39d042`
+The proof contract exposes selected/default risk, expected and forbidden intent contracts, deterministic scope violations, and per-command verification state while preserving existing human and JSON fields.
+
+## Completed Phase E
+
+T140–T144 GitHub Action annotation is canonical at:
+
+`c059fc76e4d836e7f9e10ce4bb0465428791ed40`
 
 Exact candidate evidence:
 
-- PR #38 head `73de8af1ae368432d0ccfb29c7db31a354bd99cd`;
-- `ci` `33254922245`: SUCCESS;
-- `release` `33254922255`: SUCCESS;
-- no submitted reviews or review threads and no valid automated finding.
+- PR #40 head `ec87a121ddf1958f9b57f300699da0457e219b43`;
+- `ci` `33255469452`: SUCCESS;
+- Rust formatting, clippy with warnings denied, locked tests, default Action proof, explicit R0 annotation, invalid-R4 rejection, and cross-platform dogfood all succeeded;
+- no submitted reviews or review threads remained; automated top-level comments contained no code finding.
 
 Post-merge evidence:
 
-- `ci` `33254995550`: SUCCESS;
-- `release` `33254995552`: SUCCESS.
+- `ci` `33255652466`: SUCCESS on exact canonical `c059fc76e4d836e7f9e10ce4bb0465428791ed40`.
 
-The proof contract now exposes selected/default risk, expected and forbidden intent contracts, deterministic scope violations, and per-command verification state while preserving existing human and JSON fields.
+The Action accepts an optional strictly validated risk input, forwards it to the same CLI contract, preserves the CLI exit status while capturing proof, writes the deterministic proof section to `$GITHUB_STEP_SUMMARY`, and requires no repository write permission or PR comment.
+
+`skills-compat` and `release` did not trigger on the Phase E implementation paths. They remain mandatory evidence for the final v0.2 closeout candidate under T152.
 
 ## Active frontier
 
-T140–T144 are the next eligible unit: add an optional strictly validated GitHub Action `risk` input, forward it to the same CLI proof contract, preserve CLI exit semantics while capturing deterministic proof output, write a concise Markdown proof to `$GITHUB_STEP_SUMMARY` without write permissions or PR comments, and dogfood the annotation path in CI.
+T150–T154 are now the only remaining Spec 002 tasks. The closeout sequence is fail-closed:
 
-Do not begin v0.2 canonical closeout until T140–T144 are canonical with successful exact post-merge gates.
+1. update README with implemented v0.2 behavior only;
+2. reconcile the Spec 002 ledger with exact Phase E evidence;
+3. pass exact-head Rust/dogfood, skills compatibility, and release-candidate workflows on the final v0.2 candidate;
+4. merge that exact candidate to unchanged canonical `main` and verify post-merge gates;
+5. only after that machine observation, record `COMPLETE_CANONICAL` in a final canonical evidence change.
+
+Do not create or move a `v0.2.0` tag. Spec 002 contains no release-tag closeout task.
