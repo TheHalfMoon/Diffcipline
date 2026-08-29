@@ -370,15 +370,18 @@ fn validate_path_pattern(pattern: &str) -> Result<(), String> {
     if !pattern.contains('*') {
         return Ok(());
     }
-    if let Some(suffix) = pattern.strip_prefix("*.") {
-        if !suffix.is_empty() && !suffix.contains('*') && !suffix.contains('/') {
-            return Ok(());
-        }
+    if let Some(suffix) = pattern.strip_prefix("*.")
+        && !suffix.is_empty()
+        && !suffix.contains('*')
+        && !suffix.contains('/')
+    {
+        return Ok(());
     }
-    if let Some(directory) = pattern.strip_suffix("/**") {
-        if !directory.is_empty() && !directory.contains('*') {
-            return Ok(());
-        }
+    if let Some(directory) = pattern.strip_suffix("/**")
+        && !directory.is_empty()
+        && !directory.contains('*')
+    {
+        return Ok(());
     }
 
     Err(format!("unsupported path pattern: {pattern}"))
