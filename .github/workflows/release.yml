@@ -216,3 +216,14 @@ jobs:
             --title "Diffcipline $GITHUB_REF_NAME" \
             --generate-notes \
             --verify-tag
+      - name: Verify published immutable release and assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json isImmutable --jq '.isImmutable')" = "true"
+          gh release verify "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY"
+          for file in dist/*; do
+            gh release verify-asset "$GITHUB_REF_NAME" "$file" --repo "$GITHUB_REPOSITORY"
+          done
