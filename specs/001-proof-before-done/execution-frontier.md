@@ -2,7 +2,7 @@
 
 This document is the canonical continuation handoff for `001-proof-before-done`.
 
-Live GitHub/repository truth always overrides this snapshot. Re-verify `main`, open pull requests, Actions runs, and the files in the read order below before making changes.
+Live GitHub/repository truth always overrides this snapshot. Re-verify `main`, open pull requests, Actions runs, tags, releases, and the files in the read order below before acting.
 
 ## Canonical read order
 
@@ -13,161 +13,102 @@ Live GitHub/repository truth always overrides this snapshot. Re-verify `main`, o
 5. `specs/001-proof-before-done/tasks.md`
 6. this file
 7. `benchmarks/PROTOCOL.md`
-8. `benchmarks/run-config.json`
-9. `.github/workflows/benchmark-arms.yml`
+8. `benchmarks/results/v0.1/REPORT.md`
+9. `benchmarks/results/v0.1/MANIFEST.json`
+10. `.github/workflows/ci.yml`
+11. `.github/workflows/skills-compat.yml`
+12. `.github/workflows/release.yml`
 
 ## Last verified canonical state
 
-Last verified canonical `main` before this handoff documentation branch:
+Canonical `main` at closeout start:
 
-`c71d3f81016ae6bc1d8516b47d1b3c5cb7258e45`
+`78fcc432afcf0fabe2ed13800f7a9361570ab905`
 
-Canonical tree:
+T001–T055 are complete through that commit. PR #24 squash-merged the durable v0.1 benchmark publication.
 
-`c550eff41ad72cbd1891acbca3aef80826eaf7ba`
+The valid matched benchmark is `benchmark-arms` run `33200332207`, executed from canonical revision:
 
-PR #16 was squash-merged to that commit after exact-head repository CI passed. The repository has completed T001–T051. T052–T055 remain open.
+`b640461cfdf08c25b8cf8b0404aa6b5a8ccae1bc`
 
-The benchmark fixture/scorer/preparer boundary remains frozen at:
+The repaired frozen fixture/preparer/scorer boundary is:
 
-`4f796058bddd840be31d3fbf7d74b34a5403c49c`
+`cde4d0058ce522ddd9863457c29560679fac53dd`
 
-Do not modify the frozen fixture corpus, `benchmarks/harness/prepare_fixture.py`, or `benchmarks/harness/score_run.py` after benchmark execution has begun. If a genuine defect is discovered, stop, document it, invalidate affected runs, repair through review, establish a new frozen revision, and restart every affected arm under matching conditions.
+Run `33195457215` is invalid comparative evidence because the old preparer produced different ephemeral fixture base commits across arms. It must never be counted as comparative benchmark evidence.
 
-## Excluded infrastructure preflights
+## Canonical benchmark result
 
-The following runs are **not benchmark evidence**. No benchmark task executed in any of them.
+| Arm | Correct | Scorer pass | Changed files | Total seconds |
+| --- | ---: | ---: | ---: | ---: |
+| Baseline | 1/6 | 1/6 | 0 | 746.668 |
+| Karpathy | 1/6 | 1/6 | 0 | 797.091 |
+| Ponytail | 1/6 | 1/6 | 0 | 702.127 |
+| Diffcipline | 1/6 | 1/6 | 0 | 981.263 |
 
-| Run | Canonical commit | Result | Task arms |
-| --- | --- | --- | --- |
-| `benchmark-arms` #1 / `33177348082` | `f5f17b9d0fa025bbed436075c462ce48a5766151` | `gpt-5.3-codex` explicit model unavailable | baseline, Karpathy, Ponytail, Diffcipline all skipped |
-| `benchmark-arms` #2 / `33177729891` | `d20f6b615fc9c1285b01b74377aa6e53e7fa081a` | `claude-sonnet-4.6` explicit model unavailable | all skipped |
-| `benchmark-arms` #3 / `33178142084` | `c71d3f81016ae6bc1d8516b47d1b3c5cb7258e45` | every predeclared explicit hosted model unavailable | all skipped |
+The evidence does **not** show a correctness advantage for Diffcipline. Diffcipline was the slowest arm by observed total wall-clock time. The only correct fixture was the already-minimal no-op fixture `f06`. Preserve this losing result exactly.
 
-Run #3 verified the frozen corpus, pinned Copilot CLI `v1.0.81` checksum, pinned treatment skill blobs, and `GITHUB_TOKEN` permission `CopilotRequests: write` before probing the model list. Nine explicit model IDs were rejected as unavailable. `auto` was intentionally refused because different arms must not silently receive different models.
+Durable evidence is published under `benchmarks/results/v0.1/`:
 
-Current benchmark task execution count: **0**.
+- `MANIFEST.json`
+- `REPORT.md`
+- `SHA256SUMS`
+- `raw-canonical-evidence.tar.gz`
 
-## Current blocker
+## Active closeout state
 
-`T052 BLOCKED_HOSTED_MODEL_ENTITLEMENT`.
+T060 and T061 are implemented by the v0.1 closeout branch. T062 remains open until all required machine gates pass on one exact release-candidate head and then again on the exact post-merge canonical release commit.
 
-The GitHub-hosted Copilot Actions path cannot currently provide any of the predeclared explicit models for this repository/account. This is an infrastructure/entitlement blocker, not a benchmark result.
+Required T062 evidence:
 
-Do not:
+1. `cargo fmt --all -- --check` on Linux, macOS, and Windows CI surfaces as defined by repository workflows.
+2. `cargo clippy --workspace --all-targets --locked -- -D warnings`.
+3. `cargo test --workspace --all-targets --locked`.
+4. Diffcipline proof gate on Ubuntu, macOS, and Windows.
+5. Agent Skills installation compatibility for Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI from the exact candidate checkout.
+6. Canonical v0.1 benchmark archive checksum and manifest assertions.
+7. Locked release builds for Linux, macOS, and Windows.
+8. A three-subject SHA-256 release manifest and checksum verification.
+9. On trusted canonical `main`, successful Sigstore provenance creation plus GitHub attestation verification for every native binary.
 
-- use Copilot `auto` selection;
-- count a model preflight as a benchmark task;
-- change task fixtures or scorer behavior to make execution easier;
-- publish comparative claims from partial or unmatched arms;
-- hide excluded runs.
+If the candidate head changes, all exact-head PR gates must be re-established before merge.
 
-## Authorized continuation plan
+## Tag and release authority
 
-### Stage 1 — Establish one pinned local model runtime
+T063 is not authorized until T062 succeeds on the exact canonical post-merge release commit and the crate version is exactly `0.1.0`.
 
-Move the benchmark execution path to a local, reproducible provider inside GitHub Actions, with no hosted model entitlement dependency. Ollama or an equivalent OpenAI-compatible local runtime is acceptable if it satisfies every gate below.
+The `v0.1.0` tag must point to that exact verified canonical `main` SHA. Never tag a branch head, merge preview, stale commit, or unverified commit.
 
-Before any benchmark task runs:
+If the connected GitHub tooling cannot create a tag directly, use only a reviewed repository-native mechanism that:
 
-1. Pin the runtime version or image to an immutable release identifier and checksum/digest.
-2. Select one exact open-weight model **without inspecting benchmark task outcomes**.
-3. Record the exact model artifact identifier and cryptographic digest where the distribution format permits it.
-4. Require a license compatible with public reproducible benchmarking.
-5. Require the model/runtime to fit the GitHub-hosted runner resource envelope with a documented safety margin.
-6. Require the interface needed by the benchmark harness; if tool calling is required by the chosen agent runtime, prove it in preflight.
-7. Run a harmless model preflight before T052 and preserve its output as infrastructure evidence.
-8. Fail closed if the exact runtime/model cannot be reproduced. Do not fall back to remote `auto` selection.
+- accepts an explicit canonical SHA;
+- proves that SHA is current `main`;
+- proves the required post-merge T062 workflows succeeded for that same SHA;
+- proves the crate version is `0.1.0` and therefore the tag is `v0.1.0`;
+- refuses an existing or mismatched tag;
+- creates no tag until all checks pass.
 
-A small coding-capable local model may be used for v0.1. The benchmark measures the treatment effect under matched conditions; it does not require a frontier model. Model selection must be frozen before the first benchmark task.
+T064 then requires the tag-triggered `release` workflow to publish and verify:
 
-### Stage 2 — Migrate the harness without changing the experiment
+- Linux, macOS, and Windows native binaries;
+- `SHA256SUMS`;
+- checksum verification;
+- Sigstore provenance;
+- GitHub attestations;
+- preserved `PROVENANCE.sigstore.json`;
+- immutable GitHub Release state;
+- tag/version equality.
 
-Use a dedicated feature branch and pull request. Keep these experiment surfaces unchanged unless a separately documented pre-execution defect requires repair:
-
-- fixture bytes and manifests;
-- task prompts;
-- scorer and preparer behavior;
-- treatment skill revisions/blobs;
-- arm order and identity;
-- prompt suffix;
-- network prohibition during task execution;
-- no commit/push rule;
-- per-task timeout, unless runner feasibility requires a pre-execution change applied identically to all arms.
-
-The harness migration may change only what is necessary to replace hosted model transport with the pinned local transport and to capture runtime/model provenance.
-
-Exact-head normal CI and any benchmark infrastructure validation must pass before merge. Benchmark task execution starts only from canonical `main` after that merge.
-
-### Stage 3 — Execute T052–T054 in protocol order
-
-Run arms in this order and do not skip ahead:
-
-1. **T052 baseline** — six frozen tasks, no treatment skill.
-2. Verify that all six baseline result bundles exist, are parseable, match the frozen task IDs, and contain the required raw transcript/patch/test/scoring evidence.
-3. **T053 Karpathy comparison** — same six tasks, exact pinned Karpathy skill blob.
-4. **T053 Ponytail comparison** — same six tasks, exact pinned Ponytail skill blob.
-5. Verify both comparison bundles before proceeding.
-6. **T054 Diffcipline** — same six tasks, exact pinned Diffcipline skill blob.
-
-Every arm must use the exact same:
-
-- model artifact;
-- model/runtime configuration;
-- runner class;
-- task corpus;
-- timeout policy;
-- tool/network policy;
-- scorer;
-- prompt suffix, except for the treatment skill itself.
-
-Record failures, timeouts, abstentions, and malformed outputs as outcomes according to the published protocol. Do not silently retry individual tasks to improve results. Any permitted whole-experiment retry policy must be declared before the first valid T052 task run.
-
-### Stage 4 — T055 durable publication
-
-After all valid arms finish, create a publication branch containing durable benchmark evidence under a versioned results directory such as:
-
-`benchmarks/results/v0.1/`
-
-Publish at minimum:
-
-- execution manifest with canonical repository revision;
-- runtime version/digest and exact model identity/digest;
-- treatment repository revisions and blob SHAs;
-- task IDs and frozen fixture revision;
-- raw model/agent transcripts where license and size permit;
-- produced patches/diffs;
-- test outputs and exit codes;
-- per-task scorer JSON;
-- aggregate tables;
-- token/cost/time metrics when actually available, otherwise explicitly `NOT AVAILABLE`;
-- excluded infrastructure runs #1–#3 and their reasons;
-- limitations and threats to validity;
-- checksums for published raw artifacts.
-
-Do not publish only an aggregate score. Preserve losing metrics and failed runs.
-
-If raw artifacts are too large for ordinary Git history, publish them as immutable GitHub Release assets and commit the manifest, checksums, asset references, and summaries to the repository. Do not rely only on expiring Actions artifacts.
-
-### Stage 5 — v0.1 closeout and release
-
-Only after T055 is canonical:
-
-1. Update `README.md` with benchmark claims that are exactly supported by the published evidence. If Diffcipline loses a metric, say so.
-2. Update `CHANGELOG.md`, `specs/CURRENT.md`, and `tasks.md`.
-3. Re-run canonical Rust, Diffcipline, skill compatibility, benchmark evidence, and release-candidate gates required by the repository.
-4. Create the matching `v0.1.0` release tag only from an exact verified canonical `main` commit.
-5. Verify the tag-triggered release workflow, checksums, provenance/attestations, and published binaries.
-6. Claim `v0.1.0 COMPLETE_CANONICAL` only after post-tag evidence is available.
+T065 remains open until exact post-tag evidence is committed and merged to canonical `main`. Only then may `specs/CURRENT.md` and the task ledger record `COMPLETE_CANONICAL`.
 
 ## Stop conditions
 
-Stop and record a blocker instead of weakening the experiment if any of these occurs:
+Stop instead of weakening governance if:
 
-- no reproducible local model fits the available runner;
-- model/runtime artifact identity cannot be pinned sufficiently for reproduction;
-- the harness requires changing frozen benchmark semantics after a valid task run exists;
-- a provider/runtime requires credentials or authority that are not available;
-- raw evidence cannot be published under applicable licenses/security constraints.
+- any required exact-head or post-merge gate is missing or failing;
+- a valid review finding remains unresolved;
+- the tag cannot be constrained to the verified canonical SHA;
+- provenance, attestations, checksums, or published assets cannot be verified;
+- post-tag evidence cannot be made canonical without bypassing repository rules.
 
-Repository truth and proof-before-done rules remain authoritative over the desire to finish quickly.
+No benchmark fixture, preparer, scorer, treatment, or result may be selectively changed or rerun to improve the published v0.1 outcome.
