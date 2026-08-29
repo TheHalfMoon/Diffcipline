@@ -25,6 +25,15 @@
         "git_push": "denied",
         "workspace": "disposable-only"
       },
+      "sandbox": {
+        "kind": "docker-host-toolchain-v1",
+        "image": "diffcipline-tool-sandbox:v1",
+        "network": "none",
+        "root_filesystem": "read-only",
+        "workspace_mount": "read-write-only",
+        "capabilities": "drop-all",
+        "no_new_privileges": true
+      },
       "resource_limits": {
         "cpu_cores": 4,
         "memory_gb": 16,
