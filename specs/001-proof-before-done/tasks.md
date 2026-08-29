@@ -101,11 +101,26 @@ These gates are intentionally after T055.
 
 - [x] T060 Update README with only benchmark claims supported by canonical published evidence.
 - [x] T061 Update CHANGELOG and final Spec 001 ledger/status.
-- [ ] T062 Pass all required canonical Rust, Diffcipline, skills compatibility, benchmark-evidence, and release-candidate gates on the exact release commit.
-- [ ] T063 Create `v0.1.0` tag only from that exact verified canonical `main` commit with matching crate version.
-- [ ] T064 Verify tag-triggered binaries, SHA-256 manifest, signatures/provenance/attestations, and published release assets.
+- [x] T062 Pass all required canonical Rust, Diffcipline, skills compatibility, benchmark-evidence, and release-candidate gates on the exact release commit.
+- [x] T063 Create `v0.1.0` tag only from that exact verified canonical `main` commit with matching crate version.
+- [ ] T064 Verify release binaries, SHA-256 manifest, signatures/provenance/attestations, immutable publication, and published release assets.
 - [ ] T065 Mark Spec 001 / v0.1 `COMPLETE_CANONICAL` only after post-tag evidence is recorded in the repository.
 
-PR #26 established the canonical exact-head release-gate foundation at `360c5c0e8fb5b5083b0ef0a3c6ad382a464bcf49`. Its exact candidate head `1829a9cd4dea567a070ecda51c26daabf86bb660` passed cross-platform Rust and Diffcipline CI, all six Agent Skills installer targets, canonical benchmark evidence validation, all three release builds plus checksum aggregation, guarded tag validation, and immutable release-verifier validation before squash merge.
+PR #26 established the canonical exact-head release-gate foundation at `360c5c0e8fb5b5083b0ef0a3c6ad382a464bcf49`. PR #27 then merged the v0.1 closeout as canonical release commit:
 
-T062 remains open. Release-candidate validation must pass again on the exact closeout candidate head, including exact-head Rust and Diffcipline CI, all six Agent Skills installer targets, canonical benchmark archive/manifest verification, and cross-platform locked release builds. After that closeout merges, the exact canonical release commit must also pass the required push workflows, including signed Sigstore/GitHub provenance, before T063 is authorized.
+`ab434ae114b5f11ea9eb882bf572831dc7634531`
+
+T062 exact canonical evidence on that commit:
+
+- `ci` push run `33237553577`: SUCCESS, including Rust and Diffcipline proof gates on Ubuntu, macOS, and Windows;
+- `skills-compat` push run `33237553599`: SUCCESS for all six supported Agent Skills installers;
+- `release` push run `33237553641`: SUCCESS, including canonical benchmark evidence, three locked native builds, three-subject SHA-256 verification, Sigstore provenance creation, and GitHub attestation verification.
+
+T063 exact evidence:
+
+- guarded tag-authority run `33237861972`: SUCCESS;
+- lightweight `refs/tags/v0.1.0` resolves directly to `ab434ae114b5f11ea9eb882bf572831dc7634531`.
+
+The tag must not be moved or replaced.
+
+T064 remains open. The repository-native tag was pushed from the guarded Actions workflow with `GITHUB_TOKEN`, so GitHub's workflow-recursion guard did not emit a new tag-push `release` run. The authorized recovery reuses the already-signed `signed-release-candidate` artifact from exact T062 run `33237553641`; it does not rerun the benchmark, rebuild a different candidate, or alter the tag. Immutable publication and post-publication verification remain required before T064 can close.
