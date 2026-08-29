@@ -104,7 +104,8 @@ jobs:
               assert arm["summary"]["correct"] == 1
           assert m["tokens"] == m["cost"] == "NOT AVAILABLE"
           PY
-          tar -tzf raw-canonical-evidence.tar.gz | grep -Fq './EXCLUSIONS.txt'
+          tar -tzf raw-canonical-evidence.tar.gz > "$RUNNER_TEMP/v0.1-archive-list.txt"
+          grep -Fxq './EXCLUSIONS.txt' "$RUNNER_TEMP/v0.1-archive-list.txt"
 
   aggregate:
     name: checksums
