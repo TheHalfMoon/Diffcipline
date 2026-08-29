@@ -56,6 +56,35 @@ impl Decision {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum Risk {
+    R0,
+    R1,
+    R2,
+    R3,
+}
+
+impl Risk {
+    fn parse(value: &str) -> Result<Self, String> {
+        match value {
+            "R0" => Ok(Self::R0),
+            "R1" => Ok(Self::R1),
+            "R2" => Ok(Self::R2),
+            "R3" => Ok(Self::R3),
+            other => Err(format!("invalid risk level: {other}; expected R0, R1, R2, or R3")),
+        }
+    }
+
+    fn name(self) -> &'static str {
+        match self {
+            Self::R0 => "R0",
+            Self::R1 => "R1",
+            Self::R2 => "R2",
+            Self::R3 => "R3",
+        }
+    }
+}
+
 #[derive(Debug)]
 struct Policy {
     version: u32,
@@ -67,6 +96,10 @@ struct Policy {
     expected_files: Vec<String>,
     forbidden_surfaces: Vec<String>,
     commands: Vec<String>,
+    r0_commands: Vec<String>,
+    r1_commands: Vec<String>,
+    r2_commands: Vec<String>,
+    r3_commands: Vec<String>,
 }
 
 impl Default for Policy {
@@ -81,6 +114,10 @@ impl Default for Policy {
             expected_files: Vec::new(),
             forbidden_surfaces: Vec::new(),
             commands: Vec::new(),
+            r0_commands: Vec::new(),
+            r1_commands: Vec::new(),
+            r2_commands: Vec::new(),
+            r3_commands: Vec::new(),
         }
     }
 }
@@ -135,6 +172,7 @@ fn run() -> Result<Verdict, String> {
 
 fn run_check(args: Vec<String>) -> Result<Verdict, String> {
     let mut base = None;
+    let mut risk = None;
     let mut execute = false;
     let mut json = false;
     let mut index = 0;
@@ -145,6 +183,12 @@ fn run_check(args: Vec<String>) -> Result<Verdict, String> {
                 index += 1;
                 base = Some(args.get(index).ok_or("--base requires a ref")?.to_string());
             }
+            "--risk" => {
+                index += 1;
+                risk = Some(Risk::parse(
+                    args.get(index).ok_or("--risk requires R0, R1, R2, or R3")?,
+                )?);
+            }
             "--run" => execute = true,
             "--json" => json = true,
             other => return Err(format!("unknown check option: {other}")),
@@ -152,7 +196,7 @@ fn run_check(args: Vec<String>) -> Result<Verdict, String> {
         index += 1;
     }
 
-    let result = check(base.as_deref(), execute)?;
+    let result = check(base.as_deref(), execute, risk)?;
     if json {
         println!("{}", to_json(&result, base.as_deref()));
     } else {
@@ -164,7 +208,7 @@ fn run_check(args: Vec<String>) -> Result<Verdict, String> {
 fn print_help() {
     println!(
         "Diffcipline — discipline for coding agents\n\n\
-Usage:\n  diffcipline init\n  diffcipline check [--base <ref>] [--run] [--json]\n\n\
+Usage:\n  diffcipline init\n  diffcipline check [--base <ref>] [--risk <R0|R1|R2|R3>] [--run] [--json]\n\n\
 Exit codes:\n  0 PASS\n  1 REVIEW\n  2 FAIL\n  64 usage/execution error"
     );
 }
@@ -212,7 +256,7 @@ fn detect_commands(root: &Path) -> Vec<String> {
     }
 }
 
-fn check(base: Option<&str>, execute: bool) -> Result<CheckResult, String> {
+fn check(base: Option<&str>, execute: bool, risk: Option<Risk>) -> Result<CheckResult, String> {
     let root = git_root()?;
     let policy_path = root.join(POLICY_FILE);
     let policy = if policy_path.exists() {
@@ -227,6 +271,7 @@ fn check(base: Option<&str>, execute: bool) -> Result<CheckResult, String> {
         return Err(format!("unsupported policy version: {}", policy.version));
     }
 
+    let commands = verification_commands(&policy, risk)?.to_vec();
     let stats = collect_stats(&root, base)?;
     let mut verdict = Verdict::Pass;
     let mut reasons = Vec::new();
@@ -278,11 +323,11 @@ fn check(base: Option<&str>, execute: bool) -> Result<CheckResult, String> {
     }
 
     let mut verification = Vec::new();
-    if policy.commands.is_empty() {
+    if commands.is_empty() {
         verdict = verdict.max(Verdict::Review);
         reasons.push("no verification commands configured".into());
     } else if execute {
-        for command in policy.commands {
+        for command in commands {
             let success = run_shell(&root, &command)?;
             verification.push((command.clone(), Some(success)));
             if !success {
@@ -293,7 +338,7 @@ fn check(base: Option<&str>, execute: bool) -> Result<CheckResult, String> {
     } else {
         verdict = verdict.max(Verdict::Review);
         reasons.push("verification configured but NOT RUN".into());
-        verification.extend(policy.commands.into_iter().map(|command| (command, None)));
+        verification.extend(commands.into_iter().map(|command| (command, None)));
     }
 
     if stats.files.is_empty() && stats.untracked.is_empty() {
@@ -307,6 +352,25 @@ fn check(base: Option<&str>, execute: bool) -> Result<CheckResult, String> {
         reasons,
         verification,
     })
+}
+
+fn verification_commands(policy: &Policy, risk: Option<Risk>) -> Result<&[String], String> {
+    let commands = match risk {
+        None => return Ok(&policy.commands),
+        Some(Risk::R0) => &policy.r0_commands,
+        Some(Risk::R1) => &policy.r1_commands,
+        Some(Risk::R2) => &policy.r2_commands,
+        Some(Risk::R3) => &policy.r3_commands,
+    };
+
+    if commands.is_empty() {
+        let risk = risk.expect("risk is present after default return");
+        return Err(format!(
+            "verification profile {} is not configured or is empty",
+            risk.name()
+        ));
+    }
+    Ok(commands)
 }
 
 fn apply_decision(
@@ -595,6 +659,18 @@ fn parse_policy(input: &str) -> Result<Policy, String> {
             ("verification", "commands") => {
                 policy.commands = parse_array(value, "commands")?;
             }
+            ("verification", "r0_commands") => {
+                policy.r0_commands = parse_array(value, "r0_commands")?;
+            }
+            ("verification", "r1_commands") => {
+                policy.r1_commands = parse_array(value, "r1_commands")?;
+            }
+            ("verification", "r2_commands") => {
+                policy.r2_commands = parse_array(value, "r2_commands")?;
+            }
+            ("verification", "r3_commands") => {
+                policy.r3_commands = parse_array(value, "r3_commands")?;
+            }
             _ => {
                 return Err(format!(
                     "unsupported policy key at line {}: {key}",
@@ -755,7 +831,9 @@ mod tests {
             "version = 1\n[policy]\nmax_changed_files = 7\nmax_added_lines = 80\n\
 dependency_manifest_changes = \"fail\"\nlockfile_changes = \"review\"\n\
 untracked_files = \"allow\"\nexpected_files = [\"src/**\", \"*.md\"]\n\
-forbidden_surfaces = [\"secrets/**\"]\n[verification]\ncommands = [\"cargo test\"]\n",
+forbidden_surfaces = [\"secrets/**\"]\n[verification]\ncommands = [\"cargo test\"]\n\
+r0_commands = [\"cargo fmt --all -- --check\"]\nr1_commands = [\"cargo test\"]\n\
+r2_commands = [\"cargo clippy\"]\nr3_commands = [\"cargo test --all\"]\n",
         )
         .unwrap();
 
@@ -763,7 +841,38 @@ forbidden_surfaces = [\"secrets/**\"]\n[verification]\ncommands = [\"cargo test\
         assert_eq!(policy.dependency_manifest_changes, Decision::Fail);
         assert_eq!(policy.expected_files, ["src/**", "*.md"]);
         assert_eq!(policy.forbidden_surfaces, ["secrets/**"]);
+        assert_eq!(policy.r0_commands, ["cargo fmt --all -- --check"]);
+        assert_eq!(policy.r1_commands, ["cargo test"]);
+        assert_eq!(policy.r2_commands, ["cargo clippy"]);
+        assert_eq!(policy.r3_commands, ["cargo test --all"]);
         assert!(parse_policy("version = 1\n[policy]\nunknown = 1\n").is_err());
+    }
+
+    #[test]
+    fn risk_values_are_strict() {
+        assert_eq!(Risk::parse("R0"), Ok(Risk::R0));
+        assert_eq!(Risk::parse("R1"), Ok(Risk::R1));
+        assert_eq!(Risk::parse("R2"), Ok(Risk::R2));
+        assert_eq!(Risk::parse("R3"), Ok(Risk::R3));
+        assert!(Risk::parse("r1").is_err());
+        assert!(Risk::parse("R4").is_err());
+        assert!(Risk::parse("").is_err());
+    }
+
+    #[test]
+    fn verification_profile_selection_fails_closed() {
+        let policy = Policy {
+            commands: vec!["default".into()],
+            r1_commands: vec!["risk-one".into()],
+            ..Policy::default()
+        };
+
+        assert_eq!(verification_commands(&policy, None).unwrap(), ["default"]);
+        assert_eq!(
+            verification_commands(&policy, Some(Risk::R1)).unwrap(),
+            ["risk-one"]
+        );
+        assert!(verification_commands(&policy, Some(Risk::R2)).is_err());
     }
 
     #[test]
