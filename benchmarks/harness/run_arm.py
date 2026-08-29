@@ -4,6 +4,7 @@ import hashlib
 import json
 import shutil
 import subprocess
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,8 +18,10 @@ FIXTURES = [
     "f06-already-minimal",
 ]
 
+
 def run(command: list[str], cwd: Path, **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(command, cwd=cwd, text=True, **kwargs)
+
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -27,14 +30,61 @@ def sha256(path: Path) -> str:
             digest.update(chunk)
     return digest.hexdigest()
 
+
 def timeout_text(value: str | bytes | None) -> str:
     return value.decode("utf-8", errors="replace") if isinstance(value, bytes) else value or ""
+
+
+def capture_process(
+    command: list[str], cwd: Path, timeout_seconds: float, grace_seconds: float = 5
+) -> tuple[int, str, str, bool]:
+    try:
+        completed = run(command, cwd, capture_output=True, timeout=timeout_seconds + grace_seconds)
+        return completed.returncode, completed.stdout, completed.stderr, False
+    except subprocess.TimeoutExpired as error:
+        return 124, timeout_text(error.stdout), timeout_text(error.stderr), True
+
+
+def validate_adapter_for_arm(adapter_kind: str) -> None:
+    if adapter_kind == "contract-test":
+        raise ValueError("contract-test adapter is qualification-only and cannot produce comparative arm evidence")
+
+
+def build_adapter_command(
+    root: Path,
+    adapter_kind: str,
+    workdir: Path,
+    prompt: str,
+    transcript: Path,
+    timeout_seconds: int,
+    model: str | None,
+    base_url: str | None,
+    treatment: Path | None,
+) -> list[str]:
+    command = [
+        sys.executable,
+        str(root / "benchmarks/harness/executor_adapter.py"),
+        "--adapter-kind", adapter_kind,
+        "--workdir", str(workdir),
+        "--prompt", prompt,
+        "--transcript", str(transcript),
+        "--timeout-seconds", str(timeout_seconds),
+    ]
+    if model:
+        command += ["--model", model]
+    if base_url:
+        command += ["--base-url", base_url]
+    if treatment:
+        command += ["--treatment", str(treatment)]
+    return command
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--arm", required=True)
-    parser.add_argument("--model", required=True)
-    parser.add_argument("--base-url", required=True)
+    parser.add_argument("--adapter-kind", default="local-openai-tool-loop")
+    parser.add_argument("--model")
+    parser.add_argument("--base-url")
     parser.add_argument("--fixtures", default="benchmarks/fixtures", type=Path)
     parser.add_argument("--results", required=True, type=Path)
     parser.add_argument("--skill", type=Path)
@@ -43,12 +93,16 @@ def main() -> int:
     parser.add_argument("--prompt-suffix", required=True)
     args = parser.parse_args()
 
+    try:
+        validate_adapter_for_arm(args.adapter_kind)
+    except ValueError as error:
+        raise SystemExit(str(error))
     root = Path.cwd().resolve()
     fixtures = (root / args.fixtures).resolve()
     results = args.results.resolve()
     results.mkdir(parents=True, exist_ok=True)
     skill = args.skill.resolve() if args.skill else None
-    agent = root / "benchmarks/harness/local_agent.py"
+    adapter = root / "benchmarks/harness/executor_adapter.py"
     if bool(skill) != bool(args.skill_name):
         raise SystemExit("--skill and --skill-name must be supplied together")
 
@@ -67,21 +121,15 @@ def main() -> int:
         task = (fixture / "TASK.md").read_text(encoding="utf-8").strip()
         prompt = f"{task}\n\nBenchmark constraints: {args.prompt_suffix}"
         transcript = out / "transcript.md"
-        command = [
-            "python", str(agent), "--base-url", args.base_url, "--model", args.model,
-            "--workdir", str(work), "--prompt", prompt, "--transcript", str(transcript),
-            "--timeout-seconds", str(args.timeout_seconds),
-        ]
-        if skill:
-            command += ["--skill", str(skill)]
+        command = build_adapter_command(
+            root, args.adapter_kind, work, prompt, transcript, args.timeout_seconds,
+            args.model, args.base_url, skill,
+        )
         started = datetime.now(timezone.utc).isoformat()
-        clock, timed_out = time.monotonic(), False
-        try:
-            completed = run(command, root, capture_output=True, timeout=args.timeout_seconds + 5)
-            exit_code, stdout, stderr = completed.returncode, completed.stdout, completed.stderr
-        except subprocess.TimeoutExpired as error:
-            timed_out, exit_code = True, 124
-            stdout, stderr = timeout_text(error.stdout), timeout_text(error.stderr)
+        clock = time.monotonic()
+        exit_code, stdout, stderr, timed_out = capture_process(
+            command, root, args.timeout_seconds
+        )
         duration = round(time.monotonic() - clock, 3)
         (out / "stdout.txt").write_text(stdout, encoding="utf-8", errors="replace")
         (out / "stderr.txt").write_text(stderr, encoding="utf-8", errors="replace")
@@ -91,7 +139,8 @@ def main() -> int:
             [
                 "python", str(root / "benchmarks/harness/score_run.py"),
                 "--fixture", str(fixture), "--work", str(work), "--base", base,
-                "--arm", args.arm, "--model", args.model, "--agent-exit-code", str(exit_code),
+                "--arm", args.arm, "--model", args.model or args.adapter_kind,
+                "--agent-exit-code", str(exit_code),
                 "--transcript", str(transcript), "--output", str(score_path),
             ],
             root, check=True, capture_output=True,
@@ -101,14 +150,20 @@ def main() -> int:
         (out / "changes.patch").write_text(patch, encoding="utf-8")
         (out / "status.txt").write_text(status, encoding="utf-8")
         shutil.copytree(work, out / "workspace", ignore=shutil.ignore_patterns(".git"))
+        treatment_sha = sha256(skill) if skill else None
         metadata = {
-            "schema_version": 1, "arm": args.arm, "task": fixture_id, "model": args.model,
+            "schema_version": 1, "arm": args.arm, "task": fixture_id,
+            "adapter_kind": args.adapter_kind, "model": args.model,
             "base_commit": base, "started_utc": started, "duration_seconds": duration,
             "timeout_seconds": args.timeout_seconds, "timed_out": timed_out,
-            "agent_exit_code": exit_code, "skill_sha256": sha256(skill) if skill else None,
-            "agent_harness_sha256": sha256(agent),
+            "agent_exit_code": exit_code, "skill_sha256": treatment_sha,
+            "treatment_sha256": treatment_sha, "adapter_harness_sha256": sha256(adapter),
         }
-        (out / "metadata.json").write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        if args.adapter_kind == "local-openai-tool-loop":
+            metadata["agent_harness_sha256"] = sha256(root / "benchmarks/harness/local_agent.py")
+        (out / "metadata.json").write_text(
+            json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
 
     scores = [json.loads((results / fixture / "score.json").read_text(encoding="utf-8")) for fixture in FIXTURES]
     summary = {
@@ -124,6 +179,7 @@ def main() -> int:
     (results / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
