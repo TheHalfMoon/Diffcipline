@@ -39,10 +39,12 @@ Planning T200–T203 became canonical at `c392d372564b55cc7d55aee8bed1b2641dee68
 
 Phase B T210–T215 became canonical at `5726c54f1b807a8d0976d71308c61cf70687d621` with post-merge `benchmark-fixtures` `33257309999`, `ci` `33257309939`, `skills-compat` `33257309945`, and `release` `33257309947` SUCCESS.
 
+Phase C T220–T225 became canonical at `8e84a013296ae6cf62d41f68068eb1094c422b2d` with post-merge `benchmark-fixtures` `33257939873`, `ci` `33257939894`, `skills-compat` `33257939867`, and `release` `33257939883` SUCCESS. Legacy `benchmark-arms` run `33257939909` also succeeded, but it is regression-only evidence and cannot satisfy v0.3 comparative-experiment tasks or alter frozen v0.1 results.
+
+Phase D T230–T235 became canonical at `b4900b45d4ff3cb2e26ef3f4134b0d72087672a9`. PR #46 exact head `927e37cbbaec7db5dfccbd32002f71181c081d37` passed `benchmark-fixtures` `33260403823` and `ci` `33260403827`; after merge, exact canonical push runs `benchmark-fixtures` `33260476350` and `ci` `33260476379` were SUCCESS.
+
 ## Active frontier
 
-T220–T225 are the active Phase C unit: move arm execution behind a process-level adapter contract, preserve the existing local OpenAI-compatible loop as the reference adapter, add a deterministic qualification-only contract adapter, preserve process/treatment evidence, and cover success/failure/timeout/containment paths.
+T240–T245 are the active Phase E unit: qualify the public harness without private credentials, run deterministic CI checks for config/adapters/matrix/evidence completeness, preserve the frozen v0.1 scorer/fixture boundary, and define an explicit real-experiment workflow that cannot run on ordinary pull requests.
 
-T230 matrix work remains blocked until T220–T225 pass exact-head gates, review reconciliation, canonical merge, and exact post-merge verification.
-
-No real comparative v0.3 experiment is authorized before T245. A legacy v0.1 `benchmark-arms` run automatically triggered by a `run_arm.py` change is regression evidence only and cannot count toward v0.3 comparative execution or alter the frozen v0.1 result.
+No real comparative v0.3 experiment is authorized before T245 becomes canonical. Contract fixtures and deterministic adapters may qualify the harness, but their outputs are not model-comparison evidence.
