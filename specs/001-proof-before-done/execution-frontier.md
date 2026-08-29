@@ -19,16 +19,28 @@ Live GitHub/repository truth always overrides this snapshot. Re-verify `main`, o
 11. `.github/workflows/skills-compat.yml`
 12. `.github/workflows/release.yml`
 13. `.github/workflows/tag-v0.1.0.yml`
-14. `.github/workflows/verify-v0.1.0-release.yml`
-15. `docs/RELEASES.md`
+14. `.github/workflows/stage-v0.1.0-release.yml`
+15. `.github/workflows/verify-v0.1.0-release.yml`
+16. `docs/RELEASES.md`
 
 ## Last verified canonical state
 
-Canonical `main` before this final closeout branch:
+Canonical `main` and the immutable v0.1 release commit at the start of this recovery are:
 
-`360c5c0e8fb5b5083b0ef0a3c6ad382a464bcf49`
+`ab434ae114b5f11ea9eb882bf572831dc7634531`
 
-PR #26 squash-merged the release-gate foundation at that commit after exact candidate head `1829a9cd4dea567a070ecda51c26daabf86bb660` passed `ci`, `skills-compat`, `release`, guarded tag validation, and immutable release-verifier validation.
+T062 exact canonical evidence on that SHA:
+
+- `ci` push run `33237553577`: SUCCESS, including Rust and Diffcipline proof gates on Ubuntu, macOS, and Windows;
+- `skills-compat` push run `33237553599`: SUCCESS for Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI;
+- `release` push run `33237553641`: SUCCESS, including canonical benchmark evidence validation, three locked native builds, SHA-256 aggregation, Sigstore provenance creation, and GitHub attestation verification.
+
+T063 exact evidence:
+
+- guarded tag-authority run `33237861972`: SUCCESS;
+- lightweight `refs/tags/v0.1.0` resolves directly to `ab434ae114b5f11ea9eb882bf572831dc7634531`.
+
+Never move, replace, or recreate that tag.
 
 T001–T055 are complete through the canonical benchmark publication at:
 
@@ -64,66 +76,58 @@ Durable evidence is published under `benchmarks/results/v0.1/`:
 
 ## Active closeout state
 
-T060 and T061 are implemented by this final v0.1 closeout change. T062 remains open until all required machine gates pass on one exact release-candidate head and then again on the exact post-merge canonical release commit.
+T060–T063 are complete. T064 is active. T065 is not reached.
 
-Required T062 evidence:
+The intended `release.yml` tag-push path did not run after T063 because the guarded tag workflow pushed `v0.1.0` with the workflow `GITHUB_TOKEN`. GitHub suppresses new workflow runs caused by events created with that token, except explicitly dispatched workflow/repository events. The tag creation itself succeeded and remains valid; the missing tag-triggered run is an orchestration defect, not failed release evidence.
 
-1. `cargo fmt --all -- --check` on Linux, macOS, and Windows CI surfaces as defined by repository workflows.
-2. `cargo clippy --workspace --all-targets --locked -- -D warnings`.
-3. `cargo test --workspace --all-targets --locked`.
-4. Diffcipline proof gate on Ubuntu, macOS, and Windows.
-5. Agent Skills installation compatibility for Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI from the exact candidate checkout.
-6. Canonical v0.1 benchmark archive checksum and manifest assertions.
-7. Locked release builds for Linux, macOS, and Windows.
-8. A three-subject SHA-256 release manifest and checksum verification.
-9. Validation of the guarded tag authority and immutable release verifier on the exact candidate.
-10. On trusted canonical `main`, successful Sigstore provenance creation plus GitHub attestation verification for every native binary.
-
-If the candidate head changes, all exact-head PR gates must be re-established before merge.
+The recovery must not delete or replace the tag, rerun the benchmark, or substitute different release bytes.
 
 ## Change-size policy
 
-The canonical `.diffcipline.toml` sets `max_added_lines = 400` and `max_changed_files = 12`. The original combined closeout exceeded that policy. PR #26 therefore landed release/CI workflow hardening separately without weakening the policy. This final closeout branch starts from the resulting canonical commit `360c5c0e8fb5b5083b0ef0a3c6ad382a464bcf49` and contains only the remaining release disclosure and ledger changes. It must independently satisfy the same policy.
+The canonical `.diffcipline.toml` sets `max_added_lines = 400` and `max_changed_files = 12`. This recovery must independently satisfy that policy. Do not weaken the policy to land release automation.
 
-## Tag authority
+## Release staging recovery authority
 
-T063 is not authorized until T062 succeeds on the exact canonical post-merge release commit and the crate version is exactly `0.1.0`.
+`.github/workflows/stage-v0.1.0-release.yml` is the repository-native recovery for the already-created `v0.1.0` tag. It is authorized only after review and canonical merge.
 
-The `v0.1.0` tag must point to that exact verified canonical `main` SHA. Never tag a branch head, merge preview, stale commit, or unverified commit.
+The owner request is exactly:
 
-Because the connected GitHub tooling cannot create a tag directly, `.github/workflows/tag-v0.1.0.yml` is the reviewed repository-native authority. It:
+`/stage-release v0.1.0 ab434ae114b5f11ea9eb882bf572831dc7634531`
 
-- accepts an explicit 40-character canonical SHA;
-- proves that SHA is current `main`;
-- proves the required post-merge T062 workflows succeeded for that same SHA;
-- proves the crate version is `0.1.0` and therefore the tag is `v0.1.0`;
-- refuses an existing or mismatched tag;
-- creates a lightweight tag directly at the verified canonical SHA only after all checks pass.
+The workflow must fail closed unless it proves:
+
+1. the request came from the repository owner on a pull-request conversation;
+2. the requested SHA is the existing `v0.1.0` tag target;
+3. the tagged release commit remains an ancestor of canonical `main`;
+4. the tagged crate version is exactly `0.1.0`;
+5. exact-SHA successful T062 runs exist for `ci.yml`, `skills-compat.yml`, and `release.yml`;
+6. the successful T063 tag-authority run exists for the tagged SHA;
+7. the non-expired `signed-release-candidate` artifact from exact T062 release run is unique and downloadable;
+8. that artifact contains exactly three native binaries, `SHA256SUMS`, and `PROVENANCE.sigstore.json`;
+9. the checksum manifest validates all three binaries and every binary verifies with `gh attestation verify`;
+10. no GitHub Release already exists for `v0.1.0`.
+
+Only then may it create a **draft** GitHub Release from those already-signed bytes. It must download the draft assets again, prove the exact five-file set is byte-identical, and preserve `v0.1.0-draft-staging-evidence` for 90 days.
 
 ## Immutable release authority
 
-The tag-triggered `release.yml` workflow must build and attest the exact tagged source, then create a **draft** GitHub Release containing exactly five assets:
-
-- Linux, macOS, and Windows native binaries;
-- `SHA256SUMS`;
-- preserved `PROVENANCE.sigstore.json`.
-
-The workflow must verify the checksum manifest, GitHub artifact attestations, tag/version equality, draft state, asset list, and byte-for-byte round-trip download before it succeeds.
-
-The draft is intentionally not published by repository automation. GitHub's repository immutable-release setting requires repository Administration access to inspect or change, while the ordinary workflow `GITHUB_TOKEN` does not receive that permission. A `403 Resource not accessible by integration` therefore cannot be interpreted as evidence that immutability is enabled or disabled.
+The draft is intentionally not published by repository automation. GitHub's repository immutable-release setting requires repository Administration access to inspect or change, while the ordinary workflow `GITHUB_TOKEN` does not receive that permission. A `403 Resource not accessible by integration` cannot be interpreted as evidence that immutability is enabled or disabled.
 
 Before final T064 publication, a repository administrator must independently confirm that **Enable release immutability** is active and publish the already-verified draft through GitHub's administrative release surface. This is a genuine external administrative prerequisite.
 
-Publication triggers `.github/workflows/verify-v0.1.0-release.yml`. That exact release-event workflow must machine-prove:
+Publication triggers `.github/workflows/verify-v0.1.0-release.yml`. Because post-tag evidence commits may advance `main`, the verifier must prove that the fixed tag target remains an ancestor of canonical `main`; it must never require moving the tag to the later evidence commit.
 
-- the published tag still resolves to canonical `main` and crate version `0.1.0`;
+That exact release-event workflow must machine-prove:
+
+- `v0.1.0` still resolves to the fixed release commit and its crate version is `0.1.0`;
+- the tag target remains an ancestor of canonical `main`;
 - `isDraft=false` and `isImmutable=true`;
 - a valid GitHub Release attestation via `gh release verify`;
 - exactly five release assets;
 - `SHA256SUMS` validates all three native binaries;
 - each native binary verifies with `gh attestation verify`;
 - every published asset verifies with `gh release verify-asset`;
-- a durable `v0.1.0-release-verification` Actions artifact records the release metadata, tag SHA, run ID, and published asset digests.
+- a durable `v0.1.0-release-verification` Actions artifact records release metadata, tag SHA, canonical `main` SHA, workflow run ID, and published asset digests.
 
 T064 is not complete if any of those post-publication checks fail or are absent.
 
@@ -135,7 +139,8 @@ Stop instead of weakening governance if:
 
 - any required exact-head or post-merge gate is missing or failing;
 - a valid review finding remains unresolved;
-- the tag cannot be constrained to the verified canonical SHA;
+- the tag cannot remain constrained to the verified release SHA;
+- the canonical signed release artifact cannot be recovered and verified exactly;
 - repository release immutability cannot be independently confirmed before publication;
 - provenance, attestations, checksums, or published assets cannot be verified;
 - post-tag evidence cannot be made canonical without bypassing repository rules.

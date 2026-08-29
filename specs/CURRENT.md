@@ -2,7 +2,7 @@
 
 Active: [`001-proof-before-done`](001-proof-before-done/spec.md)
 
-Status: `V0_1_RELEASE_CANDIDATE`
+Status: `V0_1_TAGGED_RELEASE_STAGING`
 
 ## Canonical continuation
 
@@ -21,8 +21,9 @@ Read in this order before acting:
 11. `.github/workflows/skills-compat.yml`
 12. `.github/workflows/release.yml`
 13. `.github/workflows/tag-v0.1.0.yml`
-14. `.github/workflows/verify-v0.1.0-release.yml`
-15. `docs/RELEASES.md`
+14. `.github/workflows/stage-v0.1.0-release.yml`
+15. `.github/workflows/verify-v0.1.0-release.yml`
+16. `docs/RELEASES.md`
 
 Live GitHub/repository truth overrides every recorded SHA below.
 
@@ -42,23 +43,26 @@ The repaired frozen fixture/preparer/scorer boundary is:
 
 Baseline, Karpathy, Ponytail, and Diffcipline each scored `1/6` correct. The result does not show a Diffcipline correctness advantage. Diffcipline was the slowest arm by observed total wall-clock time. Durable raw evidence, checksums, provenance, the invalidated run `33195457215`, earlier exclusions, and limitations are published under `benchmarks/results/v0.1/`.
 
-## Canonical release-gate foundation
+## Verified release commit and tag
 
-PR #26 hardened the exact-head CI, Agent Skills, release-candidate, guarded tag, draft release, and immutable release-verification paths and was squash-merged to canonical `main` as:
+The canonical v0.1 release commit is:
 
-`360c5c0e8fb5b5083b0ef0a3c6ad382a464bcf49`
+`ab434ae114b5f11ea9eb882bf572831dc7634531`
 
-Its exact PR head `1829a9cd4dea567a070ecda51c26daabf86bb660` passed `ci`, `skills-compat`, `release`, `tag-v0.1.0` validation, and `verify-v0.1.0-release` validation before merge. This foundation does not itself complete T062.
+T062 is complete on that exact commit:
+
+- `ci` push run `33237553577`: SUCCESS, including Rust and Diffcipline proof gates on Ubuntu, macOS, and Windows;
+- `skills-compat` push run `33237553599`: SUCCESS for Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI;
+- `release` push run `33237553641`: SUCCESS, including canonical benchmark validation, three locked native builds, SHA-256 aggregation, Sigstore provenance creation, and GitHub attestation verification.
+
+T063 is complete. Guarded tag-authority run `33237861972` succeeded and created lightweight `v0.1.0` directly at the release commit above. The tag must never be moved or replaced.
 
 ## Active release gate
 
-T060 and T061 are implemented by the v0.1 closeout change. T062 must pass on the exact release-candidate head before merge and again on the exact canonical release commit after merge:
+T064 remains open. The repository-native tag was pushed by a workflow using `GITHUB_TOKEN`; GitHub's workflow-recursion guard therefore did not create a second tag-push workflow run. No draft release was created, and the tag remains valid.
 
-- Rust fmt, clippy with warnings denied, and locked tests on Ubuntu, macOS, and Windows;
-- Diffcipline proof gate on Ubuntu, macOS, and Windows;
-- Agent Skills installer compatibility for all six supported agents;
-- canonical benchmark archive/manifest checksum and provenance assertions;
-- cross-platform locked release binary builds and three-subject SHA-256 manifest;
-- post-merge Sigstore provenance creation and GitHub attestation verification.
+The authorized recovery is `.github/workflows/stage-v0.1.0-release.yml`. It must recover the already-signed `signed-release-candidate` artifact from exact T062 release run `33237553641`, verify the tag lineage, checksums, binary attestations, T062/T063 evidence, and exact five-asset round trip, and create a draft release without rebuilding or moving the tag.
 
-Only after those exact-commit gates succeed may T063 create `v0.1.0`. T064 then requires verified tag-triggered draft assets followed by immutable publication and machine verification. T065 records exact post-tag/post-publication evidence before `COMPLETE_CANONICAL` can be claimed.
+After the verified draft exists, a repository administrator must independently confirm **Enable release immutability** and publish that draft. Publication must trigger `.github/workflows/verify-v0.1.0-release.yml`, which requires the fixed tag to remain an ancestor of canonical `main`, `isImmutable=true`, release verification, all five asset verifications, binary provenance verification, and durable verification evidence.
+
+T065 remains open until the exact post-tag and post-publication evidence is committed and merged to canonical `main`. `COMPLETE_CANONICAL` must not be claimed before that merge.
