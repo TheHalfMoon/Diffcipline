@@ -18,6 +18,9 @@ Live GitHub/repository truth always overrides this snapshot. Re-verify `main`, o
 10. `.github/workflows/ci.yml`
 11. `.github/workflows/skills-compat.yml`
 12. `.github/workflows/release.yml`
+13. `.github/workflows/tag-v0.1.0.yml`
+14. `.github/workflows/publish-v0.1.0.yml`
+15. `docs/RELEASES.md`
 
 ## Last verified canonical state
 
@@ -69,37 +72,49 @@ Required T062 evidence:
 6. Canonical v0.1 benchmark archive checksum and manifest assertions.
 7. Locked release builds for Linux, macOS, and Windows.
 8. A three-subject SHA-256 release manifest and checksum verification.
-9. On trusted canonical `main`, successful Sigstore provenance creation plus GitHub attestation verification for every native binary.
+9. Validation of the guarded tag and immutable-publication request contracts.
+10. On trusted canonical `main`, successful Sigstore provenance creation plus GitHub attestation verification for every native binary.
 
 If the candidate head changes, all exact-head PR gates must be re-established before merge.
 
-## Tag and release authority
+## Tag authority
 
 T063 is not authorized until T062 succeeds on the exact canonical post-merge release commit and the crate version is exactly `0.1.0`.
 
 The `v0.1.0` tag must point to that exact verified canonical `main` SHA. Never tag a branch head, merge preview, stale commit, or unverified commit.
 
-If the connected GitHub tooling cannot create a tag directly, use only a reviewed repository-native mechanism that:
+Because the connected GitHub tooling cannot create a tag directly, `.github/workflows/tag-v0.1.0.yml` is the reviewed repository-native authority. It:
 
-- accepts an explicit canonical SHA;
+- accepts an explicit 40-character canonical SHA;
 - proves that SHA is current `main`;
 - proves the required post-merge T062 workflows succeeded for that same SHA;
 - proves the crate version is `0.1.0` and therefore the tag is `v0.1.0`;
 - refuses an existing or mismatched tag;
-- creates no tag until all checks pass.
+- creates a lightweight tag directly at the verified canonical SHA only after all checks pass.
 
-T064 then requires the tag-triggered `release` workflow to publish and verify:
+## Immutable release authority
+
+The tag-triggered `release.yml` workflow must build and attest the exact tagged source, then create a **draft** GitHub Release containing:
 
 - Linux, macOS, and Windows native binaries;
 - `SHA256SUMS`;
-- checksum verification;
-- Sigstore provenance;
-- GitHub attestations;
-- preserved `PROVENANCE.sigstore.json`;
-- immutable GitHub Release state;
-- tag/version equality.
+- preserved `PROVENANCE.sigstore.json`.
 
-T065 remains open until exact post-tag evidence is committed and merged to canonical `main`. Only then may `specs/CURRENT.md` and the task ledger record `COMPLETE_CANONICAL`.
+The workflow must verify the checksum manifest, GitHub artifact attestations, tag/version equality, draft state, asset list, and byte-for-byte round-trip download before it succeeds.
+
+The draft is intentionally not published automatically. GitHub's repository immutable-release setting requires repository Administration access to inspect or change, while the ordinary workflow `GITHUB_TOKEN` does not receive that permission. A `403 Resource not accessible by integration` therefore cannot be interpreted as evidence that immutability is enabled or disabled.
+
+Before final T064 publication, an administrator must independently confirm that repository release immutability is enabled. After that external prerequisite is satisfied, `.github/workflows/publish-v0.1.0.yml` is the reviewed owner-only publication authority. It must re-prove the exact canonical SHA, exact tag, crate version, draft release, checksums, and artifact attestations before publishing.
+
+After publication it must machine-prove:
+
+- `isImmutable=true`;
+- valid GitHub release attestation via `gh release verify`;
+- every staged asset via `gh release verify-asset`.
+
+T064 is not complete if any of those post-publication checks fail.
+
+T065 remains open until exact post-tag and post-publication evidence is committed and merged to canonical `main`. Only then may `specs/CURRENT.md` and the task ledger record `COMPLETE_CANONICAL`.
 
 ## Stop conditions
 
@@ -108,6 +123,7 @@ Stop instead of weakening governance if:
 - any required exact-head or post-merge gate is missing or failing;
 - a valid review finding remains unresolved;
 - the tag cannot be constrained to the verified canonical SHA;
+- repository release immutability cannot be independently confirmed before publication;
 - provenance, attestations, checksums, or published assets cannot be verified;
 - post-tag evidence cannot be made canonical without bypassing repository rules.
 
