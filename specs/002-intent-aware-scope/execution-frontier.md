@@ -37,39 +37,51 @@ T120–T125 are canonical at `ef6b66a94029c102d5c798fdc8e71c68eeab61be` after PR
 
 ## Phase D canonical evidence
 
-PR #38 implemented T130–T132 on exact head:
+T130–T132 are canonical at `fb231e21bc8e6ff0435e4056b196057ffc39d042` after PR #38 exact head `73de8af1ae368432d0ccfb29c7db31a354bd99cd` passed `ci` `33254922245` and `release` `33254922255`, followed by successful post-merge `ci` `33254995550` and `release` `33254995552`.
 
-`73de8af1ae368432d0ccfb29c7db31a354bd99cd`
+## Phase E canonical evidence
+
+PR #40 implemented T140–T144 on exact head:
+
+`ec87a121ddf1958f9b57f300699da0457e219b43`
 
 Exact-head evidence:
 
-- `ci` run `33254922245`: SUCCESS, including formatting, clippy with warnings denied, locked tests, and cross-platform Diffcipline proof gates;
-- `release` run `33254922255`: SUCCESS;
-- no submitted review or review thread remained; automated comments contained no valid code finding.
+- `ci` run `33255469452`: SUCCESS;
+- Rust formatting, clippy with warnings denied, and locked tests succeeded;
+- the default Action proof path succeeded on Ubuntu, macOS, and Windows;
+- an isolated fixture exercised explicit `risk: R0` annotation successfully on Ubuntu, macOS, and Windows;
+- invalid `risk: R4` was rejected successfully on Ubuntu, macOS, and Windows;
+- no submitted reviews or review threads remained;
+- Qodo and CodeRabbit top-level comments contained no code finding.
 
-PR #38 was squash-merged to canonical `main` as:
+PR #40 was squash-merged to canonical `main` as:
 
-`fb231e21bc8e6ff0435e4056b196057ffc39d042`
+`c059fc76e4d836e7f9e10ce4bb0465428791ed40`
 
 Exact post-merge push evidence:
 
-- `ci` run `33254995550`: SUCCESS;
-- `release` run `33254995552`: SUCCESS.
+- `ci` run `33255652466`: SUCCESS with Rust and default/risk-aware Action dogfood across Ubuntu, macOS, and Windows.
 
-T130–T132 are complete.
+`skills-compat` and `release` were not triggered by the Phase E implementation paths. T152 therefore requires both on the final v0.2 candidate rather than treating missing runs as PASS.
+
+T140–T144 are complete.
 
 ## Immediate frontier
 
-T140–T144 are now eligible and must be implemented as one coherent GitHub Action annotation unit:
+T150–T154 are the only remaining tasks.
 
-1. add an optional `risk` Action input where empty means the existing default verification path and non-empty values are strictly limited to `R0`, `R1`, `R2`, or `R3`;
-2. forward a valid non-empty risk value to the same `diffcipline check --risk ...` CLI contract used locally;
-3. capture deterministic proof output without changing the CLI's verdict/exit semantics;
-4. write a concise Markdown proof to `$GITHUB_STEP_SUMMARY` and do not add repository write permissions, PR comments, or checkout mutation;
-5. add CI dogfood that executes and validates the Action annotation path on supported runners.
+The closeout must proceed in this order:
 
-Do not begin T150 until T140–T144 are merged canonical and exact post-merge gates succeed.
+1. T150: update README with only the v0.2 behavior already implemented and machine-observed;
+2. T151: reconcile `specs/CURRENT.md`, `tasks.md`, and this frontier with the exact Phase E canonical evidence above;
+3. T152: on the resulting exact candidate head, require successful `ci` (Rust plus Action dogfood), `skills-compat`, and `release` workflows, plus any repository-governance validation workflows triggered by the changed paths;
+4. before merge, verify the exact head is unchanged, canonical `main` is unchanged from the candidate base, mergeability is clean, and no valid review finding remains;
+5. T153: squash-merge only that verified head, then verify canonical `main` and all triggered post-merge gates on the exact merge commit;
+6. T154: only after T153 is machine-observed, record the exact closeout evidence and set Spec 002 to `COMPLETE_CANONICAL` in a separate canonical evidence change; do not claim completion before that evidence change itself is merged and its post-merge state is verified.
+
+No `v0.2.0` tag is authorized by Spec 002. Do not create, move, delete, or replace a v0.2 tag during this closeout.
 
 ## Stop conditions
 
-Stop rather than weaken governance if canonical `main` changes unexpectedly during candidate evaluation, a required exact-head workflow is missing or failing, a valid review finding remains unresolved, a runtime dependency becomes necessary without demonstrated benefit, v0.1 compatibility cannot be preserved without a spec amendment, Action annotation would require repository write access or PR comments, or requested behavior requires semantic/LLM judging rather than deterministic repository evidence.
+Stop rather than weaken governance if canonical `main` changes unexpectedly during candidate evaluation, a required exact-head workflow is missing or failing, a valid review finding remains unresolved, a runtime dependency becomes necessary without demonstrated benefit, v0.1 compatibility cannot be preserved without a spec amendment, Action annotation would require repository write access or PR comments, requested behavior requires semantic/LLM judging rather than deterministic repository evidence, or any completion claim would require treating an untriggered workflow as PASS.
