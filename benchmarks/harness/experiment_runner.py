@@ -23,6 +23,19 @@ def canonical_json(value: object) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
+def treatment_sort_key(treatment: dict) -> tuple[int, str]:
+    treatment_id = treatment["id"]
+    if treatment_id == "baseline":
+        return (0, treatment_id)
+    if treatment_id == "diffcipline":
+        return (2, treatment_id)
+    return (1, treatment_id)
+
+
+def ordered_treatments(config: dict) -> list[dict]:
+    return sorted(config["treatments"], key=treatment_sort_key)
+
+
 def contract_for(config: dict, executor: dict, fixture_id: str) -> dict:
     return {
         "benchmark_version": config["benchmark_version"],
@@ -41,7 +54,7 @@ def expand_matrix(config: object, fixtures: tuple[str, ...] = FIXTURES) -> list[
     normalized = normalize_config(config)
     rows: list[dict] = []
     for executor in normalized["executors"]:
-        for treatment in normalized["treatments"]:
+        for treatment in ordered_treatments(normalized):
             for fixture_id in sorted(fixtures):
                 contract = contract_for(normalized, executor, fixture_id)
                 rows.append(
@@ -200,6 +213,7 @@ def execute(
     assert_matched(rows)
     executors = {item["id"]: item for item in normalized["executors"]}
     treatments = {item["id"]: item for item in normalized["treatments"]}
+    ordered = ordered_treatments(normalized)
     for executor_id in executors:
         if executor_id not in endpoints:
             raise ValueError(f"{executor_id}: missing endpoint")
@@ -210,7 +224,8 @@ def execute(
     records = {}
     root = Path.cwd().resolve()
     for executor_id, executor in executors.items():
-        for treatment_id, treatment in treatments.items():
+        for treatment in ordered:
+            treatment_id = treatment["id"]
             results = attempt / executor_id / treatment_id
             command = build_arm_command(
                 root,
