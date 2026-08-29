@@ -68,7 +68,16 @@ jobs:
         run: |
           set -euo pipefail
           test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')" = "false"
-          test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isImmutable --jq '.isImmutable')" = "true"
+          verified=false
+          for attempt in $(seq 1 12); do
+            if [[ "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isImmutable --jq '.isImmutable')" == "true" ]] && \
+               gh release verify "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              verified=true
+              break
+            fi
+            sleep 5
+          done
+          test "$verified" = "true"
           gh release verify "$TAG" --repo "$GITHUB_REPOSITORY"
       - name: Download and verify every published asset
         shell: bash
