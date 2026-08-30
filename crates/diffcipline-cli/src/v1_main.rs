@@ -53,10 +53,7 @@ mod legacy {
         let result = check(base.as_deref(), execute, risk)?;
         if json {
             let (mode, sources) = policy_provenance()?;
-            println!(
-                "{}",
-                to_json_v1(&result, base.as_deref(), mode, &sources)
-            );
+            println!("{}", to_json_v1(&result, base.as_deref(), mode, &sources));
         } else {
             print_result(&result, base.as_deref());
         }
