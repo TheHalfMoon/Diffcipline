@@ -4,34 +4,38 @@ Live GitHub/repository truth overrides this snapshot.
 
 ## Canonical baseline
 
-Spec 003 is `COMPLETE_CANONICAL` at `d09757237560e0963c2eed8ac49eefcae378f780`. Its terminal post-merge `ci`, `benchmark-v0.3-qualification`, `skills-compat`, and `release` runs succeeded. No v0.3 release tag was created.
+Spec 003 is `COMPLETE_CANONICAL` at `d09757237560e0963c2eed8ac49eefcae378f780`. Its accepted benchmark and published limitations remain frozen. No v0.3 release tag was created.
 
-The v1 roadmap authority is the canonical README entry **Universal engineering governor**: stable proof schema, broad agent portability, signed release artifacts, and enterprise policy mode.
+Spec 004 planning became canonical at `df9c0216723d3e241b6cea99bfe58c6212c1cd6a`. Planning PR #56 exact head `cb590fde5dc3bf76abee1ec3bd8b512607d63dcf` passed `ci` `33302675371`, `skills-compat` `33302675367`, and `release` `33302675373`. Exact post-merge `ci` `33302752212`, `skills-compat` `33302752218`, and `release` `33302752209` also succeeded.
 
 ## Existing capability to preserve
 
-- dependency-free Rust CLI with PASS / REVIEW / FAIL and JSON output;
-- repository policy version 1 with diff limits, dependency/lockfile/untracked decisions, intent surfaces, and risk-specific verification;
-- portable `diffcipline` and `diffcipline-review` Agent Skills;
-- exact-head installation qualification for six named agent clients;
-- locked Linux/macOS/Windows release builds, SHA-256 aggregation, GitHub/Sigstore attestation, and attestation verification on trusted pushes;
+- dependency-free Rust CLI and PASS / REVIEW / FAIL / usage exit semantics;
+- repository policy version 1 behavior when enterprise mode is absent;
+- portable shared Agent Skills and six-client qualification;
+- locked three-platform release builds, SHA-256 aggregation, and GitHub/Sigstore provenance;
 - all canonical v0.x benchmark and release evidence.
 
-## Gaps this spec closes
+## Phase B stable-schema candidate
 
-- machine proof JSON has no stable schema identity/version contract;
-- enterprise policy layering does not exist;
-- portability evidence exists but lacks a generic v1 installation contract;
-- signed candidate machinery exists but is not yet defined and qualified as the stable v1 release-artifact capability.
+T410–T415 are implemented without rewriting legacy proof logic:
+
+- `schemas/proof-v1.json` is the repository-versioned machine contract;
+- the CLI entrypoint reuses existing check/render behavior and prepends stable schema identity plus policy provenance to JSON output;
+- existing verdict/diff/scope/risk/reason/verification fields and exit codes are preserved;
+- schema policy modes reserve `enterprise` while current runtime provenance is only `default` or `repository`;
+- Rust tests cover schema identity and preserved fields;
+- the Python stdlib validator parses real CLI output, enforces exact schema field order/identity, and rejects an incompatible schema version;
+- CI executes the validator on Linux in addition to cross-platform Rust and dogfood gates.
 
 ## Immediate frontier
 
-The only authorized task before implementation is **T403**: make this planning authority canonical through exact-head review/gates, expected-head merge, and exact post-merge verification.
+The only authorized next task is **T416**: qualify, review, merge, and post-merge verify this exact stable-schema unit. Do not start enterprise policy mode before T416 is canonical.
 
-Do not modify CLI behavior, skills, release workflows, or v1 user-facing claims before T403 becomes canonical.
-
-After T403, Phase B stable proof schema is the next authorized implementation unit. Enterprise policy work cannot begin until the schema unit is canonical.
+After T416, Phase C may add explicit local enterprise policy layering. It must use the already-stable v1 `policy` object rather than introducing an incompatible proof schema.
 
 ## Stop conditions
 
-Stop rather than weaken governance if canonical `main` moves unexpectedly, required exact-head/post-merge gates fail or disappear, a valid review finding remains unresolved, a proposed enterprise layer can weaken a baseline, schema changes silently reinterpret existing fields, portability requires divergent behavioral skill copies, signing requires a long-lived repository secret, or a public tag/release is proposed without separate irreversible-action authority.
+Stop rather than weaken governance if canonical `main` moves unexpectedly, required exact-head/post-merge gates fail or disappear, a valid review finding remains unresolved, schema output drops or reinterprets an existing field, runtime dependencies are introduced without explicit authority, or any later enterprise layer can weaken its baseline.
+
+No public v1 tag/release is authorized by Phase B.
