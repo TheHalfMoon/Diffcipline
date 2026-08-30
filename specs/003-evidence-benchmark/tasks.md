@@ -47,19 +47,39 @@
 
 - [x] T250 Pin one secret-free reference executor/model/runtime configuration and all treatment revisions/digests.
 - [x] T251 Verify identical task revisions, permissions, prompt suffix, timeouts, and resource limits across arms.
-- [ ] T252 Execute baseline and eligible comparison-skill arms in canonical order.
-- [ ] T253 Execute the Diffcipline arm under the identical executor contract.
-- [ ] T254 Validate complete artifacts, matching base commits, runtime/treatment digests, and explicit exclusions.
-- [ ] T255 Freeze the accepted experiment revision and raw evidence without selective reruns or filtering.
+- [x] T252 Execute baseline and eligible comparison-skill arms in canonical order.
+- [x] T253 Execute the Diffcipline arm under the identical executor contract.
+- [x] T254 Validate complete artifacts, matching base commits, runtime/treatment digests, and explicit exclusions.
+- [x] T255 Freeze the accepted experiment revision and raw evidence without selective reruns or filtering.
+
+T252–T255 exact evidence:
+
+- canonical target `234f007dc8765f7b7649ada7d7d1d00ae4c12538` was reserved once by `benchmark-v0.3-reference` run `33269484561` (#16) after exact qualification run `33269349342` was verified;
+- the workflow executed one 24-row attempt in canonical order `baseline -> karpathy -> ponytail -> diffcipline` and completed `SUCCESS` without a rerun;
+- exact results artifact `9720290597`, name `v0.3-reference-experiment-234f007dc8765f7b7649ada7d7d1d00ae4c12538`, has GitHub-recorded digest `sha256:dcad221a52e110a34198109ac31bfe164e2ac47610e78b83b9d98f17102c3218`; the independently downloaded artifact matched that digest byte-for-byte during T254 inspection;
+- exact reservation artifact `9719653684` has digest `sha256:f63e381cb199a064b875cdaf25eba614f3ea9b38048cd20bfbc18a689d6e28b7` and records `status=RESERVED_ONCE` for the same target;
+- the accepted manifest contains 24 rows: 12 `included`, 12 `failed`, 0 `timed_out`, and 0 `excluded`; failures are retained and no failed or losing task was selectively rerun;
+- every required run bundle is present; base commits and comparison-contract digests match across all treatments for each fixture; runtime/model/treatment/sandbox identities match the pinned contract; qualification and containment both record `PASS`, no private credentials required or exposed;
+- the attempt-local checksum list contains 463 pre-packaging entries; 295 corresponding files are present in the Actions artifact and all 295 match, while 168 omitted entries are hidden `.git` metadata from duplicate ephemeral `work/` repositories. No required transcript, stdout, stderr, score, patch, status, metadata, resulting workspace, reservation, qualification, validation, or provenance record is missing;
+- the frozen scorer was not changed after observing the run. It counted test-generated `__pycache__` files as changed/unrelated/protected paths, making scorer-pass `0/6` for every arm while task correctness remained `1/6` for every arm. This limitation is preserved in the publication instead of repaired post hoc.
 
 ## Phase G — Publication and canonical closeout
 
-- [ ] T260 Publish raw evidence, manifest/checksums, and exact provenance.
-- [ ] T261 Publish a report stratified by executor/treatment with correctness, regressions, churn, verification, time, failures, exclusions, and unavailable metrics.
-- [ ] T262 Update README only with claims supported by the accepted experiment.
+- [x] T260 Publish raw evidence, manifest/checksums, and exact provenance.
+- [x] T261 Publish a report stratified by executor/treatment with correctness, regressions, churn, verification, time, failures, exclusions, and unavailable metrics.
+- [x] T262 Update README only with claims supported by the accepted experiment.
 - [ ] T263 Pass exact-head repository, benchmark qualification, skills-compatibility, and release-candidate gates on the final v0.3 candidate.
 - [ ] T264 Merge final v0.3 evidence and verify exact post-merge gates.
 - [ ] T265 Record `COMPLETE_CANONICAL` only after T264 is machine-observed and the completion record itself becomes canonical.
+
+T260–T262 publication candidate evidence:
+
+- `benchmarks/results/v0.3/MANIFEST.json` records the accepted run/artifact identities, 24-row validation, exact base commits, treatment SHA-256 values, failures, unavailable metrics, scorer limitation, and checksum audit;
+- `benchmarks/results/v0.3/RUNTIME-PROVENANCE.json` publishes the exact executor/model/runtime/sandbox/treatment contract and harness hashes from the accepted artifact;
+- `benchmarks/results/v0.3/SHA256SUMS` verifies the durable machine publication records;
+- `benchmarks/results/v0.3/REPORT.md` publishes the negative result, all treatment-level metrics, failures, limitations, and the exact raw Actions artifact identity/digest. Raw artifact `9720290597` remains the unfiltered publication surface created by the canonical workflow; its finite GitHub retention is disclosed rather than hidden;
+- README claims only the observed four-way `1/6` correctness tie, the contaminated `0/6` scorer-pass signal, source-text no-edit finding, failure counts, timing, and the no-treatment-effect conclusion supported by the accepted experiment;
+- T263 is intentionally not claimed until all required workflows succeed on the exact final candidate head.
 
 ## Ordering
 
