@@ -1,10 +1,10 @@
 # Current specification
 
-Active candidate: [`004-universal-engineering-governor`](004-universal-engineering-governor/spec.md)
+Active: [`004-universal-engineering-governor`](004-universal-engineering-governor/spec.md)
 
-Status: `PLANNING`
+Status: `IMPLEMENTATION`
 
-Implementation is not authorized until Spec 004 planning authority is merged to canonical `main` and its exact post-merge gates succeed. Live GitHub/repository truth overrides this file.
+Live GitHub/repository truth overrides this file.
 
 ## Canonical read order
 
@@ -24,23 +24,26 @@ Spec 001 / v0.1 is `COMPLETE_CANONICAL`; immutable `v0.1.0` remains fixed at `ab
 
 Spec 002 / v0.2 is `COMPLETE_CANONICAL` at `0a6513aa17c90840a5024c62684d042571d431ed`. No v0.2 tag was created.
 
-Spec 003 / v0.3 is `COMPLETE_CANONICAL` at `d09757237560e0963c2eed8ac49eefcae378f780`. Its terminal completion record became canonical after PR #55 and exact post-merge runs `ci` `33302411448`, `benchmark-v0.3-qualification` `33302411430`, `skills-compat` `33302411434`, and `release` `33302411442` all completed `SUCCESS`.
+Spec 003 / v0.3 is `COMPLETE_CANONICAL` at `d09757237560e0963c2eed8ac49eefcae378f780`. Its terminal post-merge `ci` `33302411448`, `benchmark-v0.3-qualification` `33302411430`, `skills-compat` `33302411434`, and `release` `33302411442` all succeeded. Its accepted one-shot experiment and published negative findings remain frozen.
 
-The accepted v0.3 reference experiment remains exactly one canonical execution: run `33269484561` against target `234f007dc8765f7b7649ada7d7d1d00ae4c12538`, raw artifact `9720290597`, digest `sha256:dcad221a52e110a34198109ac31bfe164e2ac47610e78b83b9d98f17102c3218`. It contains 24 rows: 12 included, 12 failed, 0 timed out, 0 excluded. Every treatment was `1/6` task-correct; no correctness advantage was established. Published limitations remain canonical and must not be rewritten.
+## Spec 004 canonical planning authority
 
-## Spec 004 planning authority
+PR #56 planning head `cb590fde5dc3bf76abee1ec3bd8b512607d63dcf` passed exact-head `ci` `33302675371`, `skills-compat` `33302675367`, and `release` `33302675373`, then merged as canonical `df9c0216723d3e241b6cea99bfe58c6212c1cd6a`.
 
-The README v1.0 roadmap defines **Universal engineering governor** through four capabilities:
+Exact post-merge `ci` `33302752212`, `skills-compat` `33302752218`, and `release` `33302752209` all completed `SUCCESS`. T403 is therefore canonical and implementation is authorized in task order.
 
-- stable proof schema;
-- broad agent portability;
-- signed release artifacts;
-- enterprise policy mode.
+## Active Phase B candidate
 
-Spec 004 deliberately stabilizes and layers the existing system rather than introducing a remote control plane or platform-specific forks. The CLI remains dependency-free by default, enterprise policy is local-file and monotonic, portability uses the shared Agent Skills contract, and signed candidate artifacts continue to use locked builds plus GitHub/Sigstore provenance.
+Stable proof schema T410–T415 are implemented on the current candidate:
+
+- repository schema `schemas/proof-v1.json` identifies `diffcipline.proof/v1` / `1.0`;
+- `check --json` preserves existing fields and exit semantics while adding schema identity and policy provenance;
+- policy mode is currently `default` or `repository`; `enterprise` is reserved in the v1 schema for Phase C;
+- Rust tests and `scripts/validate-proof-v1.py` bind real CLI output to exact schema field order and reject an incompatible schema version;
+- CI runs this contract validation with no new Rust runtime dependency.
 
 ## Immediate frontier
 
-Only T403 is authorized: merge the Spec 004 planning authority and verify exact post-merge gates. No v1 implementation begins before T403 is canonical.
+Only T416 remains for Phase B: the exact stable-schema candidate must pass required exact-head gates, reconcile reviews, merge with an expected-head guard, and pass exact post-merge verification. Enterprise policy implementation is blocked until T416 is canonical.
 
-A public v1 tag/release is not authorized merely by this planning candidate. It is an irreversible boundary separate from the v1 capability milestone.
+No public v1 tag/release is authorized by this phase.
