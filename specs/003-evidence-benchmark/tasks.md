@@ -68,18 +68,20 @@ T252–T255 exact evidence:
 - [x] T260 Publish raw evidence, manifest/checksums, and exact provenance.
 - [x] T261 Publish a report stratified by executor/treatment with correctness, regressions, churn, verification, time, failures, exclusions, and unavailable metrics.
 - [x] T262 Update README only with claims supported by the accepted experiment.
-- [ ] T263 Pass exact-head repository, benchmark qualification, skills-compatibility, and release-candidate gates on the final v0.3 candidate.
+- [x] T263 Pass exact-head repository, benchmark qualification, skills-compatibility, and release-candidate gates on the final v0.3 candidate.
 - [ ] T264 Merge final v0.3 evidence and verify exact post-merge gates.
 - [ ] T265 Record `COMPLETE_CANONICAL` only after T264 is machine-observed and the completion record itself becomes canonical.
 
-T260–T262 publication candidate evidence:
+T260–T263 exact publication evidence:
 
 - `benchmarks/results/v0.3/MANIFEST.json` records the accepted run/artifact identities, 24-row validation, exact base commits, treatment SHA-256 values, failures, unavailable metrics, scorer limitation, and checksum audit;
 - `benchmarks/results/v0.3/RUNTIME-PROVENANCE.json` publishes the exact executor/model/runtime/sandbox/treatment contract and harness hashes from the accepted artifact;
 - `benchmarks/results/v0.3/CHECKSUMS.txt` records canonical artifact, reservation, experiment-manifest, and runtime-provenance digests as explicit provenance identifiers without pretending that an absent raw binary can be verified as a repository-local file;
 - `benchmarks/results/v0.3/REPORT.md` publishes the negative result, all treatment-level metrics, failures, limitations, and the exact raw Actions artifact identity/digest. Raw artifact `9720290597` remains the unfiltered publication surface created by the canonical workflow; its finite GitHub retention is disclosed rather than hidden;
 - README claims only the observed four-way `1/6` correctness tie, the contaminated `0/6` scorer-pass signal, source-text no-edit finding, failure counts, timing, and the no-treatment-effect conclusion supported by the accepted experiment;
-- T263 is intentionally not claimed until all required workflows succeed on the exact final candidate head.
+- PR #54 publication candidate exact head `86d2a79355a8b9be3b6ab05b51dfca7324ddf361` passed `benchmark-v0.3-qualification` run `33301700331`, `skills-compat` run `33301700351`, `release` run `33301700364`, and `ci` run `33301700355`, all `SUCCESS` on that same exact head;
+- the same head also passed guarded `benchmark-v0.3-reference` validation run `33301700332` and v0.1 tag/stage/immutable-release validation runs `33301700330`, `33301700337`, and `33301700344` without triggering a second comparative experiment;
+- this T263 evidence commit changes the PR head, so the new exact head must independently pass all required gates before T264 merge authorization. Success on `86d2a793...` is T263 evidence, not permission to merge a moved head.
 
 ## Ordering
 
