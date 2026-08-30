@@ -5,17 +5,31 @@
 - [x] T400 Derive the v1 capability contract from the canonical README and completed v0.x truth.
 - [x] T401 Define compatibility, preservation, non-goals, and irreversible release boundaries.
 - [x] T402 Define ordered implementation and qualification phases.
-- [ ] T403 Merge Spec 004 planning authority to canonical `main` and verify exact post-merge gates.
+- [x] T403 Merge Spec 004 planning authority to canonical `main` and verify exact post-merge gates.
+
+T403 exact evidence:
+
+- planning PR #56 exact head `cb590fde5dc3bf76abee1ec3bd8b512607d63dcf` passed `ci` `33302675371`, `skills-compat` `33302675367`, and `release` `33302675373`;
+- expected-head squash merge produced canonical `df9c0216723d3e241b6cea99bfe58c6212c1cd6a`;
+- exact post-merge `ci` `33302752212`, `skills-compat` `33302752218`, and `release` `33302752209` all completed `SUCCESS`.
 
 ## Phase B — Stable proof schema
 
-- [ ] T410 Define repository-versioned proof schema major version 1.
-- [ ] T411 Emit explicit schema identity/version from `check --json`.
-- [ ] T412 Preserve existing proof meanings and exit-code semantics.
-- [ ] T413 Add policy-mode and policy-source provenance fields required by v1.
-- [ ] T414 Add deterministic schema/output contract tests and invalid-schema guard coverage.
-- [ ] T415 Document compatibility rules for schema major version 1.
+- [x] T410 Define repository-versioned proof schema major version 1.
+- [x] T411 Emit explicit schema identity/version from `check --json`.
+- [x] T412 Preserve existing proof meanings and exit-code semantics.
+- [x] T413 Add policy-mode and policy-source provenance fields required by v1.
+- [x] T414 Add deterministic schema/output contract tests and invalid-schema guard coverage.
+- [x] T415 Document compatibility rules for schema major version 1.
 - [ ] T416 Merge and verify the stable-schema unit canonically.
+
+Phase B candidate contract:
+
+- `schemas/proof-v1.json` defines exact ordered top-level fields, required fields, verdict/risk/verification states, and reserved policy modes;
+- `check --json` prepends `schema=diffcipline.proof/v1`, `schema_version=1.0`, and explicit policy provenance while preserving the legacy evidence fields and exit-code mapping;
+- `scripts/validate-proof-v1.py` parses real CLI output, requires exact schema field order and identity, and proves an incompatible schema version is rejected;
+- CI runs the proof-v1 validator on Linux in addition to cross-platform Rust tests; the Rust runtime remains dependency-free;
+- `docs/PROOF-CONTRACT.md` defines v1 compatibility and preserves PASS / REVIEW / FAIL / usage semantics.
 
 ## Phase C — Enterprise policy mode
 
