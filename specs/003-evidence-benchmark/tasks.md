@@ -76,7 +76,7 @@ T260–T262 publication candidate evidence:
 
 - `benchmarks/results/v0.3/MANIFEST.json` records the accepted run/artifact identities, 24-row validation, exact base commits, treatment SHA-256 values, failures, unavailable metrics, scorer limitation, and checksum audit;
 - `benchmarks/results/v0.3/RUNTIME-PROVENANCE.json` publishes the exact executor/model/runtime/sandbox/treatment contract and harness hashes from the accepted artifact;
-- `benchmarks/results/v0.3/SHA256SUMS` verifies the durable machine publication records;
+- `benchmarks/results/v0.3/CHECKSUMS.txt` records canonical artifact, reservation, experiment-manifest, and runtime-provenance digests as explicit provenance identifiers without pretending that an absent raw binary can be verified as a repository-local file;
 - `benchmarks/results/v0.3/REPORT.md` publishes the negative result, all treatment-level metrics, failures, limitations, and the exact raw Actions artifact identity/digest. Raw artifact `9720290597` remains the unfiltered publication surface created by the canonical workflow; its finite GitHub retention is disclosed rather than hidden;
 - README claims only the observed four-way `1/6` correctness tie, the contaminated `0/6` scorer-pass signal, source-text no-edit finding, failure counts, timing, and the no-treatment-effect conclusion supported by the accepted experiment;
 - T263 is intentionally not claimed until all required workflows succeed on the exact final candidate head.
