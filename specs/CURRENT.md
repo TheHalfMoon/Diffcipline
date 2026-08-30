@@ -51,10 +51,24 @@ Phase F containment and pinned execution-body implementation merged through PR #
 
 On `743f3295cc2cf597dfa5eb9b16ffac53cc8183ea`, post-merge `benchmark-fixtures` `33264509821`, `benchmark-v0.3-qualification` `33264509832`, and `ci` `33264510009` were SUCCESS. Qualification artifact `9718225574`, digest `sha256:2d9c782799b376b6c61ccb617941e4f7dbc6d93a1d7efa757c9d3794f2b2bd94`, proves the exact 24-row contract, pinned sandbox and resource limits, denied network, read-only root, disposable workspace write boundary, absent Docker socket, no credential exposure, and `comparative_model_execution=false`. Exact details are recorded in `specs/003-evidence-benchmark/phase-f-entry-evidence.md`.
 
+T250–T251 became canonical at `234f007dc8765f7b7649ada7d7d1d00ae4c12538`, establishing the exact one-shot public reference-experiment boundary.
+
+## Accepted v0.3 reference experiment
+
+Canonical workflow run `33269484561` (#16) executed exactly once against target `234f007dc8765f7b7649ada7d7d1d00ae4c12538` after qualification run `33269349342`. It completed `SUCCESS` and produced raw results artifact `9720290597`, digest `sha256:dcad221a52e110a34198109ac31bfe164e2ac47610e78b83b9d98f17102c3218`, plus reservation artifact `9719653684`, digest `sha256:f63e381cb199a064b875cdaf25eba614f3ea9b38048cd20bfbc18a689d6e28b7`.
+
+T254 inspection accepted the exact artifact without a rerun: all 24 rows and every required run bundle are present; base commits and comparison contracts match across treatments; pinned runtime/model/treatment/sandbox provenance matches; qualification and containment are `PASS`; and the manifest preserves 12 `included`, 12 `failed`, 0 `timed_out`, and 0 `excluded` rows.
+
+The frozen scorer remains unchanged. Test execution generated Python `__pycache__` files that the scorer counted as changed/unrelated/protected paths, producing `0/6` scorer-pass for every treatment even though every treatment is `1/6` task-correct and all textual patches are empty. This is a published limitation, not a post-hoc justification for changing the scorer or rerunning tasks.
+
+The artifact-internal pre-packaging checksum ledger contains 463 entries. The downloaded Actions artifact contains 295 of those paths and all 295 match; the 168 omitted paths are hidden `.git` metadata from duplicate ephemeral work repositories. No required transcript, stdout, stderr, score, patch, status, metadata, resulting workspace, reservation, qualification, validation, or provenance record is missing.
+
 ## Active frontier
 
-T250–T251 are recorded complete by the Phase F entry evidence candidate. They become the canonical authorization boundary only after this evidence change is merged and its post-merge gates are SUCCESS.
+T252–T255 are complete by accepted experiment evidence. T260–T262 are implemented on the current publication candidate through `benchmarks/results/v0.3/`, `README.md`, and the reconciled Spec 003 ledger.
 
-After that boundary, T252–T253 authorize exactly one guarded reference experiment against the exact canonical `main` SHA, in canonical order `baseline → karpathy → ponytail → diffcipline`. The workflow must preserve every failure, timeout, exclusion, losing result, transcript, patch, score, metadata file, runtime/treatment digest, and reservation artifact.
+The immediate frontier is **T263**: the exact final publication candidate must pass repository CI, v0.3 benchmark qualification, skills compatibility, and release-candidate gates on one exact head. T263 remains open until those machine-observed gates succeed on that head.
 
-T254–T255 remain open until the resulting raw artifact is inspected and validated for completeness, matching base commits, exact provenance, explicit exclusions, and no selective rerun/filtering. No publication claim is authorized before T255.
+After T263, reconcile all valid review findings and threads, verify canonical `main` did not move unexpectedly, and merge only with an expected-head guard. T264 requires exact post-merge gates on the resulting canonical `main`. T265 must be recorded separately only after T264 is machine-observed; Spec 003 cannot be claimed `COMPLETE_CANONICAL` before that completion record itself becomes canonical.
+
+No v0.3 release tag and no v1.0 implementation are authorized by this candidate.

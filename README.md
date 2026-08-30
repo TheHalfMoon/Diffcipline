@@ -190,6 +190,14 @@ Observed total wall-clock time was 746.668s for baseline, 797.091s for Karpathy,
 
 Raw transcripts, scorer JSON, patches, metadata, runtime provenance, checksums, invalidated/excluded runs, and limitations are published under [`benchmarks/results/v0.1/`](benchmarks/results/v0.1/REPORT.md). Tokens and monetary cost were not available and are reported as such.
 
+### v0.3 accepted reference benchmark
+
+The accepted 24-row v0.3 reference experiment also **does not show a correctness advantage for Diffcipline**. Under the same pinned executor contract, baseline, Karpathy, Ponytail, and Diffcipline each finished at **1/6 task-correct**. Diffcipline had the largest summed task duration: 939.839s versus 494.365s baseline, 902.187s Karpathy, and 700.243s Ponytail.
+
+The frozen scorer reported **0/6 scorer-pass for every treatment**, but that signal is not usable as a treatment comparison in this run: fixture verification generated `__pycache__` files, and the unchanged scorer counted those bytecode caches as changed/unrelated/protected paths. All textual patches were empty and no source-text edit was observed. The run preserved 12 failed rows—nine provider/tool-parser HTTP 500 failures and three internal agent timeouts—with no selective rerun and no hidden exclusion.
+
+The exact accepted run, artifact identity/digest, provenance, treatment revisions, limitations, and retention boundary are published under [`benchmarks/results/v0.3/`](benchmarks/results/v0.3/REPORT.md). Tokens and monetary cost were not available. These results do not support a treatment-effect inference and do not establish behavior with a stronger executor.
+
 ## Roadmap
 
 **v0.1 — Proof before done**

@@ -1,0 +1,8 @@
+# Diffcipline v0.3 checksum ledger
+# These digests identify canonical source artifacts and extracted records.
+# They are provenance identifiers, not a local sha256sum -c manifest.
+
+dcad221a52e110a34198109ac31bfe164e2ac47610e78b83b9d98f17102c3218  github-actions-artifact:9720290597
+f63e381cb199a064b875cdaf25eba614f3ea9b38048cd20bfbc18a689d6e28b7  github-actions-reservation-artifact:9719653684
+cd4e74b33735cd0b311e3a9e0ce4d9b8bb2cfdbcf3b7786e26f0c6ba6a8797af  accepted-artifact:attempt-001/manifest.json
+7751cc8db57c53b52849c0a98905562594f0a6e3aa5e0c5a23fe10abd0090f9f  accepted-artifact:runtime/provenance.json
