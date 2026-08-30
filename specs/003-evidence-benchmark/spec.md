@@ -2,7 +2,9 @@
 
 ## Status
 
-`IMPLEMENTATION`
+`COMPLETE_CANONICAL`
+
+This status is effective only when this completion record is itself merged to canonical `main` and its required post-merge gates are machine-observed successful. Until then, the branch containing this text is only the terminal completion candidate.
 
 ## Roadmap authority
 
