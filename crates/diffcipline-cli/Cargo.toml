@@ -8,6 +8,6 @@ repository = "https://github.com/TheHalfMoon/Diffcipline"
 
 [[bin]]
 name = "diffcipline"
-path = "src/v1_main.rs"
+path = "src/main.rs"
 
 [dependencies]
