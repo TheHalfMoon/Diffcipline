@@ -54,7 +54,7 @@ Treatment source revisions and observed SHA-256 values are:
 | Ponytail | `2ed6c52c9d7e5e56942508591085fd45dea277d3` | `1316a2f3f95741d2300b116fe0c2d81ce4a9568656ed0a62643f54aaf09957f2` |
 | Diffcipline | `6bbeb59bab21724c92ed3456953a94e5202f0e53` | `1ea34f6557ed259f8f653841f1fbc8bd82c370d52bd3036aa0371605a988312b` |
 
-`MANIFEST.json`, `RUNTIME-PROVENANCE.json`, and the exact raw Actions artifact provide the machine-auditable lineage. The raw artifact itself also contains the reservation, qualification, containment, evidence-validation, accepted-experiment, original experiment-manifest, runtime logs, and all per-run evidence.
+`MANIFEST.json`, `RUNTIME-PROVENANCE.json`, `CHECKSUMS.txt`, and the exact raw Actions artifact provide the machine-auditable lineage. The raw artifact itself also contains the reservation, qualification, containment, evidence-validation, accepted-experiment, original experiment-manifest, runtime logs, and all per-run evidence.
 
 ## Checksum and packaging audit
 
@@ -62,7 +62,7 @@ The exact download of Actions artifact `9720290597` was independently inspected 
 
 The attempt-local `SHA256SUMS` inside that artifact was generated before artifact packaging and contains 463 entries. GitHub Actions omitted 168 hidden `.git` files from ephemeral `work/` repositories while packaging the artifact. All 295 checksum entries whose files are present match exactly; no required per-run evidence bundle file is missing. The absent entries are Git metadata from duplicate ephemeral work directories, not transcripts, outputs, scores, patches, status, metadata, resulting workspaces, reservation, qualification, or provenance records.
 
-This packaging mismatch is retained as a limitation. Repository `SHA256SUMS` verifies the durable publication records; the raw artifact identity is verified separately by its recorded GitHub artifact digest.
+This packaging mismatch is retained as a limitation. Repository `CHECKSUMS.txt` records canonical artifact/record digests as provenance identifiers; the raw artifact identity is verified by its GitHub-recorded digest and the independent T254 download check.
 
 ## Metrics and limitations
 
