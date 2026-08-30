@@ -209,12 +209,7 @@ fn run_check(args: Vec<String>) -> Result<Verdict, String> {
         let (policy_mode, policy_sources) = policy_provenance()?;
         println!(
             "{}",
-            to_json(
-                &result,
-                base.as_deref(),
-                policy_mode,
-                &policy_sources
-            )
+            to_json(&result, base.as_deref(), policy_mode, &policy_sources)
         );
     } else {
         print_result(&result, base.as_deref());
