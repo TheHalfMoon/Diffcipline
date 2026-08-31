@@ -1,107 +1,109 @@
 # Diffcipline
 
-**Discipline for coding agents.**
-Smaller diffs. Fewer assumptions. Proof before done.
+**Deterministic finish-line proof for coding agents.**
 
-> Your coding agent should not be allowed to say “done” just because it wrote code.
-
-Diffcipline is an open Agent Skill plus a deterministic CLI that gives coding agents a closed-loop engineering discipline:
+Diffcipline combines an open Agent Skill with a dependency-free Rust CLI so a coding agent cannot turn “I changed the code” into “done” without checking the actual diff and the repository’s verification policy.
 
 **Think → Challenge → Minimize → Change → Prove**
 
-It is inspired by the best ideas behind cautious, surgical agent behavior and minimal senior-engineer code, but it adds the missing layer: **machine-observed proof over the exact diff**.
+The public `v1.0.0` release is published and immutable. Its Linux, macOS, and Windows binaries, `SHA256SUMS`, and Sigstore provenance were built from the exact authorized release commit and machine-verified after publication.
 
-## v1 capability milestone
+- **Install the skills:** `npx skills add TheHalfMoon/Diffcipline`
+- **Install the immutable v1 CLI:** `cargo install --git https://github.com/TheHalfMoon/Diffcipline --tag v1.0.0 diffcipline`
+- **Proof contract:** [`docs/PROOF-CONTRACT.md`](docs/PROOF-CONTRACT.md)
+- **Release verification:** [`docs/RELEASES.md`](docs/RELEASES.md)
+- **Benchmark evidence and limitations:** [`benchmarks/PROTOCOL.md`](benchmarks/PROTOCOL.md)
 
-The Universal Engineering Governor capability set is implemented on canonical `main`:
+Diffcipline does not claim universal superiority. Its public benchmark record includes negative results, failed runs, limitations, and preserved verifier failures alongside successful release evidence.
 
-- stable machine proof schema `diffcipline.proof/v1` / `1.0` with deterministic policy provenance;
-- explicit local enterprise-policy input with monotonic, fail-closed layering over repository policy;
-- one canonical Agent Skills behavior qualified byte-identically for Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI, plus the generic Agent Skills layout;
-- locked Linux, macOS, and Windows release-candidate builds with deterministic `SHA256SUMS`, keyless GitHub/Sigstore provenance, and attestation-subject verification on trusted canonical pushes.
+## Two-minute proof
 
-See [`docs/PROOF-CONTRACT.md`](docs/PROOF-CONTRACT.md), [`docs/INSTALLATION.md`](docs/INSTALLATION.md), and [`docs/RELEASES.md`](docs/RELEASES.md) for the machine, portability, and release-candidate contracts.
+After installing the CLI, this copy/paste demo creates a disposable Rust repository, lets Diffcipline detect verification commands, makes one bounded change, and reaches a real `PASS` only after formatting, linting, and tests execute successfully.
 
-This capability milestone does **not** create or authorize a public `v1.0` tag or GitHub release.
+```bash
+DEMO="$(mktemp -d)"
+cd "$DEMO"
+git init -q
+git config user.name "Diffcipline Demo"
+git config user.email "diffcipline-demo@example.invalid"
+mkdir -p src
+printf '[package]\nname = "diffcipline-demo"\nversion = "0.1.0"\nedition = "2024"\n' > Cargo.toml
+printf 'fn main() {}\n' > src/main.rs
+cargo generate-lockfile -q
+git add .
+git commit -qm "demo base"
+
+diffcipline init
+git add .diffcipline.toml
+git commit -qm "add diffcipline policy"
+
+printf '\n// Bounded demo change.\n' >> src/main.rs
+diffcipline check --run
+```
+
+Expected final proof includes:
+
+```text
+Verdict       PASS
+Verification  PASS — cargo fmt --all -- --check
+Verification  PASS — cargo clippy --workspace --all-targets -- -D warnings
+Verification  PASS — cargo test --workspace --all-targets
+```
+
+The repository integration suite machine-executes the same quickstart path. If verification is configured but not run, Diffcipline returns `REVIEW`; if policy or verification fails, it returns `FAIL`.
 
 ## Why Diffcipline
 
-Coding agents are fast at producing plausible changes. The expensive failures happen when they silently assume, over-build, touch unrelated files, add dependencies too early, or declare success without enough evidence.
+Coding agents are good at producing plausible changes. The expensive failures happen when they silently assume, over-build, touch unrelated files, add dependencies too early, or declare success without enough evidence.
 
 Diffcipline attacks that failure mode from both sides:
 
-- **Skill:** changes how the agent reasons before and during implementation.
-- **CLI:** inspects the actual Git diff and verification evidence before allowing a clean PASS.
+- **Agent Skill:** shapes implementation behavior toward explicit intent, need, scope, risk, and proof.
+- **Deterministic CLI:** inspects repository facts, the exact Git diff, policy boundaries, and executed verification evidence.
 
-## The loop
+There is no opaque AI quality score. The contract is explicit: **PASS / REVIEW / FAIL** with machine-readable reasons.
 
-### 1. Intent
-Define what is actually changing. Surface only assumptions that can alter implementation.
+## What is verified
 
-### 2. Need
-Stop at the first rung that solves the problem safely:
+| Surface | Diffcipline behavior | Evidence |
+| --- | --- | --- |
+| Exact diff | Counts changed files and added lines; detects manifests, lockfiles, and untracked files | [`docs/PROOF-CONTRACT.md`](docs/PROOF-CONTRACT.md) |
+| Intent scope | Supports expected files and forbidden surfaces | [`docs/PROOF-CONTRACT.md`](docs/PROOF-CONTRACT.md) |
+| Risk | Selects explicit `R0`–`R3` verification profiles and fails closed when a requested profile is absent | [`docs/PROOF-CONTRACT.md`](docs/PROOF-CONTRACT.md) |
+| Verification | Executes repository-declared commands only when `--run` is explicit | [`crates/diffcipline-cli/tests/`](crates/diffcipline-cli/tests/) |
+| Enterprise policy | Local enterprise baseline can be tightened by repository policy but not weakened | [`docs/ENTERPRISE-POLICY.md`](docs/ENTERPRISE-POLICY.md) |
+| Agent portability | One canonical skill behavior is qualified across Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, Gemini CLI, and generic Agent Skills layout | [`docs/INSTALLATION.md`](docs/INSTALLATION.md) |
+| Release integrity | Immutable `v1.0.0`, cross-platform binaries, checksums, Sigstore provenance, release and asset verification | [`docs/RELEASES.md`](docs/RELEASES.md) |
+| Benchmark integrity | Tasks, raw outputs, scoring, failures, negative findings, and limitations remain public | [`benchmarks/PROTOCOL.md`](benchmarks/PROTOCOL.md) |
 
-1. No change needed
-2. Existing code or pattern
-3. Standard library
-4. Native platform capability
-5. Already-installed dependency
-6. Tiny local implementation
-7. New dependency or abstraction only with evidence
+## Install
 
-### 3. Scope
-Every changed file needs a reason. No drive-by cleanup. No “while I’m here” refactor.
-
-### 4. Risk
-Rigor scales with blast radius:
-
-- **R0** — docs, formatting, trivial non-behavioral changes
-- **R1** — localized behavior
-- **R2** — shared contracts, persistence, concurrency, public interfaces
-- **R3** — auth, security, payments, migrations, destructive operations
-
-Minimalism never deletes safety.
-
-### 5. Proof
-Run `diffcipline check` to produce a proof card from repository facts.
-
-```text
-DIFFCIPLINE PROOF
-
-Verdict       REVIEW
-Changed       3 files
-Diff          +71 / -18
-Dependencies  unchanged
-Lockfiles     unchanged
-Verification  NOT RUN
-
-REVIEW — verification evidence is still missing.
-```
-
-No opaque “AI quality score.” Diffcipline uses **PASS / REVIEW / FAIL** with reasons.
-
-## Install the skill
-
-Diffcipline follows the open Agent Skills layout. With a compatible skill installer:
+### Agent Skills
 
 ```bash
 npx skills add TheHalfMoon/Diffcipline
 ```
 
-The repository ships two initial skills:
+The repository ships:
 
-- `diffcipline` — implementation discipline for coding tasks
-- `diffcipline-review` — scope, minimality, and proof-focused review
+- `diffcipline` — implementation discipline for coding tasks;
+- `diffcipline-review` — scope, minimality, and proof-focused review.
 
-## CLI
+### CLI from immutable v1.0.0
 
-The CLI is written in dependency-free Rust.
+```bash
+cargo install --git https://github.com/TheHalfMoon/Diffcipline --tag v1.0.0 diffcipline
+```
+
+For development from a clone:
 
 ```bash
 cargo install --path crates/diffcipline-cli
 ```
 
-Then:
+Published native binaries and verification assets are available from the immutable [`v1.0.0` release](https://github.com/TheHalfMoon/Diffcipline/releases/tag/v1.0.0).
+
+## CLI
 
 ```bash
 diffcipline init
@@ -112,17 +114,26 @@ diffcipline check --base origin/main --risk R2 --run
 diffcipline check --enterprise-policy ./enterprise.diffcipline.toml --base origin/main --risk R2 --run --json
 ```
 
-`--run` executes the verification commands declared in `.diffcipline.toml`. Without `--run`, configured verification is reported as NOT RUN rather than silently treated as passing.
+`diffcipline init` creates `.diffcipline.toml` and detects common repository verification commands for Rust, Node, Python, and Go projects.
 
-`--risk R0|R1|R2|R3` selects the matching repository-configured verification profile. An explicitly requested profile must exist and contain at least one command; Diffcipline fails closed instead of silently falling back to weaker verification. Omitting `--risk` preserves the default `commands` behavior.
+`--run` is explicit by design. Without it, configured verification is reported as `NOT RUN` and a clean `PASS` is impossible.
 
-`--enterprise-policy <path>` explicitly adds a local enterprise baseline. The repository layer may tighten that baseline but cannot weaken its limits, decisions, scope restrictions, or required verification. No network discovery, credential exchange, or remote policy service is used.
+`--risk R0|R1|R2|R3` selects the matching configured profile. An explicitly requested missing or empty profile is a usage/execution error rather than a fallback to weaker checks.
 
-When intent contracts are configured, every changed repository-relative path is checked against `expected_files` and `forbidden_surfaces`. A path outside all expected patterns or inside a forbidden surface produces FAIL. Human and JSON proof output expose the selected risk, configured intent contract, scope violations, verification command state, and policy provenance.
+`--enterprise-policy <path>` layers a local enterprise baseline under repository policy. The repository may tighten that baseline but cannot weaken it.
+
+Exit codes:
+
+| Code | Meaning |
+| ---: | --- |
+| `0` | `PASS` |
+| `1` | `REVIEW` |
+| `2` | `FAIL` |
+| `64` | usage/execution error |
 
 ## GitHub Action
 
-Diffcipline can gate pull requests with the same CLI and repository policy. Pin the immutable `v0.1.0` release or an exact commit for production workflows; `@main` tracks current development behavior.
+Pin the immutable `v1.0.0` tag for production workflows:
 
 ```yaml
 permissions:
@@ -133,26 +144,18 @@ steps:
     with:
       fetch-depth: 0
 
-  - uses: TheHalfMoon/Diffcipline@main
+  - uses: TheHalfMoon/Diffcipline@v1.0.0
     with:
       base: ${{ github.event.pull_request.base.sha }}
       risk: R2
       run-verification: "true"
 ```
 
-The optional `risk` input accepts only `R0`, `R1`, `R2`, or `R3`; leaving it empty preserves default verification behavior. The Action forwards the value to the same CLI proof contract used locally.
-
-The Action requires explicit `run-verification: "true"` before executing commands from `.diffcipline.toml`. Treat repository policy as executable code and review it before enabling verification on untrusted changes.
-
-The Action preserves the CLI exit status, keeps full proof output in the job log, and writes the deterministic `DIFFCIPLINE PROOF` section to `$GITHUB_STEP_SUMMARY`. It requires only `contents: read` and does not post PR comments.
-
-A PASS exits `0`; REVIEW exits `1`; FAIL exits `2`. Missing evidence therefore fails the GitHub job instead of silently becoming green.
-
-The repository dogfoods the default and risk-aware Action paths on Ubuntu, macOS, and Windows, including rejection of an invalid risk input.
+The Action preserves the CLI exit status, writes the deterministic proof to the job summary, and requires explicit `run-verification: "true"` before executing commands from repository policy. Review repository policy before enabling verification on untrusted changes.
 
 ## Policy
 
-`diffcipline init` creates a small repository policy. Teams can extend it with intent and risk contracts:
+A small policy can bound scope and verification:
 
 ```toml
 version = 1
@@ -174,71 +177,55 @@ r2_commands = ["cargo clippy --workspace --all-targets --locked -- -D warnings",
 r3_commands = ["cargo fmt --all -- --check", "cargo clippy --workspace --all-targets --locked -- -D warnings", "cargo test --workspace --all-targets --locked"]
 ```
 
-Supported intent patterns are deliberately narrow: exact repository-relative paths, directory-recursive `/**` suffixes, and leading filename suffix patterns such as `*.md`. Unsupported wildcard placement fails policy parsing.
+Supported intent patterns are intentionally narrow: exact repository-relative paths, directory-recursive `/**` suffixes, and leading filename suffix patterns such as `*.md`. Unsupported wildcard placement fails policy parsing.
 
-Policies are deterministic and repository-native. Teams can tighten them as risk increases.
+## Release integrity
 
-## What Diffcipline is not
+`v1.0.0` is fixed at release commit `5cb1c77340b75649f6168e0e8f66479ea047ea96`.
 
-Diffcipline is not another coding agent, another chat UI, a code-golf prompt, or an excuse to remove validation. It does not reward fewer lines when those lines make the system less correct, secure, accessible, or maintainable.
+The release contains exactly five assets:
 
-## Benchmark doctrine
+1. `diffcipline-aarch64-apple-darwin`
+2. `diffcipline-x86_64-pc-windows-msvc.exe`
+3. `diffcipline-x86_64-unknown-linux-gnu`
+4. `SHA256SUMS`
+5. `PROVENANCE.sigstore.json`
 
-A Diffcipline benchmark is publishable only when it includes:
+GitHub reports the release as immutable. Repository verification checks the fixed tag lineage, release attestation, exact asset closure, checksums, native-binary attestations, and every published asset. The complete publication protocol and recovery history are preserved under [`specs/006-v1-publication/`](specs/006-v1-publication/).
 
-- exact tasks and repositories
-- model and harness versions
-- prompts/skills used by every arm
-- raw outputs and diffs
-- correctness and regression checks
-- LOC, file count, dependency churn, tokens, cost, and time when available
-- judge/scoring code
-- failures and losing metrics
-- limitations
+## Benchmark truth
 
-See [`benchmarks/PROTOCOL.md`](benchmarks/PROTOCOL.md).
+Diffcipline publishes negative evidence instead of hiding it.
 
 ### v0.1 canonical benchmark
 
-The canonical six-task v0.1 experiment **did not show a correctness advantage for Diffcipline**. Baseline, Karpathy, Ponytail, and Diffcipline each finished at **1/6 correct** and **1/6 scorer-pass**. All four arms changed zero files; the only correct task was the already-minimal no-op fixture.
+The six-task v0.1 experiment did **not** show a correctness advantage for Diffcipline. Baseline, Karpathy, Ponytail, and Diffcipline each finished at `1/6` correct and `1/6` scorer-pass. The small pinned 3B Q4 model/agent also exhibited provider/tool-parser failures, timeouts, and sessions that produced text without repository edits.
 
-Observed total wall-clock time was 746.668s for baseline, 797.091s for Karpathy, 702.127s for Ponytail, and **981.263s for Diffcipline**, making Diffcipline the slowest arm in this run. The small pinned 3B Q4 model/agent also exhibited provider/tool-parser failures, timeouts, and sessions that produced assistant text without repository edits, so this experiment does not support a treatment-effect inference.
-
-Raw transcripts, scorer JSON, patches, metadata, runtime provenance, checksums, invalidated/excluded runs, and limitations are published under [`benchmarks/results/v0.1/`](benchmarks/results/v0.1/REPORT.md). Tokens and monetary cost were not available and are reported as such.
+Full evidence: [`benchmarks/results/v0.1/REPORT.md`](benchmarks/results/v0.1/REPORT.md).
 
 ### v0.3 accepted reference benchmark
 
-The accepted 24-row v0.3 reference experiment also **does not show a correctness advantage for Diffcipline**. Under the same pinned executor contract, baseline, Karpathy, Ponytail, and Diffcipline each finished at **1/6 task-correct**. Diffcipline had the largest summed task duration: 939.839s versus 494.365s baseline, 902.187s Karpathy, and 700.243s Ponytail.
+The accepted 24-row v0.3 experiment also did **not** show a correctness advantage for Diffcipline. All four treatments finished at `1/6` task-correct. The scorer-pass signal was confounded by generated `__pycache__` files, and the run preserved provider/tool-parser failures and timeouts without selective reruns.
 
-The frozen scorer reported **0/6 scorer-pass for every treatment**, but that signal is not usable as a treatment comparison in this run: fixture verification generated `__pycache__` files, and the unchanged scorer counted those bytecode caches as changed/unrelated/protected paths. All textual patches were empty and no source-text edit was observed. The run preserved 12 failed rows—nine provider/tool-parser HTTP 500 failures and three internal agent timeouts—with no selective rerun and no hidden exclusion.
+Full evidence: [`benchmarks/results/v0.3/REPORT.md`](benchmarks/results/v0.3/REPORT.md).
 
-The exact accepted run, artifact identity/digest, provenance, treatment revisions, limitations, and retention boundary are published under [`benchmarks/results/v0.3/`](benchmarks/results/v0.3/REPORT.md). Tokens and monetary cost were not available. These results do not support a treatment-effect inference and do not establish behavior with a stronger executor.
+These experiments do not establish a treatment effect. A stronger future evaluation must be separately preregistered and must publish losses as prominently as wins.
 
-## Roadmap
+## What Diffcipline is not
 
-**v0.1 — Proof before done**
-- portable Agent Skills
-- dependency-free Rust CLI
-- diff size and scope policy
-- dependency/lockfile awareness
-- deterministic verification commands
-- PASS / REVIEW / FAIL proof card
-- GitHub Action proof gate
+Diffcipline is not another coding agent, another chat UI, a benchmark-marketing wrapper, or an excuse to trade safety for smaller diffs. It does not reward fewer lines when those lines make the system less correct, secure, accessible, or maintainable.
 
-**v0.2 — Intent-aware scope**
-- proof contract for expected files and forbidden surfaces
-- risk-aware verification profiles
-- GitHub job-summary annotation
+## Project principles
 
-**v0.3 — Evidence benchmark**
-- public multi-agent benchmark harness
-- reproducible baselines against unassisted agents and other skills
+- proof before done;
+- repository truth over narrative;
+- minimality subordinate to correctness;
+- stronger rigor for higher risk;
+- open, reproducible claims;
+- portable Agent Skills core;
+- dependency restraint.
 
-**v1.0 — Universal engineering governor**
-- stable proof schema
-- broad agent portability
-- signed release artifacts
-- enterprise policy mode
+See [`CONSTITUTION.md`](CONSTITUTION.md) and [`AGENTS.md`](AGENTS.md).
 
 ## Prior art and attribution
 
