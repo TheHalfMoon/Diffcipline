@@ -20,19 +20,19 @@
 
 - [x] T620 Trigger the guarded owner-only `v1.0.0` tag authority for the exact canonical release commit and verify the immutable tag target. Evidence: owner request `/release v1.0.0 5cb1c77340b75649f6168e0e8f66479ea047ea96`; `tag-v1.0.0` run `33403681664` completed `SUCCESS`; `refs/tags/v1.0.0` resolved exactly to `5cb1c77340b75649f6168e0e8f66479ea047ea96` with no tag movement.
 - [x] T621 Trigger owner-only recovery staging for that same SHA; verify the exact signed canonical candidate and byte-identical five-asset draft. Evidence: owner request `/stage-release v1.0.0 5cb1c77340b75649f6168e0e8f66479ea047ea96`; `stage-v1.0.0-release` run `33403855005` completed `SUCCESS`. Job `99526451916` successfully verified canonical lineage and exact workflow/tag evidence, downloaded and verified the exact signed candidate, created draft release `379824838`, and round-trip byte-verified the draft assets. The draft contains exactly the three native binaries, `SHA256SUMS`, and `PROVENANCE.sigstore.json`; it remains `draft=true`, `prerelease=false`, and unpublished.
-- [x] T622 Record tag/staging evidence on canonical `main` without changing the release target. This checkbox is candidate evidence on branch `docs/006-tag-staging-evidence`; it becomes canonical only after this exact record is merged and required exact post-merge gates succeed. The release target remains fixed at `5cb1c77340b75649f6168e0e8f66479ea047ea96`.
+- [x] T622 Record tag/staging evidence on canonical `main` without changing the release target. Evidence: PR #73 exact head `c4fdb7470aedd8249c202fd0d01a80d0149db692` passed all required exact-head workflows; expected-head merge produced canonical `e42bdccd7a97089fd986d478fadaf92b406d873d`; exact post-merge `ci` `33405800810`, `skills-compat` `33405800597`, and `release` `33405800938` all completed `SUCCESS`. The fixed `v1.0.0` release target remains `5cb1c77340b75649f6168e0e8f66479ea047ea96`.
 
 ## Phase D — Immutable publication and terminal verification
 
-- [ ] T630 Require independent repository-administrator confirmation that GitHub release immutability is enabled.
+- [x] T630 Require independent repository-administrator confirmation that GitHub release immutability is enabled. Evidence: on 2026-08-31 an independent repository administrator supplied direct GitHub Settings evidence showing **Enable release immutability** selected for `TheHalfMoon/Diffcipline`; the confirmation is recorded in `t630-admin-confirmation.md`. Live repository truth was rechecked afterward and the fixed tag plus verified five-asset unpublished draft remained unchanged.
 - [ ] T631 Publish the already-verified draft only through the administrative release surface.
 - [ ] T632 Require the `release.published` verifier to succeed for immutable `v1.0.0` and preserve durable verification evidence.
 - [ ] T633 Record terminal Spec 006 `COMPLETE_CANONICAL` only after T632 is machine-observed and the terminal record itself becomes canonical with required post-merge gates.
 
 ## Ordering
 
-T603 gated publication implementation. T615 established the sole authorized release SHA. T620 created the fixed tag, and T621 produced the verified byte-identical five-asset draft. T622 records those facts without moving the release target.
+T603 gated publication implementation. T615 established the sole authorized release SHA. T620 created the fixed tag, T621 produced the verified byte-identical five-asset draft, and T622 canonically recorded those facts without moving the release target. T630 independently confirmed the repository-level release-immutability setting.
 
-The active frontier after canonical T622 is T630. Publication remains prohibited until an independent repository administrator confirms in GitHub repository settings that **Enable release immutability** is active. Repository automation must not infer or bypass that setting. T630 gates T631; T631 gates T632; T632 gates terminal T633.
+The active frontier after canonical T630 is T631. Publication must use the existing verified draft through GitHub's administrative release surface; repository automation must not publish it. T631 gates T632; T632 gates terminal T633.
 
 No task authorizes replacing an existing tag or release, weakening `.diffcipline.toml`, publishing a draft through repository automation, or treating a verified draft as a completed public release.

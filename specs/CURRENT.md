@@ -28,14 +28,18 @@ T620 is complete: owner-triggered `tag-v1.0.0` run `33403681664` completed `SUCC
 
 T621 is complete: owner-triggered `stage-v1.0.0-release` run `33403855005` completed `SUCCESS`. It verified the exact canonical signed candidate, created draft release `379824838`, and round-trip byte-verified the five staged assets. The release remains a verified unpublished draft.
 
-T622 is the current repository-governance unit: record this tag/staging evidence canonically without changing the release target. Its candidate record becomes effective only after merge and exact post-merge qualification.
+T622 is complete: PR #73 exact head `c4fdb7470aedd8249c202fd0d01a80d0149db692` passed all required exact-head workflows; expected-head merge produced canonical `e42bdccd7a97089fd986d478fadaf92b406d873d`; exact post-merge `ci` `33405800810`, `skills-compat` `33405800597`, and `release` `33405800938` all completed `SUCCESS`. The fixed release target did not move.
 
-After canonical T622, the active frontier is T630.
+T630 has been independently satisfied: on 2026-08-31 a repository administrator supplied direct GitHub Settings evidence showing **Enable release immutability** selected and saved for `TheHalfMoon/Diffcipline`. The confirmation is recorded by the active T630 governance unit and live tag/draft state was rechecked afterward.
+
+This T630 record becomes canonical only after its exact branch is qualified, merged, and required exact post-merge gates succeed.
+
+After canonical T630, the active frontier is T631.
 
 ## Administrative publication boundary
 
-Before publication, an independent repository administrator must confirm in GitHub repository settings that **Enable release immutability** is active.
+The independent administrator confirmation required by T630 has been supplied. The already-verified `v1.0.0` draft may therefore be published through GitHub's administrative release surface once this T630 record is canonical.
 
-The connected repository execution tooling does not expose that repository-level administration setting, so it must not infer or bypass it. Historical immutable `v0.1.0` does not substitute for the required current administrative confirmation.
+No repository workflow may publish the draft. The connected repository execution tooling currently exposes no release-publication mutation, so it must not introduce repository automation as a bypass.
 
-No repository workflow may publish the draft. Only after T630 is independently satisfied may the existing verified `v1.0.0` draft be published through GitHub's administrative release surface. Publication must trigger the immutable published-release verifier, and Spec 006 remains incomplete until that verifier succeeds and terminal T633 evidence becomes canonical.
+T631 must publish existing draft release `379824838` without changing the fixed tag or staged assets. Publication must trigger the immutable published-release verifier. T632 must prove `isDraft=false`, `isImmutable=true`, fixed tag lineage, release attestation, exact five-asset closure, checksums, binary attestations, and every release-asset verification. Spec 006 remains incomplete until that verifier succeeds and terminal T633 evidence becomes canonical.

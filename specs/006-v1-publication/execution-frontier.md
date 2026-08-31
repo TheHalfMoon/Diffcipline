@@ -51,18 +51,28 @@ Live draft release `379824838` is `v1.0.0`, `draft=true`, `prerelease=false`, an
 
 A verified draft is not a published release.
 
-## T622 evidence-record candidate
+## Canonical T622 evidence record
 
-Branch `docs/006-tag-staging-evidence` records T614 through T621 live evidence without changing the release target, tag, draft, product behavior, dependencies, or publication state.
+PR #73 exact head `c4fdb7470aedd8249c202fd0d01a80d0149db692` recorded the tag/staging evidence without changing the release target, tag, draft, product behavior, dependencies, or publication state. All required exact-head workflows completed `SUCCESS`; expected-head merge produced canonical `e42bdccd7a97089fd986d478fadaf92b406d873d`. Exact post-merge `ci` `33405800810`, `skills-compat` `33405800597`, and `release` `33405800938` all completed `SUCCESS`, including three native builds, checksum closure, Sigstore provenance, and attestation-subject verification.
 
-This T622 record becomes canonical only after its exact qualified head is merged and the required exact post-merge gates succeed. Until then, live GitHub truth remains authoritative over this candidate wording.
+The fixed `v1.0.0` release target remains `5cb1c77340b75649f6168e0e8f66479ea047ea96`.
 
-## Current frontier — T630 external administrative prerequisite
+## T630 administrator confirmation
 
-After canonical T622, the next permitted step is T630: an independent repository administrator must confirm in GitHub repository settings that **Enable release immutability** is active.
+On 2026-08-31 an independent repository administrator supplied direct GitHub repository-settings evidence for `TheHalfMoon/Diffcipline` showing **Enable release immutability** selected and saved under **Settings → General → Releases**.
 
-The currently connected repository execution surface does not expose the repository-level release-immutability administration setting and therefore cannot independently inspect, infer, or change it. The existence of immutable historical `v0.1.0` is not evidence that the current repository setting is enabled for this publication boundary.
+This confirmation is recorded in `t630-admin-confirmation.md`. It satisfies the external administrative prerequisite without inferring the setting from historical `v0.1.0` behavior or claiming that repository automation can inspect it.
 
-No repository workflow is authorized to publish the draft. Publication through the GitHub administrative release surface remains prohibited until T630 is independently satisfied. Only after T630 may T631 publish the already-verified draft. Publication must then trigger T632, whose verifier requires `isDraft=false`, `isImmutable=true`, fixed tag lineage, successful `gh release verify`, exactly five assets, checksum closure, binary attestations, and verification of every published release asset.
+Live repository truth was rechecked after the confirmation: canonical `main` remained `e42bdccd7a97089fd986d478fadaf92b406d873d`, `v1.0.0` still resolved exactly to `5cb1c77340b75649f6168e0e8f66479ea047ea96`, and draft release `379824838` remained unpublished with exactly the verified five assets.
+
+This T630 record becomes canonical only after this exact branch is qualified, merged, and the required exact post-merge gates succeed.
+
+## Current frontier — T631 administrative publication
+
+After canonical T630, the next permitted step is T631: publish the already-verified draft only through GitHub's administrative release surface.
+
+No repository workflow is authorized to publish the draft. The connected repository execution surface currently exposes no release-publication mutation, so repository automation must not be introduced as a bypass. Publication must operate on existing draft release `379824838` without changing the fixed tag or staged assets.
+
+Publication must then trigger T632, whose verifier requires `isDraft=false`, `isImmutable=true`, fixed tag lineage, successful `gh release verify`, exactly five assets, checksum closure, binary attestations, and verification of every published release asset.
 
 Spec 006 remains `ACTIVE_CANONICAL`, not `COMPLETE_CANONICAL`, until T632 succeeds and T633 terminal evidence becomes canonical.
