@@ -1,0 +1,132 @@
+name: tag-v1.0.0
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/tag-v1.0.0.yml"
+      - "crates/diffcipline-cli/Cargo.toml"
+      - "specs/**"
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate guarded v1 tag authority
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify exact candidate checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Validate v1 request contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          parse_request() {
+            body="$1"
+            read -r command tag target_sha extra <<< "$body"
+            test "$command" = "/release"
+            test "$tag" = "v1.0.0"
+            test -z "${extra:-}"
+            [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
+          }
+          parse_request "/release v1.0.0 0123456789abcdef0123456789abcdef01234567"
+          ! parse_request "/release v1.0.0 deadbeef"
+          ! parse_request "/release v1.0.1 0123456789abcdef0123456789abcdef01234567"
+          ! parse_request "/release v1.0.0 0123456789abcdef0123456789abcdef01234567 extra"
+          crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
+          test "$crate_version" = "1.0.0"
+
+  tag:
+    name: create verified v1.0.0 tag
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      github.event.comment.user.login == github.repository_owner &&
+      startsWith(github.event.comment.body, '/release v1.0.0 ')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: read
+    steps:
+      - name: Parse explicit release request
+        id: request
+        shell: bash
+        env:
+          REQUEST_BODY: ${{ github.event.comment.body }}
+        run: |
+          set -euo pipefail
+          read -r command tag target_sha extra <<< "$REQUEST_BODY"
+          test "$command" = "/release"
+          test "$tag" = "v1.0.0"
+          test -z "${extra:-}"
+          [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "target_sha=$target_sha" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.request.outputs.target_sha }}
+          fetch-depth: 0
+
+      - name: Verify exact canonical release commit
+        shell: bash
+        env:
+          TAG: ${{ steps.request.outputs.tag }}
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          git fetch origin main --no-tags
+          test "$(git rev-parse origin/main)" = "$TARGET_SHA"
+          crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
+          test "$crate_version" = "1.0.0"
+          test "$TAG" = "v${crate_version}"
+          if git ls-remote --exit-code origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Refusing to replace existing tag $TAG" >&2
+            exit 1
+          fi
+
+      - name: Verify exact-SHA canonical qualification
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          verify_workflow() {
+            workflow="$1"
+            run_id="$(
+              gh api -X GET \
+                "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs" \
+                -f head_sha="$TARGET_SHA" \
+                -f event=push \
+                -f status=completed \
+                -f per_page=100 \
+                --jq '.workflow_runs | map(select(.event == "push" and .conclusion == "success")) | .[0].id // empty'
+            )"
+            test -n "$run_id"
+            echo "$workflow exact-SHA successful run: $run_id"
+          }
+          verify_workflow ci.yml
+          verify_workflow skills-compat.yml
+          verify_workflow release.yml
+
+      - name: Create lightweight tag at verified canonical SHA
+        shell: bash
+        env:
+          TAG: ${{ steps.request.outputs.tag }}
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          git tag "$TAG" "$TARGET_SHA"
+          test "$(git rev-parse "refs/tags/$TAG")" = "$TARGET_SHA"
+          git push origin "refs/tags/$TAG"
