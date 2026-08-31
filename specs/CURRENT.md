@@ -2,11 +2,9 @@
 
 Active: Spec 006 / v1 Public Publication
 
-Status: `ACTIVE_CANONICAL`
+Status: `COMPLETE_CANONICAL`
 
-Spec 006 planning authority is canonical at `ccdaa65b7ff48775ffa72e20f8d2dbf024ee3577`. Its final publication implementation is canonical through PR #72, whose expected-head merge produced the sole authorized `v1.0.0` release target `5cb1c77340b75649f6168e0e8f66479ea047ea96`. Exact post-merge `ci` `33403468465`, `skills-compat` `33403468547`, and `release` `33403468550` all completed `SUCCESS` on that release SHA.
-
-Live GitHub/repository truth overrides this file.
+This terminal status is effective only after the exact terminal closeout record is merged to canonical `main` and its resulting canonical SHA passes exact post-merge `ci`, `skills-compat`, and `release`. Until then, this branch is only the terminal completion candidate and live GitHub/repository truth overrides this file.
 
 ## Completed roadmap history
 
@@ -20,38 +18,38 @@ Spec 004 / v1 Universal Engineering Governor is `COMPLETE_CANONICAL` at terminal
 
 Spec 005 / v1 Release Polish is `COMPLETE_CANONICAL` at terminal canonical `e64a6ae9ad50edc9e08a1392c23134f96d4d7587`.
 
-## Completed Spec 006 publication prerequisites
+## Spec 006 terminal evidence
 
-T620 created `v1.0.0` exactly at `5cb1c77340b75649f6168e0e8f66479ea047ea96` through owner-only tag authority run `33403681664`.
+The sole authorized `v1.0.0` release commit is `5cb1c77340b75649f6168e0e8f66479ea047ea96`. Its exact post-merge `ci` `33403468465`, `skills-compat` `33403468547`, and `release` `33403468550` completed `SUCCESS` before tag creation.
 
-T621 staged and byte-verified release `379824838` through owner-only recovery run `33403855005` with exactly three native binaries, `SHA256SUMS`, and `PROVENANCE.sigstore.json`.
+Owner-only tag authority run `33403681664` created `v1.0.0` exactly at that release SHA. Owner-only staging run `33403855005` created release `379824838` from the exact canonical signed candidate and byte-verified exactly five staged assets.
 
-T622 became canonical through PR #73 at `e42bdccd7a97089fd986d478fadaf92b406d873d` with successful exact post-merge `ci`, `skills-compat`, and `release` gates.
+T630 administrator evidence became canonical through PR #74 at `2444671549cb22fc664e6f3476dcb43cd964d28f`.
 
-T630 became canonical through PR #74 at `2444671549cb22fc664e6f3476dcb43cd964d28f` after independent GitHub Settings evidence showed release immutability enabled; its exact post-merge `ci`, `skills-compat`, and `release` gates all completed `SUCCESS`.
+The administrator published existing release `379824838` through GitHub's administrative surface at `2026-08-31T18:17:06Z`. GitHub reports `draft=false`, `immutable=true`, `prerelease=false`, tag `v1.0.0`, and the unchanged five-asset set.
 
-T631 is complete: existing release `379824838` was published through GitHub's administrative release surface at `2026-08-31T18:17:06Z`. Live GitHub now reports `draft=false`, `immutable=true`, `prerelease=false`, tag `v1.0.0`, with the same fixed five assets and release target.
+The first automatic published-release verifier run `33424164688` failed before immutable verification because of a verifier command-composition defect. That failure remains preserved evidence.
 
-## Active Spec 006 frontier — T632 recovery verification
+PR #76 corrected only the verifier mechanics. Expected-head merge produced canonical recovery SHA `95efb154b93a4745e0265bb4e2b94b60cd1d0463`; exact post-merge `ci` `33424737598`, `skills-compat` `33424737542`, and `release` `33424737688` completed `SUCCESS`.
 
-The automatic `release.published` verifier ran as `verify-v1.0.0-release` run `33424164688` on exact release SHA `5cb1c77340b75649f6168e0e8f66479ea047ea96` and failed in job `99593546041` before immutable-release verification.
+Owner-triggered recovery verifier run `33424987600`, job `99596275866`, completed `SUCCESS` and machine-proved:
 
-The lineage step succeeded. `Verify tag and staging authority evidence` failed with:
+- fixed tag lineage and crate version `1.0.0`;
+- successful tag/staging authority evidence;
+- `isDraft=false` and `isImmutable=true`;
+- GitHub release attestation;
+- exact five-asset closure;
+- three-entry checksum closure;
+- native-binary attestations;
+- verification of every published release asset;
+- durable evidence artifact `9770386235` with digest `sha256:1ecfe4b8e1bac7f66c56d14602ac655514b05b2b87816d2efe683867d6053db0`.
 
-```text
-accepts 1 arg(s), received 4
-```
+T632 is machine-observed complete. `specs/006-v1-publication/t632-published-verification.md` preserves the detailed evidence.
 
-The defect is in verifier command composition: it attempted to combine `gh api --jq` with jq variable arguments that `gh --jq` does not accept. The immutable release itself remains published and unchanged.
+## Terminal frontier
 
-The active recovery unit is `fix/006-v1-published-verifier-recovery`. It preserves the same issue-comment evidence-selection semantics while piping the `gh api` JSON response into standalone `jq -r --arg sha ...`.
+T633 is the only remaining effectiveness gate: this terminal record itself must pass exact-head qualification, clean reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` on the resulting canonical SHA.
 
-After canonical qualification and merge of that recovery unit, the repository owner must trigger:
+Once those conditions hold, Spec 006 is `COMPLETE_CANONICAL` with no remaining publication frontier.
 
-```text
-/verify-release v1.0.0 5cb1c77340b75649f6168e0e8f66479ea047ea96
-```
-
-T632 requires that recovery run to prove fixed tag lineage, successful tag/staging authority evidence, `isDraft=false`, `isImmutable=true`, release attestation, exact five-asset closure, checksums, binary attestations, every release-asset verification, and durable evidence. T632 then gates terminal T633.
-
-Spec 006 remains incomplete until T632 succeeds and T633 becomes canonical. The prepared Spec 007 Category Leadership candidate remains noncanonical and blocked until that terminal closeout.
+Only then may the prepared noncanonical Spec 007 Category Leadership candidate be reconciled against the new canonical `main`, refreshed from current public ecosystem truth, and activated through its own canonical planning-authority merge.
