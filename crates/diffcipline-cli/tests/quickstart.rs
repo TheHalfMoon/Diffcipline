@@ -22,11 +22,7 @@ impl DemoRepo {
         git(&root, &["config", "user.name", "Diffcipline Demo"]);
         git(
             &root,
-            &[
-                "config",
-                "user.email",
-                "diffcipline-demo@example.invalid",
-            ],
+            &["config", "user.email", "diffcipline-demo@example.invalid"],
         );
 
         fs::write(
@@ -106,8 +102,9 @@ fn readme_quickstart_reaches_a_real_pass() {
     let stdout = String::from_utf8_lossy(&proof.stdout);
     assert!(stdout.contains("Verdict       PASS"));
     assert!(stdout.contains("Verification  PASS — cargo fmt --all -- --check"));
-    assert!(stdout.contains(
-        "Verification  PASS — cargo clippy --workspace --all-targets -- -D warnings"
-    ));
+    assert!(
+        stdout
+            .contains("Verification  PASS — cargo clippy --workspace --all-targets -- -D warnings")
+    );
     assert!(stdout.contains("Verification  PASS — cargo test --workspace --all-targets"));
 }
