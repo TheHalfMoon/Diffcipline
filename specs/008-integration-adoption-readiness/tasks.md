@@ -4,17 +4,17 @@
 
 - [x] T800 Reverify live `main`, repository governance, Spec 007 closeout, README, current discoverability evidence, repository metadata, and exact post-merge gates from the Spec 007 terminal commit.
 - [x] T801 Record bounded research and design constraints for repository-controlled adoption work.
-- [ ] T802 Merge this Spec 008 planning authority by expected head after exact-head qualification and clean reconciliation.
-- [ ] T803 Require exact post-merge `ci`, `skills-compat`, and `release` success on the resulting canonical activation commit.
+- [x] T802 Merge the Spec 008 planning authority by expected head after exact-head qualification and clean reconciliation. PR #88 exact head `693e1bc81af394e77c96e7a373be8118ca301bb3`; all nine pull-request workflows `SUCCESS`; no submitted reviews or inline threads; only non-substantive automated comments; canonical `main` remained `108ed30e9d8fd00b7d0a6202cba5c433476c9ea9` before merge.
+- [x] T803 Require exact post-merge `ci`, `skills-compat`, and `release` success. Canonical activation `60fb2643c2710f0e262c2b007ca4192f039d30c3`; `ci` `33439088987`, `skills-compat` `33439088957`, and `release` `33439088976` all `SUCCESS`.
 
 ## Phase B — Validated ecosystem examples
 
-- [ ] T810 Add `examples/README.md` explaining supported example semantics and limitations.
-- [ ] T811 Add a Rust `.diffcipline.toml` example.
-- [ ] T812 Add a Node `.diffcipline.toml` example.
-- [ ] T813 Add a Python `.diffcipline.toml` example.
-- [ ] T814 Add a Go `.diffcipline.toml` example.
-- [ ] T815 Add a repository test that parses the exact checked-in example files and asserts the intended verification commands.
+- [x] T810 Add `examples/README.md` explaining supported example semantics and limitations.
+- [x] T811 Add a Rust `.diffcipline.toml` example.
+- [x] T812 Add a Node `.diffcipline.toml` example.
+- [x] T813 Add a Python `.diffcipline.toml` example.
+- [x] T814 Add a Go `.diffcipline.toml` example.
+- [x] T815 Add a repository integration test that loads the exact checked-in example files through the CLI contract and asserts their intended verification commands are exposed as `NOT RUN` without `--run`.
 - [ ] T816 Qualify, reconcile, expected-head merge, and exact post-merge verify the example unit.
 
 ## Phase C — Adoption and independent validation
@@ -40,4 +40,4 @@
 
 ## Ordering
 
-Do not perform Phase B implementation until Gate A is canonical. Do not declare external metadata live from a recommendation document. Do not rewrite historical Spec 007 discovery or benchmark evidence. T843 is last and cannot be pre-recorded as complete.
+Gate A is canonical. Phase B content is only an implementation candidate until T816 completes. Do not declare external metadata live from a recommendation document. Do not rewrite historical Spec 007 discovery or benchmark evidence. T843 is last and cannot be pre-recorded as complete.
