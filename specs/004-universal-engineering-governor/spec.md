@@ -2,9 +2,11 @@
 
 ## Status
 
-`IMPLEMENTATION`
+`COMPLETE_CANONICAL`
 
-Planning authority became canonical at `df9c0216723d3e241b6cea99bfe58c6212c1cd6a` after exact-head and post-merge repository, skills, and release gates succeeded. Implementation remains ordered by `tasks.md` and cannot skip canonical phase boundaries.
+This status is effective only after this terminal completion record is merged to canonical `main` and the required exact post-merge gates succeed on that resulting canonical SHA. Before those conditions hold, this branch is only the terminal completion candidate.
+
+Planning authority became canonical at `df9c0216723d3e241b6cea99bfe58c6212c1cd6a`. The stable proof schema, enterprise policy mode, broad agent portability, signed release-candidate contract, and integrated capability milestone subsequently became canonical in the ordered phases defined by `tasks.md`.
 
 ## Roadmap authority
 
@@ -21,15 +23,15 @@ This specification turns those goals into a narrow deterministic contract. It bu
 
 ### Stable proof schema
 
-`diffcipline check --json` must emit a versioned v1 proof document with deterministic field ordering and explicit schema identity. The v1 schema must preserve the existing verdict, diff, scope, risk, reason, and verification evidence while adding enough policy provenance for layered enterprise enforcement.
+`diffcipline check --json` emits a versioned v1 proof document with deterministic field ordering and explicit schema identity. The v1 schema preserves the existing verdict, diff, scope, risk, reason, and verification evidence while including policy provenance for layered enterprise enforcement.
 
-A machine-readable schema artifact must be repository-versioned and tested against CLI output. Within schema major version 1, existing required fields and meanings cannot be removed or silently reinterpreted. Additive optional fields require tests and documentation.
+The repository-versioned schema artifact is tested against CLI output. Within schema major version 1, existing required fields and meanings cannot be removed or silently reinterpreted. Additive optional fields require tests and documentation.
 
 ### Enterprise policy mode
 
 A repository may optionally supply an explicit enterprise baseline in addition to `.diffcipline.toml`. Enterprise enforcement is local-file only: Diffcipline does not fetch policy from a network service or require credentials.
 
-Layering must be monotonic. A repository policy may tighten an enterprise baseline but must never weaken it. At minimum:
+Layering is monotonic. A repository policy may tighten an enterprise baseline but must never weaken it. At minimum:
 
 - file and line limits use the stricter bound;
 - allow/review/fail decisions use the stricter decision;
@@ -38,19 +40,19 @@ Layering must be monotonic. A repository policy may tighten an enterprise baseli
 - required verification commands are cumulative and deterministic;
 - unsupported or malformed layered policy fails closed.
 
-Proof output must disclose whether enterprise mode was active and which policy sources were evaluated.
+Proof output discloses whether enterprise mode was active and which policy sources were evaluated.
 
 ### Broad agent portability
 
-The Agent Skills core remains platform-neutral. Canonical compatibility must cover the existing six qualified clients—Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI—and a documented generic Agent Skills layout without creating platform-specific forks of the skill behavior.
+The Agent Skills core remains platform-neutral. Canonical compatibility covers Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, Gemini CLI, and the documented generic Agent Skills layout without platform-specific forks of the skill behavior.
 
-Portability evidence must verify exact-head installation/discovery and the shared skill contract. Agent-specific wrappers may exist only when they are thin adapters; the canonical skill text remains the behavioral authority.
+Portability evidence verifies exact-head installation/discovery and the shared skill contract. Agent-specific wrappers may exist only when they are thin adapters; the canonical skill text remains the behavioral authority.
 
 ### Signed release artifacts
 
-Every trusted canonical release-candidate path must build host-native binaries from locked Cargo inputs, create a deterministic SHA-256 manifest, produce GitHub/Sigstore provenance without repository-stored long-lived signing keys, and verify the attested binary subjects before the candidate is accepted.
+Every trusted canonical release-candidate path builds host-native binaries from locked Cargo inputs, creates a deterministic SHA-256 manifest, produces GitHub/Sigstore provenance without repository-stored long-lived signing keys, and verifies the attested binary subjects before the candidate is accepted.
 
-This milestone does not itself authorize creating or moving a public version tag. Tag/public-release authority remains a separate irreversible boundary.
+This specification does not authorize creating or moving a public v1 version tag. Tag/public-release authority remains a separate irreversible boundary.
 
 ## Compatibility and preservation
 
@@ -58,7 +60,7 @@ This milestone does not itself authorize creating or moving a public version tag
 - Preserve existing default `.diffcipline.toml` version 1 behavior when enterprise mode is not requested.
 - Preserve v0.1, v0.2, and v0.3 canonical evidence and release history.
 - Keep the Rust CLI runtime dependency-free unless a separately reviewed change proves a necessary net benefit.
-- Preserve the portable Agent Skills core and existing GitHub Action behavior unless an explicit v1 contract change is specified.
+- Preserve the portable Agent Skills core and existing GitHub Action behavior unless a later canonical specification explicitly changes them.
 
 ## Non-goals
 
@@ -71,10 +73,10 @@ This milestone does not itself authorize creating or moving a public version tag
 
 ## Qualification
 
-Each implementation unit requires exact-head repository CI. Proof-schema changes additionally require schema contract tests; enterprise-policy changes require fail-closed and non-weakening tests; portability changes require skills compatibility; release changes require the release-candidate workflow.
+Each implementation unit required exact-head repository CI. Proof-schema changes additionally required schema contract tests; enterprise-policy changes required fail-closed and non-weakening tests; portability changes required skills compatibility; release changes required the release-candidate workflow.
 
-Final completion requires one exact candidate head to pass `ci`, `skills-compat`, and `release`, plus any dedicated v1 qualification workflow introduced by this spec, followed by expected-head merge, exact post-merge verification, and a separate terminal completion record.
+Final capability qualification used one exact candidate head for `ci`, `skills-compat`, and `release`, followed by expected-head merge and exact post-merge repository, portability, schema/policy, checksum, signed-provenance, and attestation-subject verification.
 
 ## Completion rule
 
-Spec 004 is `COMPLETE_CANONICAL` only when all tasks are complete, the four roadmap capabilities are canonical, required exact-head and post-merge gates succeed, signed release-candidate provenance is machine-observed on canonical `main`, and the terminal completion record itself becomes canonical.
+Spec 004 is `COMPLETE_CANONICAL` only when all tasks are complete, the four roadmap capabilities are canonical, required exact-head and post-merge gates succeed, signed release-candidate provenance is machine-observed on canonical `main`, and this terminal completion record itself is canonical with successful required post-merge gates.
