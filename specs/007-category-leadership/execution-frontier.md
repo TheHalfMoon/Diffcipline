@@ -9,33 +9,32 @@ Live GitHub/repository truth overrides this snapshot.
 - Phase C: `91ab45bc729b578cda37aed159bb4dbdd8e2f545`;
 - Phase D: `41adfcd3d2ca6e16c85bddff8d976239f9d97d67`;
 - Phase E: `92ad064b954182fe2082ac0a5c873ad0d740d811`;
-- Phase F: `c8068f89bb926d86c3fb305c6097a41da985a3d4`.
+- Phase F: `c8068f89bb926d86c3fb305c6097a41da985a3d4`;
+- Phase G: `735e61c5db24df45fdca4e6d80f3982f82abdf5d`.
 
-Phase F exact post-merge gates:
+Phase G exact post-merge gates:
 
-- `ci` `33433480729` — `SUCCESS`;
-- `skills-compat` `33433480739` — `SUCCESS`;
-- `release` `33433480733` — `SUCCESS`.
+- `ci` `33434796013` — `SUCCESS`;
+- `skills-compat` `33434795922` — `SUCCESS`;
+- `release` `33434795993` — `SUCCESS`.
 
-T700–T753 are complete. T751/T752 were satisfied by the T750 false condition: no stronger experiment was activated or executed, and `stronger-evaluation.md` records `NOT_RUN` without creating a result from missing infrastructure.
+T700–T763 are complete.
 
-## Phase G candidate
+## Terminal qualification candidate
 
-Branch: `docs/007-discoverability-audit`.
+Branch: `spec/007-terminal-qualification`.
 
-`docs/DISCOVERABILITY.md` records a dated bounded audit with exact queries and explicit semantics:
+T770 reconciliation against canonical `735e61c5db24df45fdca4e6d80f3982f82abdf5d` is recorded in `terminal-reconciliation.md`.
 
-1. exact-name GitHub repository search finds `TheHalfMoon/Diffcipline`;
-2. the first 20 GitHub repository results for `coding agent verification`, `coding agent discipline`, and `agent verification guardrails` do not surface Diffcipline;
-3. external GitHub code/issues/PR search establishes no meaningful project reference in the bounded search;
-4. current public-web project-name and category searches do not surface Diffcipline in returned results;
-5. the available skills.sh page snapshot contains no `Diffcipline` or `TheHalfMoon` match, while public install telemetry remains `NOT ESTABLISHED` rather than zero;
-6. GLM, Claude, Gemini, Grok, and other independent model surfaces are unavailable to this execution environment and therefore `NOT TESTED`; this ChatGPT executor is excluded as non-independent evidence.
+The reconciliation re-read the human, machine-readable, trust, comparison, discovery, benchmark, release, and live repository metadata surfaces. It confirmed the immutable `v1.0.0` tag still resolves to `5cb1c77340b75649f6168e0e8f66479ea047ea96`, release `379824838` remains published and immutable with the expected five assets, and the previously recorded repository metadata limitations remain true.
 
-The audit is observational only. Search rank, install counts, citations, stars, and model recommendations are not quality proof or pass gates. The frozen Phase E comparator snapshot remains unchanged; newly observed adjacent search results are not silently promoted into comparator conclusions.
+Two documentation repairs are included before closeout:
 
-T760–T762 become canonical only after T763 exact-head qualification, clean reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` success.
+1. `llms.txt` now links the canonical bounded comparison and discoverability audit added after the original machine-readable index.
+2. `stronger-evaluation.md` now matches the frozen benchmark reports: v0.1 is `1/6 task-correct` and `1/6 scorer-pass` for every treatment; v0.3 is `1/6 task-correct` with frozen `0/6 scorer-pass` under the published generated-`__pycache__` confound.
 
-## Next unit
+No frozen benchmark result, raw evidence, release, tag, asset, product behavior, dependency, manifest, lockfile, or workflow semantics are changed.
 
-After T763, Phase H reconciles all public surfaces and evidence against canonical `main`, qualifies the terminal candidate, and records `COMPLETE_CANONICAL` only after the terminal merge has machine-observed post-merge proof.
+T771 requires exact-head workflow qualification plus review/thread/comment, mergeability, and canonical-main reconciliation. T772 requires expected-head merge and exact post-merge `ci`, `skills-compat`, and `release` success.
+
+This branch deliberately does **not** record `COMPLETE_CANONICAL`. After T772 is machine-observed, a final evidence-record unit may perform T773.

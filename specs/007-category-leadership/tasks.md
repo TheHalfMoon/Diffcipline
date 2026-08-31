@@ -13,29 +13,25 @@
 - [x] T730–T734 Add/strengthen security reporting, reproducible bug/proof issue forms, contribution proof rules, and the maintained-purpose decision for Discussions. Canonical Phase D `41adfcd3d2ca6e16c85bddff8d976239f9d97d67`; post-merge `ci` `33431396088`, `skills-compat` `33431396169`, and `release` `33431395958` all `SUCCESS`.
 
 ## Phase E — Comparative evidence
-- [x] T740 Freeze exact comparator commits before conclusions.
-- [x] T741 Fix ten observable comparison dimensions and conservative evidence labels before conclusions.
-- [x] T742 Publish `docs/COMPARISON.md` with strengths, weaknesses, unknowns, and missing/unstated evidence.
-- [x] T743 Keep structural capability, benchmark outcomes, and popularity/adoption signals separate.
-- [x] T744 Revalidate sources and merge the qualified unit. Canonical Phase E `92ad064b954182fe2082ac0a5c873ad0d740d811`; post-merge `ci` `33432375777`, `skills-compat` `33432375615`, and `release` `33432375709` all `SUCCESS`.
+- [x] T740–T744 Freeze exact comparator commits before conclusions; publish bounded structural comparison with strengths, weaknesses, unknowns, and separated adoption signals. Canonical Phase E `92ad064b954182fe2082ac0a5c873ad0d740d811`; post-merge `ci` `33432375777`, `skills-compat` `33432375615`, and `release` `33432375709` all `SUCCESS`.
 
 ## Phase F — Optional stronger evaluation
-- [x] T750 Decide whether a sufficiently capable authorized executor/model environment exists. Decision: **no**; the current execution surface lacks a separate controlled multi-treatment coding-agent/model harness.
-- [x] T751 Do not activate preregistration because T750 is no. No experimental treatment was started.
-- [x] T752 Do not execute a stronger experiment because T751 was not activated. No missing run is converted into evidence.
-- [x] T753 Publish `NOT_RUN` without weakening or inflating claims. Canonical Phase F `c8068f89bb926d86c3fb305c6097a41da985a3d4`; post-merge `ci` `33433480729`, `skills-compat` `33433480739`, and `release` `33433480733` all `SUCCESS`.
+- [x] T750 Decide no sufficiently controlled multi-treatment executor/model environment exists in this execution surface.
+- [x] T751 Do not activate preregistration because T750 is no.
+- [x] T752 Do not execute an uncontrolled substitute experiment.
+- [x] T753 Publish `NOT_RUN` without creating evidence from missing infrastructure. Canonical Phase F `c8068f89bb926d86c3fb305c6097a41da985a3d4`; post-merge `ci` `33433480729`, `skills-compat` `33433480739`, and `release` `33433480733` all `SUCCESS`.
 
 ## Phase G — Discoverability audit
-- [ ] T760 Record bounded GitHub-search and public web-search observations. Candidate recorded in `docs/DISCOVERABILITY.md`; completion requires T763.
-- [ ] T761 Record skills.sh indexing and public install telemetry only if available. Candidate records indexing as `NOT OBSERVED` and install telemetry as `NOT ESTABLISHED`; completion requires T763.
-- [ ] T762 Record bounded observations from accessible independent LLM recommendation systems. Candidate records unavailable independent GLM/Claude/Gemini/Grok surfaces as `NOT TESTED` and excludes this executor as non-independent; completion requires T763.
-- [ ] T763 Publish exact queries, date, systems, observations, and limitations; qualify/reconcile/merge the exact Phase G candidate and require exact post-merge `ci`, `skills-compat`, and `release` success.
+- [x] T760 Record bounded GitHub-search and public web-search observations.
+- [x] T761 Record skills.sh indexing as `NOT OBSERVED` and install telemetry as `NOT ESTABLISHED`, never zero.
+- [x] T762 Record unavailable independent GLM/Claude/Gemini/Grok surfaces as `NOT TESTED` and exclude this executor as non-independent evidence.
+- [x] T763 Publish exact queries, date, systems, observations, and limitations. Canonical Phase G `735e61c5db24df45fdca4e6d80f3982f82abdf5d`; post-merge `ci` `33434796013`, `skills-compat` `33434795922`, and `release` `33434795993` all `SUCCESS`.
 
 ## Phase H — Terminal closeout
-- [ ] T770 Reconcile all public surfaces/evidence against canonical `main`.
-- [ ] T771 Qualify exact terminal candidate and reconcile reviews, threads, comments, mergeability, and main.
+- [x] T770 Reconcile all public surfaces/evidence against canonical `main`; repair the machine-readable evidence links and the incorrect v0.1 summary metric without mutating frozen benchmark evidence. Evidence: `terminal-reconciliation.md`.
+- [ ] T771 Qualify exact terminal candidate and reconcile reviews, threads, comments, mergeability, and main. Candidate branch: `spec/007-terminal-qualification`.
 - [ ] T772 Merge only expected head and require exact post-merge `ci`, `skills-compat`, `release` success.
 - [ ] T773 Record `COMPLETE_CANONICAL` only after T772 is machine-observed.
 
 ## Ordering
-T753 gates the discoverability audit. T763 gates terminal closeout. T773 is terminal.
+T763 gates terminal closeout. T773 is recorded only after T772 is machine-observed.

@@ -26,8 +26,8 @@ No new correctness, quality, productivity, cost, or superiority claim follows fr
 
 Existing accepted benchmark evidence remains unchanged:
 
-- v0.1 reports a 0/6 pass count for both baseline and Diffcipline treatment in the historical harness;
-- v0.3 reports a 0/6 pass count for both treatments while preserving the deterministic-scope-telemetry limitation;
+- v0.1 reports **1/6 task-correct and 1/6 scorer-pass for every treatment** in the canonical matched run; all arms made zero repository changes, so the result does not establish a correctness or useful-minimality advantage;
+- v0.3 reports **1/6 task-correct for every treatment**, while the frozen scorer reports **0/6 scorer-pass for every treatment** under the published generated-`__pycache__` confound;
 - both experiments remain negative evidence, not a marketing asset;
 - the bounded structural comparison in `docs/COMPARISON.md` is not reclassified as a benchmark.
 

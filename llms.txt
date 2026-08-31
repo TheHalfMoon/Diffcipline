@@ -15,6 +15,8 @@ Public release `v1.0.0` is immutable and fixed at commit `5cb1c77340b75649f6168e
 - [Installation](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/INSTALLATION.md): Agent Skills layouts and supported coding-agent installation surfaces.
 - [Enterprise policy](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/ENTERPRISE-POLICY.md): Local monotonic enterprise-policy layering and fail-closed behavior.
 - [Evidence matrix](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/EVIDENCE.md): Capability claims mapped to repository or immutable machine evidence.
+- [Bounded comparison](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/COMPARISON.md): Source-frozen structural comparison with strengths, weaknesses, unknowns, and no universal ranking claim.
+- [Discoverability audit](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/DISCOVERABILITY.md): Dated GitHub, public-web, skills.sh, and independent-LLM availability observations with explicit bounds.
 
 ## Release and verification
 
