@@ -46,6 +46,7 @@ jobs:
           }
           parse_request "/verify-release v1.0.0 0123456789abcdef0123456789abcdef01234567"
           ! parse_request "/verify-release v1.0.0 deadbeef"
+          jq --version >/dev/null
           gh attestation verify --help >/dev/null
           gh release verify --help >/dev/null
           gh release verify-asset --help >/dev/null
@@ -109,7 +110,8 @@ jobs:
             workflow="$1"
             gh api -X GET "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs" \
               -f event=issue_comment -f status=completed -f per_page=100 \
-              --jq --arg sha "$TARGET_SHA" '.workflow_runs | map(select(.head_sha == $sha and .conclusion == "success")) | sort_by(.id) | last | .id // empty'
+              | jq -r --arg sha "$TARGET_SHA" \
+                  '.workflow_runs | map(select(.head_sha == $sha and .conclusion == "success")) | sort_by(.id) | last | .id // empty'
           }
           test -n "$(successful_issue_run tag-v1.0.0.yml)"
           test -n "$(successful_issue_run stage-v1.0.0-release.yml)"
