@@ -2,9 +2,13 @@
 
 ## Status
 
-`ACTIVE_CANONICAL`
+`COMPLETE_CANONICAL`
+
+T843 records completion only after terminal reconciliation T842 was machine-observed. This status becomes effective canonical truth only when the exact T843 completion-record unit itself qualifies, reconciles, merges by expected head, and its resulting canonical commit passes exact post-merge `ci`, `skills-compat`, and `release`.
 
 Activation is canonical at `60fb2643c2710f0e262c2b007ca4192f039d30c3` after exact post-merge `ci`, `skills-compat`, and `release` success.
+
+Terminal reconciliation is canonical at `f8314f34135afab2bd7801afb0658d40441f598e` after exact post-merge `ci` `33442409478`, `skills-compat` `33442409398`, and `release` `33442409380` all `SUCCESS`.
 
 ## Purpose
 
@@ -33,6 +37,20 @@ Exact activation post-merge:
 - `ci` `33439088987` — `SUCCESS`;
 - `skills-compat` `33439088957` — `SUCCESS`;
 - `release` `33439088976` — `SUCCESS`.
+
+## Terminal closeout record
+
+Terminal reconciliation PR #92 exact head `c7e60b1b5f4c63311655215ef172c8de565e11e2` passed all nine required pull-request workflows and reconciled with no submitted reviews or inline review threads, no substantive comments, mergeability `true`, and unchanged canonical `main` before expected-head squash merge.
+
+Canonical terminal reconciliation: `f8314f34135afab2bd7801afb0658d40441f598e`.
+
+Exact terminal post-merge:
+
+- `ci` `33442409478` — `SUCCESS`;
+- `skills-compat` `33442409398` — `SUCCESS`;
+- `release` `33442409380` — `SUCCESS`.
+
+The final T843 evidence is recorded in `t843-complete-canonical.md`. The completion status in this file is not effective until that exact evidence-record unit itself satisfies the same exact-head qualification, reconciliation, expected-head merge, and exact post-merge proof discipline.
 
 ## Principles
 
@@ -77,6 +95,8 @@ Spec 008 is complete only when:
 - frozen benchmarks and immutable release evidence remain unchanged;
 - every implementation unit passes exact-head qualification, clean reconciliation, expected-head merge, and exact post-merge repository gates;
 - terminal closeout is itself canonically qualified.
+
+All criteria are reconciled in `t843-complete-canonical.md` against canonical terminal reconciliation `f8314f34135afab2bd7801afb0658d40441f598e`. Effective completion still depends on qualification and exact post-merge proof of the T843 record itself.
 
 ## Non-goals
 
