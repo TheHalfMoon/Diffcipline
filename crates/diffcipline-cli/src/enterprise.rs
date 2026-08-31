@@ -94,7 +94,8 @@ fn check_enterprise(
         verdict = Verdict::Fail;
         reasons.push(format!(
             "changed files {} exceed maximum {}",
-            stats.files.len(), effective.max_changed_files
+            stats.files.len(),
+            effective.max_changed_files
         ));
     }
     if stats.added > effective.max_added_lines {
@@ -108,7 +109,10 @@ fn check_enterprise(
         (
             !stats.manifests.is_empty(),
             effective.dependency_manifest_changes,
-            format!("dependency manifest changed: {}", stats.manifests.join(", ")),
+            format!(
+                "dependency manifest changed: {}",
+                stats.manifests.join(", ")
+            ),
         ),
         (
             !stats.lockfiles.is_empty(),
@@ -192,7 +196,9 @@ fn read_policy(path: &Path, source: &str) -> Result<Policy, String> {
 fn merge_policies(enterprise: &Policy, repository: &Policy) -> Policy {
     Policy {
         version: 1,
-        max_changed_files: enterprise.max_changed_files.min(repository.max_changed_files),
+        max_changed_files: enterprise
+            .max_changed_files
+            .min(repository.max_changed_files),
         max_added_lines: enterprise.max_added_lines.min(repository.max_added_lines),
         dependency_manifest_changes: stricter(
             enterprise.dependency_manifest_changes,
