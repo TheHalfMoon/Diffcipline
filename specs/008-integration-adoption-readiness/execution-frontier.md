@@ -10,51 +10,62 @@ Public `v1.0.0` remains immutable at `5cb1c77340b75649f6168e0e8f66479ea047ea96`.
 
 ## Canonical activation
 
-Planning PR #88 exact head `693e1bc81af394e77c96e7a373be8118ca301bb3` passed all nine required pull-request workflows and reconciled cleanly before expected-head squash merge.
-
 Canonical activation: `60fb2643c2710f0e262c2b007ca4192f039d30c3`.
 
-Exact post-merge:
-
-- `ci` `33439088987` — `SUCCESS`;
-- `skills-compat` `33439088957` — `SUCCESS`;
-- `release` `33439088976` — `SUCCESS`.
+Exact post-merge: `ci` `33439088987`, `skills-compat` `33439088957`, and `release` `33439088976` — all `SUCCESS`.
 
 ## Canonical Phase B
 
-PR #89 exact head `015c0196b646d7eafd231de6607e57d5d633f23a` passed all nine required workflows after the preserved initial rustfmt failure was corrected on a new exact head. Reconciliation found no submitted reviews or inline threads, only non-substantive automated comments, and unchanged canonical `main` before expected-head merge.
-
 Canonical Phase B: `b31d891427b5ddbd43fc24c2ad2e1dc7adc6bd39`.
+
+Exact post-merge: `ci` `33440059674`, `skills-compat` `33440059726`, and `release` `33440059755` — all `SUCCESS`.
+
+The checked-in Rust, Node, Python, and Go policies and their exact-file integration test are canonical.
+
+## Canonical Phase C
+
+PR #90 exact head `9a7096abd2ec00541b8f521538cb41dbbf0268bb` passed all nine required pull-request workflows. Reconciliation found no submitted reviews or inline review threads, no substantive comments, and unchanged canonical `main` before expected-head squash merge.
+
+Canonical Phase C: `498df9f4c0260f6deb87861f4e27f882f16a14ab`.
 
 Exact post-merge:
 
-- `ci` `33440059674` — `SUCCESS`;
-- `skills-compat` `33440059726` — `SUCCESS`;
-- `release` `33440059755` — `SUCCESS`.
+- `ci` `33441120552` — `SUCCESS`;
+- `skills-compat` `33441120459` — `SUCCESS`;
+- `release` `33441120450` — `SUCCESS`.
 
-The checked-in Rust, Node, Python, and Go policies are therefore canonical. Their integration test loads the exact files and requires proof-v1 repository provenance, `REVIEW` without verification execution, and documented commands reported as `NOT RUN`.
+The adoption guide, independent-validation protocol, and their README/`llms.txt` entry points are therefore canonical. The protocol records no fabricated external execution or endorsement.
 
-## Phase C candidate
+## Phase D candidate
 
-Branch: `docs/008-adoption-independent-validation`.
+Branch: `docs/008-metadata-discoverability`.
 
-The candidate adds:
+Candidate surfaces:
 
-1. `docs/ADOPTION.md` — one bounded adoption path across canonical Agent Skills, CLI/policy examples, risk profiles, and the immutable GitHub Action;
-2. `docs/INDEPENDENT-VALIDATION.md` — a reproducible protocol against fixed `v1.0.0` covering source identity, release/asset/attestation verification, CLI proof semantics, Agent Skills identity, retained evidence, and explicit `NOT RUN` / `NOT AVAILABLE` states;
-3. human and machine-readable links from `README.md` and `llms.txt`.
+1. `docs/GITHUB-METADATA.md` publishes the exact bounded description/topics recommendation and records live application truth;
+2. `docs/DISCOVERABILITY-2026-09-01.md` records a new bounded GitHub/public-web/skills.sh discovery observation without rewriting historical `docs/DISCOVERABILITY.md`;
+3. Spec 008 task/current/frontier surfaces record Phase C machine proof and the active Phase D gate.
 
-The independent-validation document is a protocol only. It records no external execution, endorsement, adoption result, or benchmark treatment effect.
+Live repository metadata was re-read after Phase C:
 
-## Current limitations carried forward
+- description: unset;
+- topics: empty;
+- homepage: unset.
 
-- repository description is unset;
-- topics are empty;
-- homepage is unset;
-- broad public discovery/adoption remains weak in the bounded Spec 007 audit;
-- unavailable independent model recommendation surfaces remain untested;
-- the authenticated execution surface has not yet exposed a repository-metadata mutation action.
+The authenticated execution surface was also re-checked and exposes no repository description/topics mutation action. Exact application status:
+
+`NOT APPLIED — TOOLING UNAVAILABLE`
+
+The new discoverability snapshot observes exact-name GitHub discovery but not Diffcipline in the first 20 results for the three bounded category queries. No relevant external GitHub issue/PR reference was found; the only external code-search hit is an unrelated lexical match in `lmccalman/baroque`. Public-web and skills.sh-targeted samples did not surface Diffcipline. Independent model recommendation surfaces remain `NOT TESTED`.
+
+## Preserved limitations
+
+- frozen negative benchmark evidence is unchanged;
+- immutable `v1.0.0` is unchanged;
+- no vendor endorsement, universal superiority, adoption, ranking, or independent-validation result is claimed;
+- broad public discovery/adoption remains an explicit gap;
+- repository metadata recommendations are not live because mutation tooling is unavailable.
 
 ## Next gate
 
-T823 requires exact-head qualification of this Phase C candidate, clean review/thread/comment and canonical-main reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` success before Phase D begins.
+T833 requires exact-head qualification of this Phase D candidate, review/thread/comment and canonical-main reconciliation, expected-head merge, then exact post-merge `ci`, `skills-compat`, and `release` success before Phase E begins.
