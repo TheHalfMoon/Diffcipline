@@ -10,6 +10,9 @@ The public `v1.0.0` release is published and immutable. Its Linux, macOS, and Wi
 
 - **Install the skills:** `npx skills add TheHalfMoon/Diffcipline`
 - **Install the immutable v1 CLI:** `cargo install --git https://github.com/TheHalfMoon/Diffcipline --tag v1.0.0 diffcipline`
+- **Adoption guide:** [`docs/ADOPTION.md`](docs/ADOPTION.md)
+- **Validated policy examples:** [`examples/README.md`](examples/README.md)
+- **Independent validation protocol:** [`docs/INDEPENDENT-VALIDATION.md`](docs/INDEPENDENT-VALIDATION.md)
 - **Proof contract:** [`docs/PROOF-CONTRACT.md`](docs/PROOF-CONTRACT.md)
 - **Release verification:** [`docs/RELEASES.md`](docs/RELEASES.md)
 - **Benchmark evidence and limitations:** [`benchmarks/PROTOCOL.md`](benchmarks/PROTOCOL.md)
