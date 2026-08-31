@@ -2,35 +2,43 @@
 
 Latest completed: Spec 007 / Category Leadership
 
-Status: `COMPLETE_CANONICAL`
+Latest candidate: Spec 008 / Integration & Adoption Readiness
 
-This status becomes effective canonical truth only after the exact T773 evidence-record unit is merged and its resulting canonical commit passes exact post-merge `ci`, `skills-compat`, and `release`.
+Status: `ACTIVE_CANDIDATE`
+
+Spec 008 becomes `ACTIVE_CANONICAL` only after its exact planning head passes required pull-request qualification, reconciliation remains clean, expected-head merge succeeds, and the resulting canonical commit passes exact post-merge `ci`, `skills-compat`, and `release`.
 
 Live GitHub/repository truth overrides this file.
 
 ## Completed roadmap history
 
-Specs 001–006 are `COMPLETE_CANONICAL`. Public `v1.0.0` is published immutable at release SHA `5cb1c77340b75649f6168e0e8f66479ea047ea96`; published-release verification run `33424987600` completed `SUCCESS`.
+Specs 001–007 are `COMPLETE_CANONICAL`.
 
-## Spec 007 canonical units
+Spec 007 terminal closeout is canonical at `108ed30e9d8fd00b7d0a6202cba5c433476c9ea9` after exact post-merge:
 
-- planning authority `768a3980e99c4dac4e49b55d39f1d66366025ae8`;
-- Phase B `f3bcf163466feb853d3d441f326b758c5b9bce8e`;
-- Phase C `91ab45bc729b578cda37aed159bb4dbdd8e2f545`;
-- Phase D `41adfcd3d2ca6e16c85bddff8d976239f9d97d67`;
-- Phase E `92ad064b954182fe2082ac0a5c873ad0d740d811` — post-merge `ci` `33432375777`, `skills-compat` `33432375615`, `release` `33432375709` all `SUCCESS`;
-- Phase F `c8068f89bb926d86c3fb305c6097a41da985a3d4` — post-merge `ci` `33433480729`, `skills-compat` `33433480739`, `release` `33433480733` all `SUCCESS`;
-- Phase G `735e61c5db24df45fdca4e6d80f3982f82abdf5d` — post-merge `ci` `33434796013`, `skills-compat` `33434795922`, `release` `33434795993` all `SUCCESS`;
-- terminal qualification `2103a2be6e1bff7e5b2972cd91ccca39fbe43caf` — post-merge `ci` `33435932948`, `skills-compat` `33435932927`, `release` `33435932967` all `SUCCESS`.
+- `ci` `33436852275` — `SUCCESS`;
+- `skills-compat` `33436852135` — `SUCCESS`;
+- `release` `33436852085` — `SUCCESS`.
 
-T700–T773 are recorded complete. T773 is supported by `specs/007-category-leadership/t773-complete-canonical.md` and becomes canonical only under this final evidence-record unit's own qualification/merge/post-merge condition.
+Public `v1.0.0` remains published immutable at release commit `5cb1c77340b75649f6168e0e8f66479ea047ea96`; published-release verification run `33424987600` completed `SUCCESS`.
+
+## Spec 008 candidate scope
+
+The new authority does not reopen Spec 007. It targets repository-controlled adoption readiness:
+
+1. checked-in Rust, Node, Python, and Go policy examples;
+2. tests that parse those exact published example files;
+3. a canonical adoption guide across already-qualified Agent Skills layouts, CLI, and immutable GitHub Action usage;
+4. a reproducible independent-validation protocol with no fabricated external result;
+5. exact GitHub description/topics recommendations with truthful live-application status;
+6. a new dated post-change discovery observation that preserves the Spec 007 audit unchanged.
 
 ## Preserved limitations
 
-Completion does not create a universal superiority claim. The stronger experiment remains canonically `NOT_RUN`; frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage; the dated discoverability audit records broad discovery/adoption as an open gap; unavailable independent model recommendation systems remain `NOT TESTED` in that audit.
+Completion of Spec 007 did not create a universal superiority claim. Frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage, the stronger experiment remains `NOT_RUN`, broad discovery/adoption remains an open gap, and unavailable independent model recommendation systems remain `NOT TESTED` in the dated Spec 007 audit.
 
-Repository description/topics remain unset because the available authenticated GitHub execution surface exposes no mutation action for those fields. Homepage remains intentionally unset because no separate stable canonical site exists. Discussions remain disabled because no maintained discussion workflow exists.
+Live repository metadata still reports description unset, topics empty, and homepage unset. The current authenticated execution surface exposes no repository-metadata mutation action, so Spec 008 must not claim those values are live unless a supported mutation becomes available and live GitHub state verifies it.
 
 ## Active frontier
 
-No Spec 007 implementation frontier remains after the T773 record becomes canonical. Any further category-leadership work requires a new canonical specification or separately authorized maintenance unit. Completed Spec 007 evidence must not be silently rewritten to absorb future work.
+Qualify and canonically activate `specs/008-integration-adoption-readiness/`. No Phase B implementation is authorized until the planning unit itself is merged by expected head and its resulting canonical SHA passes exact post-merge `ci`, `skills-compat`, and `release`.
