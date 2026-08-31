@@ -35,16 +35,7 @@ dependency_manifest_changes = \"allow\"\nlockfile_changes = \"allow\"\nuntracked
         )
         .unwrap();
         fs::write(root.join("enterprise.toml"), enterprise).unwrap();
-        git(
-            &root,
-            &[
-                "add",
-                "tracked.txt",
-                "package.json",
-                ".diffcipline.toml",
-                "enterprise.toml",
-            ],
-        );
+        git(&root, &["add", "."]);
         git(&root, &["commit", "-m", "fixture base"]);
         fs::write(root.join("tracked.txt"), "after\n").unwrap();
         Self { root }
