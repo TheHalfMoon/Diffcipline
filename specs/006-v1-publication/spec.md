@@ -2,74 +2,78 @@
 
 ## Status
 
-`ACTIVE_CANONICAL`
+`COMPLETE_CANONICAL`
 
-Planning authority is canonical at `ccdaa65b7ff48775ffa72e20f8d2dbf024ee3577`. Its exact post-merge `ci` `33399584260`, `skills-compat` `33399584290`, and `release` `33399584278` runs all completed `SUCCESS`; the canonical release run built all three locked native binaries, verified deterministic checksum closure, created signed Sigstore provenance, preserved the attestation bundle, and verified every native-binary subject.
+This terminal status is effective only after this completion record is merged to canonical `main` and the required exact post-merge `ci`, `skills-compat`, and `release` gates succeed on the resulting canonical SHA. Until those conditions hold, this branch is only the terminal completion candidate.
 
-Spec 005 remains `COMPLETE_CANONICAL`. This specification does not reopen or reinterpret any completed capability work.
+Spec 005 remains `COMPLETE_CANONICAL`. This specification did not reopen or reinterpret any completed capability work.
 
 ## Authority and purpose
 
-Diffcipline now has a canonical, machine-qualified v1 capability set and release-candidate pipeline, but no public v1 release. This specification authorizes only the irreversible publication sequence required to publish `v1.0.0` from an exact canonical commit while preserving proof-before-done and the repository's immutable-release boundary.
+Diffcipline entered this specification with a canonical, machine-qualified v1 capability set and release-candidate pipeline, but no public v1 release. Spec 006 authorized only the irreversible publication sequence required to publish `v1.0.0` from an exact canonical commit while preserving proof-before-done and the repository's immutable-release boundary.
 
-The authorized sequence is limited to:
+The authorized sequence was limited to:
 
 1. set the crate/package version to `1.0.0` and update the lockfile and public changelog/release documentation consistently;
 2. add narrowly scoped repository-native guarded authority for creating immutable tag `v1.0.0` at one exact canonical SHA only after exact-SHA canonical qualification succeeds;
 3. add recovery staging that can create a draft `v1.0.0` release only from the exact non-expired `signed-release-candidate` produced by that canonical SHA;
 4. preserve the five-asset release contract: three host-native binaries, `SHA256SUMS`, and `PROVENANCE.sigstore.json`;
 5. require external repository-administrator confirmation that GitHub release immutability is enabled before publishing the verified draft;
-6. verify the published release through a `release.published` workflow that proves immutable state, fixed tag lineage, crate version, release attestation, asset count, checksums, binary attestations, and release-asset attestations;
+6. verify the published release through a `release.published` or guarded recovery workflow that proves immutable state, fixed tag lineage, crate version, release attestation, asset count, checksums, binary attestations, and release-asset attestations;
 7. record terminal publication evidence only after the published-release verifier succeeds.
 
 ## Version and canonical release commit contract
 
 The public release version is exactly `1.0.0` and the tag is exactly `v1.0.0`.
 
-The release commit must be a canonical `main` SHA whose exact push runs of `ci`, `skills-compat`, and `release` completed successfully after the version/publication implementation was merged. The guarded tag authority must fail closed unless canonical `main` still equals the requested target SHA when the tag is created.
+The sole release commit is `5cb1c77340b75649f6168e0e8f66479ea047ea96`. Its exact post-merge `ci` `33403468465`, `skills-compat` `33403468547`, and `release` `33403468550` completed `SUCCESS` before tag creation.
 
 The existing `v0.1.0` tag and immutable release remain untouched.
 
 ## Tag authority contract
 
-The connected execution tooling does not expose direct Git-tag mutation. Repository-native tag authority therefore remains an explicit owner-triggered workflow.
+The v1 tag workflow:
 
-The v1 tag workflow must:
+- validates its request contract on pull requests;
+- accepts only an exact owner-authored `/release v1.0.0 <40-hex-sha>` request on a pull-request conversation;
+- verifies exact checkout, crate version `1.0.0`, exact equality between `origin/main` and the requested SHA, and successful exact-SHA canonical `ci`, `skills-compat`, and `release` push runs;
+- refuses to replace or move any existing `v1.0.0` tag;
+- creates a lightweight tag only at the verified canonical SHA.
 
-- validate its request contract on pull requests;
-- accept only an exact owner-authored `/release v1.0.0 <40-hex-sha>` request on a pull-request conversation;
-- verify exact checkout, crate version `1.0.0`, exact equality between `origin/main` and the requested SHA, and successful exact-SHA canonical `ci`, `skills-compat`, and `release` push runs;
-- refuse to replace or move any existing `v1.0.0` tag;
-- create a lightweight tag only at the verified canonical SHA.
+Owner-only run `33403681664` created `v1.0.0` exactly at the authorized release SHA.
 
 ## Draft staging contract
 
-Because GitHub suppresses workflow events created with the repository workflow `GITHUB_TOKEN`, the tag-authority push cannot be assumed to trigger the tag-push release workflow. A separate owner-triggered recovery staging workflow is therefore authorized.
+Because GitHub suppresses workflow events created with the repository workflow `GITHUB_TOKEN`, a separate owner-triggered recovery staging workflow was used.
 
-The staging workflow must:
+Staging run `33403855005`:
 
-- accept only `/stage-release v1.0.0 <40-hex-sha>` from the repository owner;
-- verify the existing tag resolves to the requested SHA, the tagged commit remains an ancestor of current canonical `main`, and the crate version is `1.0.0`;
-- resolve successful exact-SHA canonical `ci`, `skills-compat`, and `release` evidence plus the successful v1 tag-authority run;
-- require exactly one non-expired `signed-release-candidate` artifact from the exact canonical release run;
-- download that artifact, require exactly five files, verify `SHA256SUMS`, and verify every binary attestation;
-- refuse to replace any existing `v1.0.0` release;
-- create a draft release only, then download it and byte-compare every staged asset with the verified canonical signed candidate;
-- retain machine-readable staging evidence.
+- accepted only `/stage-release v1.0.0 <40-hex-sha>` from the repository owner;
+- verified the existing tag, lineage, crate version, exact canonical workflow evidence, and tag-authority evidence;
+- resolved the exact non-expired canonical `signed-release-candidate`;
+- verified its five-file closure, `SHA256SUMS`, and every native-binary attestation;
+- created draft release `379824838` only;
+- downloaded that draft and byte-compared every staged asset with the canonical signed candidate;
+- retained machine-readable staging evidence.
 
-No repository workflow may publish the draft.
+No repository workflow published the draft.
 
 ## Immutable publication contract
 
-Publication is authorized only after a repository administrator independently confirms in GitHub repository settings that **Enable release immutability** is active. Ordinary repository automation and its `GITHUB_TOKEN` must not infer that administrative setting from lack of access.
+An independent repository administrator confirmed in GitHub repository settings that **Enable release immutability** was active before publication. That evidence is recorded in `t630-admin-confirmation.md`.
 
-The administrator may then publish the already-verified draft through GitHub's administrative release surface. The publication event must trigger the v1 verifier.
+The administrator then published the already-verified draft through GitHub's administrative release surface. Release `379824838` now reports:
 
-If the execution environment cannot inspect the administrative setting or publish through that administrative surface, it must stop at the verified draft and report the external administrative prerequisite rather than weakening this contract.
+- tag `v1.0.0`;
+- `draft=false`;
+- `immutable=true`;
+- `prerelease=false`;
+- `published_at=2026-08-31T18:17:06Z`;
+- the same exact five staged assets.
 
 ## Published-release verification contract
 
-The v1 verifier must fail unless all of the following are true:
+The published-release verifier was required to fail unless all of the following were true:
 
 - release tag is `v1.0.0` and resolves to the recorded release SHA;
 - tagged SHA remains an ancestor of canonical `main`;
@@ -82,23 +86,37 @@ The v1 verifier must fail unless all of the following are true:
 - `gh release verify-asset` succeeds for every published asset;
 - durable workflow evidence records the tag SHA, canonical main SHA, publication metadata, and verifier run identity.
 
+The first automatic `release.published` run `33424164688` failed before immutable-release verification because of invalid `gh api --jq` argument composition. That failure remains preserved evidence.
+
+PR #76 corrected only the verifier mechanics and became canonical at `95efb154b93a4745e0265bb4e2b94b60cd1d0463` after exact post-merge `ci` `33424737598`, `skills-compat` `33424737542`, and `release` `33424737688` completed `SUCCESS`.
+
+Owner-triggered recovery verifier run `33424987600`, job `99596275866`, then completed `SUCCESS` and proved every published-release requirement above. Durable evidence artifact `9770386235`, `v1.0.0-release-verification`, has digest `sha256:1ecfe4b8e1bac7f66c56d14602ac655514b05b2b87816d2efe683867d6053db0`. The full machine-observed record is preserved in `t632-published-verification.md`.
+
 ## Preservation and non-goals
 
-Preserve:
+Spec 006 preserved:
 
 - dependency-free Rust CLI behavior and all proof/policy contracts;
 - Agent Skills portability and existing GitHub Action behavior;
 - frozen benchmark evidence and all immutable historical release evidence;
 - signed release-candidate construction and provenance semantics.
 
-Do not add product features, dependencies, benchmark reruns, dashboards, telemetry, package-registry publication, auto-update mechanisms, or any automated draft-publication path.
+It did not add product features, dependencies, benchmark reruns, dashboards, telemetry, package-registry publication, auto-update mechanisms, or any automated draft-publication path.
 
 ## Qualification
 
-Each repository change must stay within `.diffcipline.toml` policy and pass the strongest existing exact-head gates for its touched surface. Publication implementation must pass one final exact candidate head through `ci`, `skills-compat`, `release`, historical `v0.1.0` guards, review/thread/comment reconciliation, mergeability, and canonical-main reconciliation before expected-head merge. The resulting canonical release commit must then pass exact post-merge `ci`, `skills-compat`, and `release` before tag creation.
+Every repository change remained subject to `.diffcipline.toml` policy and the strongest exact-head gates for its touched surface. The final release implementation passed exact candidate qualification and exact post-merge release-commit qualification before tag creation. Subsequent tag, staging, administrator, verifier-recovery, and published-release evidence were separately qualified and preserved.
 
-## Completion rule
+## Completion evidence
 
-Spec 006 is complete only after `v1.0.0` is published as an immutable release and the exact published-release verification workflow succeeds, followed by a terminal canonical evidence record.
+T632 was machine-observed before this terminal record was authored:
 
-A verified draft is an authorized intermediate state, not completion.
+- published release `379824838` is immutable and not a draft;
+- fixed tag `v1.0.0` remains at `5cb1c77340b75649f6168e0e8f66479ea047ea96`;
+- recovery verifier run `33424987600`, job `99596275866`, completed `SUCCESS`;
+- the verifier proved fixed lineage, exact authority evidence, immutable release attestation, five-asset closure, checksums, native-binary attestations, every release-asset verification, and durable evidence;
+- artifact `9770386235` records the verification with digest `sha256:1ecfe4b8e1bac7f66c56d14602ac655514b05b2b87816d2efe683867d6053db0`.
+
+Spec 006 has no remaining publication implementation frontier after this terminal record becomes canonical with successful required post-merge gates.
+
+Only after this `COMPLETE_CANONICAL` status becomes effective may a separate canonical specification activate post-v1 Category Leadership work.
