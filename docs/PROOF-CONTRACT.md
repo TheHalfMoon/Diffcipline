@@ -11,7 +11,28 @@ The v1 machine proof identifies itself with:
 
 The repository-tracked schema is `schemas/proof-v1.json`. Required top-level fields and their meanings cannot be removed or silently reinterpreted within schema major version 1. Additive fields require a schema update, tests, and documentation.
 
-Policy provenance is explicit. `policy.mode` is `default`, `repository`, or `enterprise`; `policy.sources` lists policy inputs evaluated for the proof. Enterprise mode is reserved by the stable schema before layered policy implementation lands.
+Policy provenance is explicit. `policy.mode` is `default`, `repository`, or `enterprise`; `policy.sources` lists policy inputs evaluated for the proof in deterministic order.
+
+## Enterprise policy mode
+
+Enterprise policy is opt-in and local-file only:
+
+```text
+diffcipline check --enterprise-policy <path> [--base <ref>] [--risk <R0|R1|R2|R3>] [--run] [--json]
+```
+
+No environment discovery, network fetch, credential exchange, or remote control plane is used. When enterprise mode is active, `policy.mode` is `enterprise`; `policy.sources` lists the explicit enterprise source first and `.diffcipline.toml` second when repository policy exists.
+
+Layering is monotonic:
+
+- file and added-line limits use the stricter minimum;
+- dependency-manifest, lockfile, and untracked-file decisions use `FAIL > REVIEW > ALLOW`;
+- forbidden surfaces are cumulative;
+- every non-empty enterprise and repository `expected_files` contract is enforced independently;
+- default and risk-specific verification commands are cumulative, deterministic, enterprise-first, and exact duplicates are removed;
+- missing, unreadable, malformed, unsupported-version, duplicate, or self-referential enterprise policy input fails closed.
+
+A repository policy can therefore add constraints or verification but cannot reduce the effect of an enterprise baseline. The no-enterprise path retains repository-policy version 1 behavior.
 
 ## Verdicts and exit codes
 
