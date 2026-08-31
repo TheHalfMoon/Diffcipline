@@ -30,18 +30,20 @@ Spec 003 / v0.3 is `COMPLETE_CANONICAL` at `d09757237560e0963c2eed8ac49eefcae378
 
 Planning/T403 is canonical at `df9c0216723d3e241b6cea99bfe58c6212c1cd6a`.
 
-Stable proof schema/T416 is canonical at `fd42970ccf868c5a808b9b3bd03f26c27b7c9161`. The v1 proof contract is `diffcipline.proof/v1` / `1.0` with deterministic schema identity, legacy evidence semantics, and policy provenance.
+Stable proof schema/T416 is canonical at `fd42970ccf868c5a808b9b3bd03f26c27b7c9161`.
 
-Enterprise policy/T427 is canonical at `f0198395f0a141048b272bfd495f585fb76f6011`. PR #58 final head `7ae53bfde368287a3a780fb591e7a3d21166856f` passed exact-head `ci` `33357573607` and `release` `33357573613`; post-merge `ci` `33357739486` and `release` `33357739507` also succeeded. Enterprise policy is explicit local-file input, monotonic over repository policy, fail-closed, and disclosed through the stable proof-v1 policy provenance object.
+Enterprise policy/T427 is canonical at `f0198395f0a141048b272bfd495f585fb76f6011`.
 
-Broad portability/T435 is canonical at `066c0138e5e2970781cc91abba38797654f92c77`. PR #60 final head `5d8192bb25e3ea62224ea38ac7a090edf3da25be` passed exact-head `ci` `33360432458` and `skills-compat` `33360432460`; post-merge `ci` `33360553459` and `skills-compat` `33360553460` also succeeded. The compatibility gate proves one canonical behavioral source per shipped skill, a client-independent generic Agent Skills layout/content contract, and byte-identical installation for Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI.
+Broad portability/T435 is canonical at `066c0138e5e2970781cc91abba38797654f92c77`.
 
-The trusted canonical release evidence already observed on `f0198395f0a141048b272bfd495f585fb76f6011` proves locked Linux/macOS/Windows builds, checksum-manifest closure, signed Sigstore provenance, and attestation-subject verification. Phase E must now turn that existing machinery into the explicit v1 release-candidate contract and requalify it on its own exact canonical boundary.
+Signed release-artifact capability/T447 is canonical at `b20b2671c75c5076fcf66397ee4a3f7c308bdfba`. PR #62 final head `4dbc751e09808999df61383092c2720f289c34d8` passed exact-head `ci` `33361112731` and `release` `33361112742`. Exact post-merge `ci` `33361219139` and `release` `33361219144` also completed `SUCCESS`. The trusted canonical release run built all three locked native binaries, generated and verified the three-entry `SHA256SUMS`, created keyless GitHub/Sigstore provenance, preserved the attestation bundle, verified every native binary subject, and intentionally skipped release drafting because no v1 tag is authorized.
 
 ## Immediate frontier
 
-Phase E signed release-artifact contract is next: T440–T447.
+Phase F integrated qualification and closeout is next: T450–T455.
 
-Promote the existing release machinery rather than replace it. Define the exact v1 candidate artifact set, preserve locked native builds and deterministic three-binary SHA-256 closure, preserve keyless GitHub/Sigstore provenance and subject verification on trusted canonical pushes, document independent verification, and keep public tag/release creation outside this milestone unless separately authorized.
+Update public documentation only with capabilities that are now implemented and canonical: proof-v1 schema/provenance, explicit monotonic enterprise policy, generic six-client Agent Skills portability, and the signed release-candidate capability. One final candidate must then pass exact-head `ci`, `skills-compat`, and `release`, reconcile reviews and canonical `main`, merge with an expected-head guard, and pass the exact post-merge repository/portability/schema-policy/signed-release gates.
 
-Do not create or move a public v1 tag/release under this phase.
+T455 is a separate terminal governance record and must not claim `COMPLETE_CANONICAL` until T454 is machine-observed and the terminal record itself becomes canonical with successful required post-merge gates.
+
+No public v1 tag or release is authorized by integrated closeout.

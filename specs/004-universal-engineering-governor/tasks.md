@@ -43,10 +43,9 @@ T416 exact evidence:
 T427 exact evidence:
 
 - PR #58 final exact head `7ae53bfde368287a3a780fb591e7a3d21166856f` stayed exactly within repository policy at 3 files and +400/-1;
-- exact-head `ci` `33357573607` and `release` `33357573613` completed `SUCCESS`; CI covered Rust and dogfood gates on Linux, macOS, and Windows plus proof-v1 schema validation;
+- exact-head `ci` `33357573607` and `release` `33357573613` completed `SUCCESS`;
 - expected-head squash merge produced canonical `f0198395f0a141048b272bfd495f585fb76f6011`;
-- exact post-merge `ci` `33357739486` and `release` `33357739507` completed `SUCCESS`;
-- the canonical release run built locked native binaries on Linux/macOS/Windows, generated and verified the SHA-256 manifest, created signed Sigstore provenance, preserved the attestation bundle, and verified attestation subjects.
+- exact post-merge `ci` `33357739486` and `release` `33357739507` completed `SUCCESS`.
 
 ## Phase D — Broad agent portability
 
@@ -59,24 +58,30 @@ T427 exact evidence:
 
 T435 exact evidence:
 
-- PR #60 final exact head `5d8192bb25e3ea62224ea38ac7a090edf3da25be` changed only `.github/workflows/skills-compat.yml` and `docs/INSTALLATION.md` at +134/-0;
-- exact-head `skills-compat` `33360432460` completed `SUCCESS` for the generic Agent Skills contract and all six clients, including byte-identical comparison of both installed skills against their canonical sources;
-- exact-head `ci` `33360432458` completed `SUCCESS` across Rust and dogfood jobs on Linux, macOS, and Windows plus proof-v1 schema validation on Linux;
-- no submitted reviews or inline review threads remained; Qodo reported only a billing pause and CodeRabbit reported only that automatic review was skipped;
+- PR #60 final exact head `5d8192bb25e3ea62224ea38ac7a090edf3da25be` passed `ci` `33360432458` and `skills-compat` `33360432460`;
 - expected-head squash merge produced canonical `066c0138e5e2970781cc91abba38797654f92c77`;
-- exact post-merge `skills-compat` `33360553460` completed `SUCCESS` for the generic contract and all six clients;
-- exact post-merge `ci` `33360553459` completed `SUCCESS` across the full cross-platform Rust and dogfood matrix.
+- exact post-merge `skills-compat` `33360553460` and `ci` `33360553459` completed `SUCCESS`.
 
 ## Phase E — Signed release-artifact contract
 
-- [ ] T440 Define the v1 signed release-candidate artifact set and provenance contract.
-- [ ] T441 Prove locked native builds for Linux, macOS, and Windows.
-- [ ] T442 Prove deterministic SHA-256 manifest closure over all native binaries.
-- [ ] T443 Prove GitHub/Sigstore provenance without repository-stored long-lived signing keys.
-- [ ] T444 Verify attestation subjects against exact candidate binaries on trusted canonical pushes.
-- [ ] T445 Document independent checksum and provenance verification.
-- [ ] T446 Keep public tag/release creation outside the capability milestone unless separately authorized.
-- [ ] T447 Merge and verify the signed release-artifact capability canonically.
+- [x] T440 Define the v1 signed release-candidate artifact set and provenance contract.
+- [x] T441 Prove locked native builds for Linux, macOS, and Windows.
+- [x] T442 Prove deterministic SHA-256 manifest closure over all native binaries.
+- [x] T443 Prove GitHub/Sigstore provenance without repository-stored long-lived signing keys.
+- [x] T444 Verify attestation subjects against exact candidate binaries on trusted canonical pushes.
+- [x] T445 Document independent checksum and provenance verification.
+- [x] T446 Keep public tag/release creation outside the capability milestone unless separately authorized.
+- [x] T447 Merge and verify the signed release-artifact capability canonically.
+
+T447 exact evidence:
+
+- PR #62 exact head `4dbc751e09808999df61383092c2720f289c34d8` changed only `docs/RELEASES.md` at +89/-0;
+- exact-head `ci` `33361112731` and `release` `33361112742` completed `SUCCESS`; the PR release run built locked Linux/macOS/Windows binaries and generated and verified the three-entry SHA-256 manifest, while signing and release drafting remained unavailable on the pull-request event;
+- no submitted reviews or inline review threads remained; Qodo reported only a billing pause and CodeRabbit reported only that automatic review was skipped;
+- expected-head squash merge produced canonical `b20b2671c75c5076fcf66397ee4a3f7c308bdfba`;
+- exact post-merge `ci` `33361219139` and `release` `33361219144` completed `SUCCESS`;
+- canonical `release` `33361219144` built and packaged the locked native binaries on all three hosts, generated and verified `SHA256SUMS`, created signed Sigstore provenance through GitHub OIDC, preserved the attestation bundle, verified every native binary subject, and uploaded the signed candidate;
+- `stage GitHub release draft` was intentionally skipped because no v1 tag or public release is authorized.
 
 ## Phase F — Integrated qualification and closeout
 
