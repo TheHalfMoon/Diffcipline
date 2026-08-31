@@ -107,7 +107,9 @@ fn published_policy_examples_are_accepted_by_the_cli_contract() {
             "{name} example did not produce proof-v1 JSON: {stdout}"
         );
         assert!(
-            stdout.contains("\"policy\":{\"mode\":\"repository\",\"sources\":[\".diffcipline.toml\"]}"),
+            stdout.contains(
+                "\"policy\":{\"mode\":\"repository\",\"sources\":[\".diffcipline.toml\"]}"
+            ),
             "{name} example did not load as repository policy: {stdout}"
         );
         assert!(
