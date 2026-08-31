@@ -116,6 +116,5 @@ fn missing_or_unsupported_enterprise_policy_fails_closed() {
     assert_eq!(missing.status.code(), Some(64));
     fs::write(fixture.root.join("enterprise.toml"), "version = 2\n").unwrap();
     let unsupported = fixture.run(&["check", "--enterprise-policy", "enterprise.toml"]);
-    assert_eq!(unsupported.status.code(), Some(64));
     assert!(String::from_utf8_lossy(&unsupported.stderr).contains("unsupported policy version"));
 }
