@@ -1,0 +1,184 @@
+name: verify-v1.0.0-release
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/verify-v1.0.0-release.yml"
+      - ".github/workflows/stage-v1.0.0-release.yml"
+      - ".github/workflows/release.yml"
+      - "crates/diffcipline-cli/Cargo.toml"
+      - "docs/RELEASES.md"
+      - "specs/**"
+  issue_comment:
+    types: [created]
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate immutable v1 release verifier
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Verify exact candidate checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Validate version, request contract, and verification tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
+          test "$crate_version" = "1.0.0"
+          parse_request() {
+            read -r command tag target_sha extra <<< "$1"
+            test "$command" = "/verify-release"
+            test "$tag" = "v1.0.0"
+            test -z "${extra:-}"
+            [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
+          }
+          parse_request "/verify-release v1.0.0 0123456789abcdef0123456789abcdef01234567"
+          ! parse_request "/verify-release v1.0.0 deadbeef"
+          gh attestation verify --help >/dev/null
+          gh release verify --help >/dev/null
+          gh release verify-asset --help >/dev/null
+          gh release download --help >/dev/null
+
+  verify:
+    name: verify published immutable v1.0.0
+    if: >-
+      (github.event_name == 'release' && github.event.release.tag_name == 'v1.0.0') ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request &&
+       github.event.comment.user.login == github.repository_owner &&
+       startsWith(github.event.comment.body, '/verify-release v1.0.0 '))
+    runs-on: ubuntu-latest
+    env:
+      TAG: v1.0.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: v1.0.0
+          fetch-depth: 0
+
+      - name: Verify fixed tag lineage, recorded SHA, and crate version
+        id: lineage
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUEST_BODY: ${{ github.event.comment.body }}
+        run: |
+          set -euo pipefail
+          tagged_sha="$(git rev-parse HEAD)"
+          if [[ "$GITHUB_EVENT_NAME" == "issue_comment" ]]; then
+            read -r command tag requested_sha extra <<< "$REQUEST_BODY"
+            test "$command" = "/verify-release"
+            test "$tag" = "$TAG"
+            test -z "${extra:-}"
+            [[ "$requested_sha" =~ ^[0-9a-f]{40}$ ]]
+            test "$requested_sha" = "$tagged_sha"
+          fi
+          git fetch origin main --no-tags
+          canonical_main_sha="$(git rev-parse origin/main)"
+          git merge-base --is-ancestor "$tagged_sha" "$canonical_main_sha"
+          remote_tag_sha="$(git ls-remote --refs origin "refs/tags/$TAG" | awk '{print $1}')"
+          test "$remote_tag_sha" = "$tagged_sha"
+          crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
+          test "$crate_version" = "1.0.0"
+          test "$TAG" = "v${crate_version}"
+          release_body="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq '.body')"
+          grep -Fq "$tagged_sha" <<< "$release_body"
+          echo "tagged_sha=$tagged_sha" >> "$GITHUB_OUTPUT"
+          echo "canonical_main_sha=$canonical_main_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Verify tag and staging authority evidence
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ steps.lineage.outputs.tagged_sha }}
+        run: |
+          set -euo pipefail
+          successful_issue_run() {
+            workflow="$1"
+            gh api -X GET "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs" \
+              -f event=issue_comment -f status=completed -f per_page=100 \
+              --jq --arg sha "$TARGET_SHA" '.workflow_runs | map(select(.head_sha == $sha and .conclusion == "success")) | sort_by(.id) | last | .id // empty'
+          }
+          test -n "$(successful_issue_run tag-v1.0.0.yml)"
+          test -n "$(successful_issue_run stage-v1.0.0-release.yml)"
+
+      - name: Verify immutable release state and release attestation
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')" = "false"
+          verified=false
+          for attempt in $(seq 1 12); do
+            if [[ "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isImmutable --jq '.isImmutable')" == "true" ]] && \
+               gh release verify "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              verified=true
+              break
+            fi
+            sleep 5
+          done
+          test "$verified" = "true"
+          gh release verify "$TAG" --repo "$GITHUB_REPOSITORY"
+
+      - name: Download and verify every published asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          rm -rf published
+          mkdir published
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir published
+          cd published
+          test -f SHA256SUMS
+          test -f PROVENANCE.sigstore.json
+          test "$(wc -l < SHA256SUMS)" -eq 3
+          test "$(find . -maxdepth 1 -type f | wc -l)" -eq 5
+          sha256sum -c SHA256SUMS
+          for file in diffcipline-*; do gh attestation verify "$file" --repo "$GITHUB_REPOSITORY"; done
+          for file in *; do gh release verify-asset "$TAG" "$file" --repo "$GITHUB_REPOSITORY"; done
+
+      - name: Record canonical release verification evidence
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAGGED_SHA: ${{ steps.lineage.outputs.tagged_sha }}
+          CANONICAL_MAIN_SHA: ${{ steps.lineage.outputs.canonical_main_sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --json tagName,url,isDraft,isImmutable,publishedAt,body,assets > evidence/release.json
+          (cd published && sha256sum *) > evidence/published-assets.sha256
+          cat > evidence/verification.txt <<EOF
+          tag=$TAG
+          tag_sha=$TAGGED_SHA
+          canonical_main_sha=$CANONICAL_MAIN_SHA
+          workflow_run_id=$GITHUB_RUN_ID
+          workflow_run_attempt=$GITHUB_RUN_ATTEMPT
+          workflow_sha=$GITHUB_SHA
+          source_event=$GITHUB_EVENT_NAME
+          release_immutable=true
+          release_attestation=verified
+          release_assets=verified
+          EOF
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: v1.0.0-release-verification
+          path: evidence/*
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
