@@ -2,35 +2,44 @@
 
 Live GitHub/repository truth overrides this snapshot.
 
-## Canonical authority
+## Canonical chain
 
-Spec 006 is `COMPLETE_CANONICAL` at `91ba5389e26be2d8330fcc9c938d1f33bf120bec`.
+- planning authority: `768a3980e99c4dac4e49b55d39f1d66366025ae8`;
+- Phase B: `f3bcf163466feb853d3d441f326b758c5b9bce8e`;
+- Phase C: `91ab45bc729b578cda37aed159bb4dbdd8e2f545`;
+- Phase D: `41adfcd3d2ca6e16c85bddff8d976239f9d97d67`.
 
-Spec 007 planning authority is canonical at `768a3980e99c4dac4e49b55d39f1d66366025ae8`.
+Phase D exact post-merge gates:
 
-Phase B is canonical at `f3bcf163466feb853d3d441f326b758c5b9bce8e`; post-merge `ci` `33428154407`, `skills-compat` `33428154408`, and `release` `33428154493` completed `SUCCESS`.
+- `ci` `33431396088` — `SUCCESS`;
+- `skills-compat` `33431396169` — `SUCCESS`;
+- `release` `33431395958` — `SUCCESS`.
 
-Phase C is canonical at `91ab45bc729b578cda37aed159bb4dbdd8e2f545`; post-merge `ci` `33429154442`, `skills-compat` `33429154536`, and `release` `33429154544` completed `SUCCESS`.
+T700–T734 are complete.
 
-T700–T725 are therefore complete.
+## Phase E candidate
 
-## Phase D candidate
+Branch: `docs/007-comparative-evidence`.
 
-Branch: `docs/007-trust-contribution`.
+Source identity was frozen before conclusions on 2026-08-31:
 
-This bounded unit:
+- `obra/superpowers@b36e0829c6d0140e93cfef2ca599b1b07d4a7797`;
+- `Aurite-ai/agent-verifier@d4b6c010be1a897a72c93f648beab64e41b8199c`;
+- `renezander030/skillgate@1ffd54cb32b8e834feb93b1b6d1f1a0a1472eff7`;
+- `agent-contracts/agent-task-contract@6f844d9b83eecf896427e491d4072982187b957e`.
 
-1. strengthens `SECURITY.md` with private-reporting guidance, supported-version policy, executable-policy trust boundary, and a proof-before-disclosure fix standard;
-2. adds a reproducible bug issue form that asks for exact version, environment, minimal reproduction, expected/actual behavior, and machine evidence without secrets;
-3. adds a proof/evidence failure form that captures exact policy, command, Git state, observed verdict, and expected repository fact;
-4. strengthens `CONTRIBUTING.md` around surgical scope, dependency restraint, exact-head proof, NOT RUN semantics, benchmark integrity, and security handling;
-5. keeps GitHub Discussions disabled because no maintained discussion workflow or response commitment exists; an unattended channel is not treated as a leadership feature;
-6. updates the canonical ledger to close Phase C and identify T734 as the qualification gate.
+`specs/007-category-leadership/comparator-snapshot.md` fixes ten observable dimensions and conservative evidence labels before `docs/COMPARISON.md` draws conclusions.
 
-No product semantics, dependency, manifest, lockfile, release, tag, asset, or historical benchmark evidence is changed.
+The matrix must keep three evidence classes separate:
 
-T730–T733 become canonical only after T734: exact-head workflow success, review/thread/comment and main reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` success.
+1. structural capability evidence;
+2. benchmark/experiment evidence;
+3. adoption/discoverability signals.
+
+`Not established` means only that the frozen reviewed source did not establish the capability; it is not a claim of impossibility or absence outside the snapshot.
+
+T740–T743 become canonical only after T744 exact-head qualification, source revalidation, clean reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` success.
 
 ## Next unit
 
-After T734, Phase E freezes a timestamped comparator set and publishes bounded source-cited comparative evidence. Popularity and model recommendations remain observations, not engineering-quality proof.
+After T744, decide T750 honestly. If no separately authorized capable evaluation environment exists, record the stronger experiment as `NOT RUN` without weakening or inflating comparative claims, then proceed to the discoverability audit.
