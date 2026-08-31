@@ -13,6 +13,8 @@ The public `v1.0.0` release is published and immutable. Its Linux, macOS, and Wi
 - **Adoption guide:** [`docs/ADOPTION.md`](docs/ADOPTION.md)
 - **Validated policy examples:** [`examples/README.md`](examples/README.md)
 - **Independent validation protocol:** [`docs/INDEPENDENT-VALIDATION.md`](docs/INDEPENDENT-VALIDATION.md)
+- **GitHub metadata recommendation:** [`docs/GITHUB-METADATA.md`](docs/GITHUB-METADATA.md)
+- **Post-change discoverability snapshot:** [`docs/DISCOVERABILITY-2026-09-01.md`](docs/DISCOVERABILITY-2026-09-01.md)
 - **Proof contract:** [`docs/PROOF-CONTRACT.md`](docs/PROOF-CONTRACT.md)
 - **Release verification:** [`docs/RELEASES.md`](docs/RELEASES.md)
 - **Benchmark evidence and limitations:** [`benchmarks/PROTOCOL.md`](benchmarks/PROTOCOL.md)
