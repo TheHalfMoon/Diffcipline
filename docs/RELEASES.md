@@ -2,6 +2,95 @@
 
 Diffcipline release artifacts are built from locked Cargo inputs. The canonical v0.1 release candidate was built on the exact tagged commit, combined into a deterministic SHA-256 manifest, and signed with GitHub/Sigstore provenance before the tag was created.
 
+## v1 signed release-candidate capability contract
+
+Spec 004 v1 defines a **release-candidate capability**, not a public v1 release. The contract promotes the repository's existing `.github/workflows/release.yml` machinery into an explicit qualification surface without authorizing creation or movement of a v1 tag, draft release, or published release.
+
+### Candidate artifact sets
+
+A pull-request qualification run produces the `release-candidate` artifact with exactly four files:
+
+- one `diffcipline-<rust-host>` binary built on Linux;
+- one `diffcipline-<rust-host>` binary built on macOS;
+- one `diffcipline-<rust-host>.exe` binary built on Windows;
+- `SHA256SUMS`, containing exactly one sorted SHA-256 entry for each of those three binaries.
+
+The manifest closes over the three native binaries only. It does not hash itself and it does not contain a provenance-bundle entry.
+
+A trusted canonical push additionally produces `signed-release-candidate` with exactly five files:
+
+- the same three host-native binaries;
+- the same `SHA256SUMS` closure over those binaries;
+- `PROVENANCE.sigstore.json`, the Sigstore bundle emitted from the GitHub artifact attestation.
+
+Pull requests intentionally do not receive signing permissions. A PR can therefore qualify exact checkout, locked native builds, packaging, checksum closure, and verification tooling, while trusted canonical push evidence is required to qualify signing and attestation-subject verification.
+
+### Build and checksum invariants
+
+Every accepted v1 candidate must satisfy all of the following:
+
+1. every build job checks out the exact candidate SHA and verifies `git rev-parse HEAD` before building;
+2. all three native binaries are built with `cargo build --release --locked --package diffcipline`;
+3. each packaged binary executes `--help` successfully on its host runner before upload;
+4. the aggregate job downloads all three host artifacts with digest-mismatch failure enabled;
+5. `SHA256SUMS` is generated in deterministic filename order and contains exactly three entries;
+6. `sha256sum -c SHA256SUMS` succeeds before the candidate artifact is accepted.
+
+The candidate is incomplete if any host build, checksum entry, or checksum verification is missing. A successful build on one platform cannot substitute for another platform.
+
+### Keyless provenance invariants
+
+On a trusted push, the release workflow uses GitHub OIDC and `actions/attest` to sign provenance from the exact `SHA256SUMS` subjects. The attestation job receives short-lived `id-token: write` authority and does not read a repository-stored private signing key.
+
+The workflow must then:
+
+1. preserve the emitted bundle as `PROVENANCE.sigstore.json`;
+2. run `gh attestation verify` against every `diffcipline-*` binary in the signed candidate;
+3. fail if any declared binary is not a valid subject of the repository's GitHub artifact attestation;
+4. upload the complete five-file `signed-release-candidate` only after subject verification succeeds.
+
+Repository-stored long-lived signing credentials are outside this contract and are not required for v1 provenance.
+
+### Independent verification
+
+After downloading one complete candidate directory on a Unix-like system, verify byte integrity with:
+
+```bash
+sha256sum -c SHA256SUMS
+```
+
+For a trusted signed candidate, verify all native binary subjects with a current GitHub CLI:
+
+```bash
+for file in diffcipline-*; do
+  gh attestation verify "$file" --repo TheHalfMoon/Diffcipline
+done
+```
+
+On PowerShell, the checksum manifest can be verified independently without trusting the build script:
+
+```powershell
+Get-Content SHA256SUMS | ForEach-Object {
+  $parts = $_ -split '\s+', 2
+  $expected = $parts[0].ToLowerInvariant()
+  $path = $parts[1].Trim().TrimStart('*')
+  $actual = (Get-FileHash -Algorithm SHA256 $path).Hash.ToLowerInvariant()
+  if ($actual -ne $expected) { throw "SHA-256 mismatch: $path" }
+}
+```
+
+Checksum verification proves that the downloaded binaries match the declared manifest. GitHub/Sigstore attestation verification independently binds each binary digest to the repository's trusted GitHub Actions identity. Neither check is a substitute for reviewing the source change when source correctness matters to the threat model.
+
+### Public-release boundary
+
+Spec 004 Phase E and its integrated closeout do **not** authorize a public v1 tag or release. The `stage GitHub release draft` job is expected to remain skipped on branch and `main` push qualification because it is guarded by `refs/tags/v*`.
+
+Creating or moving a v1 tag, staging a v1 GitHub release, or publishing a v1 release is a separate irreversible release decision that requires its own explicit canonical authority. Successful v1 capability qualification must not be presented as evidence that a public v1 release exists.
+
+### Evidence and retention boundary
+
+GitHub Actions candidate artifacts have finite retention and are qualification evidence rather than permanent public distribution. The durable repository contract is the workflow plus canonical machine-observed run evidence. A later authorized public release would need its own immutable publication and verification evidence rather than relying on an expired workflow artifact.
+
 ## Release artifacts
 
 A published release contains exactly five assets:
