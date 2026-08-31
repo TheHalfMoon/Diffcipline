@@ -2,9 +2,9 @@
 
 ## Status
 
-`ACTIVE_CANONICAL`
+`COMPLETE_CANONICAL`
 
-This status becomes effective only after this planning authority is merged to canonical `main` and the resulting canonical SHA passes exact post-merge `ci`, `skills-compat`, and `release`. Until then, this branch is only the activation candidate.
+This status is recorded only after T772 was machine-observed. It becomes effective canonical truth only after the exact T773 evidence-record unit is merged and its resulting canonical commit passes exact post-merge `ci`, `skills-compat`, and `release`.
 
 ## Purpose
 
@@ -78,6 +78,18 @@ Spec 007 is complete only when:
 - a timestamped discoverability audit is published;
 - every canonical implementation unit passes exact-head qualification, reconciliation, expected-head merge, and exact post-merge repository gates;
 - terminal closeout is itself canonically qualified.
+
+## Completion record
+
+T771/T772 terminal qualification is canonical at `2103a2be6e1bff7e5b2972cd91ccca39fbe43caf` after exact post-merge:
+
+- `ci` `33435932948` — `SUCCESS`;
+- `skills-compat` `33435932927` — `SUCCESS`;
+- `release` `33435932967` — `SUCCESS`.
+
+The exact terminal PR head, all nine pull-request qualification runs, clean reconciliation facts, expected-head merge, and post-merge proof are preserved in `t773-complete-canonical.md`.
+
+T773 is therefore recorded after its prerequisite exists. Spec 007 becomes effectively `COMPLETE_CANONICAL` only when the T773 evidence-record unit itself is canonically qualified under the same proof-before-done discipline.
 
 ## Non-goals
 

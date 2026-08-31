@@ -29,9 +29,10 @@
 
 ## Phase H — Terminal closeout
 - [x] T770 Reconcile all public surfaces/evidence against canonical `main`; repair the machine-readable evidence links and the incorrect v0.1 summary metric without mutating frozen benchmark evidence. Evidence: `terminal-reconciliation.md`.
-- [ ] T771 Qualify exact terminal candidate and reconcile reviews, threads, comments, mergeability, and main. Candidate branch: `spec/007-terminal-qualification`.
-- [ ] T772 Merge only expected head and require exact post-merge `ci`, `skills-compat`, `release` success.
-- [ ] T773 Record `COMPLETE_CANONICAL` only after T772 is machine-observed.
+- [x] T771 Qualify exact terminal candidate and reconcile reviews, threads, comments, mergeability, and main. Exact head `49ba1c44f2d076c271dd9d970f5f7456ab18df83`; all nine PR workflows `SUCCESS`; no submitted reviews or inline threads; no substantive comments; canonical main remained `735e61c5db24df45fdca4e6d80f3982f82abdf5d` before merge.
+- [x] T772 Merge only expected head and require exact post-merge `ci`, `skills-compat`, `release` success. Canonical terminal qualification `2103a2be6e1bff7e5b2972cd91ccca39fbe43caf`; post-merge `ci` `33435932948`, `skills-compat` `33435932927`, and `release` `33435932967` all `SUCCESS`.
+- [x] T773 Record `COMPLETE_CANONICAL` after T772 is machine-observed. Evidence: `t773-complete-canonical.md`. This status becomes effective canonical truth only after the exact T773 evidence-record unit itself qualifies, reconciles, merges by expected head, and its resulting canonical commit passes exact post-merge `ci`, `skills-compat`, and `release`.
 
 ## Ordering
-T763 gates terminal closeout. T773 is recorded only after T772 is machine-observed.
+
+All Spec 007 authorized tasks are complete. After the T773 evidence-record unit becomes canonical under its own post-merge condition, any new category-leadership work requires a new canonical specification or separately authorized maintenance unit rather than reopening this task list implicitly.
