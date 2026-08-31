@@ -5,24 +5,24 @@
 - [x] T700 Confirm Spec 006 is `COMPLETE_CANONICAL`, `v1.0.0` is published immutable, published-release verification succeeded, and terminal Spec 006 post-merge gates succeeded.
 - [x] T701 Re-read canonical `main`, `AGENTS.md`, `CONSTITUTION.md`, `specs/CURRENT.md`, Spec 006 terminal evidence, README, release metadata, and repository metadata.
 - [x] T702 Refresh the public ecosystem snapshot and comparator set without converting popularity into quality evidence.
-- [x] T703 Qualify and merge this Spec 007 planning authority. This item becomes effective only after expected-head merge and successful exact post-merge `ci`, `skills-compat`, and `release` on the resulting canonical SHA.
+- [x] T703 Qualify and merge the Spec 007 planning authority. Canonical authority `768a3980e99c4dac4e49b55d39f1d66366025ae8`; post-merge `ci` `33426507275`, `skills-compat` `33426507265`, and `release` `33426507377` completed `SUCCESS`.
 
 ## Phase B — First-screen truth and installability
 
-- [ ] T710 Replace pre-publication README language with verified immutable `v1.0.0` truth.
-- [ ] T711 Rewrite the README first screen around factual category identity, deterministic proof, minimal installation, and evidence links.
-- [ ] T712 Add and machine-test a copy/paste quickstart that reaches an actual Diffcipline verdict.
-- [ ] T713 Verify skills.sh indexing and add only live evidence-backed badges.
-- [ ] T714 Verify every first-screen claim against canonical behavior or immutable evidence and merge the qualified unit.
+- [x] T710 Replace pre-publication README language with verified immutable `v1.0.0` truth.
+- [x] T711 Rewrite the README first screen around factual category identity, deterministic proof, minimal installation, and evidence links.
+- [x] T712 Add and machine-test a copy/paste quickstart that reaches an actual Diffcipline verdict.
+- [x] T713 Verify skills.sh indexing and add only live evidence-backed badges. Public search on 2026-08-31 did not surface Diffcipline, so no install-count badge was added.
+- [x] T714 Verify every first-screen claim and merge the qualified unit. Canonical Phase B `f3bcf163466feb853d3d441f326b758c5b9bce8e`; post-merge `ci` `33428154407`, `skills-compat` `33428154408`, and `release` `33428154493` completed `SUCCESS`.
 
 ## Phase C — Discovery and machine-readable identity
 
-- [ ] T720 Set a concise factual GitHub repository description where tooling permits.
-- [ ] T721 Set a focused GitHub topic set where tooling permits; record an explicit administrative limitation otherwise.
-- [ ] T722 Set a homepage only if a stable canonical destination exists.
-- [ ] T723 Add `llms.txt` with factual identity, install, capability, evidence, limitation, and citation pointers.
-- [ ] T724 Add `CITATION.cff` only if stable authorship/release metadata can be represented truthfully.
-- [ ] T725 Add a compact capability-to-evidence matrix and merge the qualified unit.
+- [x] T720 Attempt concise factual GitHub repository description where tooling permits. Live description remains empty because the available authenticated GitHub execution surface exposes no repository-metadata mutation action; limitation recorded rather than fabricated.
+- [x] T721 Attempt a focused GitHub topic set where tooling permits. Live topics remain empty for the same explicit administrative/tooling limitation.
+- [x] T722 Set a homepage only if a stable canonical destination exists. No independent canonical site exists, so homepage remains intentionally unset and the GitHub repository remains canonical.
+- [x] T723 Add `llms.txt` with factual identity, install, capability, evidence, limitation, and citation pointers.
+- [x] T724 Add truthful CFF 1.2.0 citation metadata for immutable `v1.0.0` using stable entity authorship and exact release commit.
+- [ ] T725 Add a compact capability-to-evidence matrix and merge the qualified unit. The matrix exists on the candidate branch; completion requires exact-head qualification, reconciliation, expected-head merge, and exact post-merge gates.
 
 ## Phase D — Trust and contribution surface
 
