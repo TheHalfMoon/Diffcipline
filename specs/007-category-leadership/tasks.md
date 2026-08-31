@@ -22,15 +22,15 @@
 - [x] T722 Set a homepage only if a stable canonical destination exists. No independent canonical site exists, so homepage remains intentionally unset and the GitHub repository remains canonical.
 - [x] T723 Add `llms.txt` with factual identity, install, capability, evidence, limitation, and citation pointers.
 - [x] T724 Add truthful CFF 1.2.0 citation metadata for immutable `v1.0.0` using stable entity authorship and exact release commit.
-- [ ] T725 Add a compact capability-to-evidence matrix and merge the qualified unit. The matrix exists on the candidate branch; completion requires exact-head qualification, reconciliation, expected-head merge, and exact post-merge gates.
+- [x] T725 Add a compact capability-to-evidence matrix and merge the qualified unit. Canonical Phase C `91ab45bc729b578cda37aed159bb4dbdd8e2f545`; post-merge `ci` `33429154442`, `skills-compat` `33429154536`, and `release` `33429154544` completed `SUCCESS`.
 
 ## Phase D — Trust and contribution surface
 
-- [ ] T730 Add `SECURITY.md` with a real reporting path and supported-version statement.
-- [ ] T731 Add narrowly useful issue templates for reproducible bugs and proof/evidence failures.
-- [ ] T732 Strengthen `CONTRIBUTING.md` around exact-head proof, benchmark integrity, dependency restraint, and surgical scope.
-- [ ] T733 Decide whether Discussions has a maintained purpose; enable only if operationally supported.
-- [ ] T734 Qualify and merge the trust/community unit.
+- [ ] T730 Strengthen `SECURITY.md` with private-reporting guidance, a supported-version statement, executable-policy trust boundary, and disclosure standard. Candidate exists on `docs/007-trust-contribution`; completion requires T734.
+- [ ] T731 Add narrowly useful issue forms for reproducible bugs and proof/evidence failures without collecting secrets. Candidate exists on `docs/007-trust-contribution`; completion requires T734.
+- [ ] T732 Strengthen `CONTRIBUTING.md` around exact-head proof, benchmark integrity, dependency restraint, and surgical scope. Candidate exists on `docs/007-trust-contribution`; completion requires T734.
+- [ ] T733 Decide whether Discussions has a maintained purpose. Current decision: keep Discussions disabled because no maintained discussion workflow is defined; do not enable an unattended public channel. Completion requires T734.
+- [ ] T734 Qualify and merge the trust/community unit, then require exact post-merge `ci`, `skills-compat`, and `release` success.
 
 ## Phase E — Comparative evidence
 
