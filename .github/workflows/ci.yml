@@ -157,17 +157,17 @@ jobs:
               return normalized
 
           lock_pattern = re.compile(
-              r'(\[\[package\]\]\nname = "diffcipline"\nversion = ")[^"]+("\n)'
+              r'(\[\[package\]\]\s*\nname = "diffcipline"\s*\nversion = ")([^"]+)(")'
           )
 
           def lock_version(text: str) -> str:
               match = lock_pattern.search(text)
               assert match
-              return text[match.start(1) + len(match.group(1)):match.end(2) - 2]
+              return match.group(2)
 
           def normalize_lock(text: str) -> str:
               normalized, count = lock_pattern.subn(
-                  r'\g<1><VERSION>\g<2>', text, count=1
+                  r'\g<1><VERSION>\g<3>', text, count=1
               )
               assert count == 1
               return normalized
