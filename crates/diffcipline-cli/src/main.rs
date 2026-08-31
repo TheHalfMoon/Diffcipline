@@ -744,18 +744,42 @@ fn parse_array(value: &str, field: &str) -> Result<Vec<String>, String> {
         return Ok(Vec::new());
     }
 
-    inner
-        .split(',')
-        .map(|item| {
-            let item = item.trim();
-            if item.len() < 2 || !item.starts_with('"') || !item.ends_with('"') {
-                return Err(format!("{field} must contain quoted strings"));
+    let mut items = Vec::new();
+    let mut start = 0;
+    let mut quoted = false;
+    let mut escaped = false;
+
+    for (index, character) in inner.char_indices() {
+        match character {
+            '\\' if quoted => escaped = !escaped,
+            '"' if !escaped => {
+                quoted = !quoted;
+                escaped = false;
             }
-            Ok(item[1..item.len() - 1]
-                .replace("\\\"", "\"")
-                .replace("\\\\", "\\"))
-        })
-        .collect()
+            ',' if !quoted => {
+                items.push(parse_array_item(&inner[start..index], field)?);
+                start = index + 1;
+                escaped = false;
+            }
+            _ => escaped = false,
+        }
+    }
+
+    if quoted {
+        return Err(format!("{field} must contain quoted strings"));
+    }
+    items.push(parse_array_item(&inner[start..], field)?);
+    Ok(items)
+}
+
+fn parse_array_item(item: &str, field: &str) -> Result<String, String> {
+    let item = item.trim();
+    if item.len() < 2 || !item.starts_with('"') || !item.ends_with('"') {
+        return Err(format!("{field} must contain quoted strings"));
+    }
+    Ok(item[1..item.len() - 1]
+        .replace("\\\"", "\"")
+        .replace("\\\\", "\\"))
 }
 
 fn parse_patterns(value: &str, field: &str) -> Result<Vec<String>, String> {
