@@ -1,10 +1,14 @@
 # Current specification
 
-Active: Spec 008 / Integration & Adoption Readiness
+Active after this completion-record unit becomes canonical: none.
 
-Status: `ACTIVE_CANONICAL`
+Status recorded by this unit: `COMPLETE_CANONICAL`
 
 Live GitHub/repository truth overrides this file.
+
+The status above becomes effective canonical truth only after the exact T843 completion-record candidate itself passes all nine required pull-request workflows, reconciles reviews/threads/comments/mergeability/exact head/canonical `main`, merges by expected head, and the resulting canonical commit passes exact post-merge `ci`, `skills-compat`, and `release`.
+
+Until those conditions are machine-observed, canonical `main` remains the prior terminal-reconciliation state and Spec 008 must not be treated as effectively complete merely because this candidate records the status.
 
 ## Completed roadmap history
 
@@ -24,20 +28,28 @@ Phase C / adoption and independent validation: `498df9f4c0260f6deb87861f4e27f882
 
 Phase D / metadata handoff and discoverability observation: `cc52f2c95e67eca1458549b6639c6080c0feb533` — post-merge `ci` `33441805035`, `skills-compat` `33441805026`, `release` `33441805093` all `SUCCESS`.
 
-The canonical repository now contains validated Rust/Node/Python/Go policy examples, bounded adoption guidance, a reproducible independent-validation protocol against immutable `v1.0.0`, exact GitHub metadata recommendations with truthful application status, and a new dated discoverability snapshot that preserves the historical Spec 007 audit.
+Terminal reconciliation: `f8314f34135afab2bd7801afb0658d40441f598e` — post-merge `ci` `33442409478`, `skills-compat` `33442409398`, `release` `33442409380` all `SUCCESS`.
+
+Terminal reconciliation PR #92 exact head `c7e60b1b5f4c63311655215ef172c8de565e11e2` passed all nine required pull-request workflows and reconciled with no submitted reviews or inline review threads, no substantive comments, mergeability `true`, exact head unchanged, and canonical `main` still `cc52f2c95e67eca1458549b6639c6080c0feb533` before expected-head squash merge.
+
+T840, T841, and T842 are machine-observed complete.
+
+## Completion-record frontier
+
+Branch `docs/008-complete-canonical` is the sole remaining Spec 008 unit. It records T843 and `COMPLETE_CANONICAL` only after T842 machine proof exists.
+
+The candidate is limited to the Spec 008 completion record and canonical status/frontier/task surfaces. It does not alter implementation, workflows, dependencies, lockfiles, releases, tags, assets, benchmark results, proof semantics, or historical evidence.
+
+Effective completion requires exact-head qualification of this candidate through all nine pull-request workflows, clean review/thread/comment/mergeability/main reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` success.
+
+After that final proof is machine-observed, Specs 001–008 are `COMPLETE_CANONICAL`, there is no active authorized implementation specification, and any new repository-controlled work requires a new canonical specification or separately authorized maintenance unit.
 
 ## Preserved limitations
 
-Frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage, no stronger experiment is represented as having run, broad discovery/adoption remains an explicit gap, and unavailable independent model recommendation systems remain `NOT TESTED`.
+Frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage, no stronger experiment is represented as having run, broad discovery/adoption remains an explicit gap, and unavailable independent model recommendation systems remain `NOT TESTED` where no separately preserved third-party observation surface was available.
 
-Live repository metadata was re-read during terminal reconciliation and still reports description unset, topics empty, and homepage unset. The authenticated execution surface still exposes no repository description/topics mutation action. The exact application status remains `NOT APPLIED — TOOLING UNAVAILABLE`.
+Repository metadata remains truthfully recorded as `NOT APPLIED — TOOLING UNAVAILABLE`; live GitHub was last reconciled with description unset, topics empty, and homepage unset because the authenticated execution surface exposes no supported repository metadata mutation action.
 
-Public `v1.0.0` remains immutable and tag `v1.0.0` still resolves to `5cb1c77340b75649f6168e0e8f66479ea047ea96`. Historical `docs/DISCOVERABILITY.md` remains unchanged at blob `013791e04fd30607f1f64f4a8218c000a8f0ab73`.
+Historical `docs/DISCOVERABILITY.md` remains preserved at blob `013791e04fd30607f1f64f4a8218c000a8f0ab73`.
 
-## Active frontier
-
-Phase E terminal reconciliation is the active candidate. `specs/008-integration-adoption-readiness/terminal-reconciliation.md` reconciles every completion criterion against canonical Phase D and records the bounded public-surface corrections in this candidate.
-
-T841 requires exact-head qualification and clean review/thread/comment/mergeability/canonical-main reconciliation. T842 then requires expected-head merge and exact post-merge `ci`, `skills-compat`, and `release` success.
-
-Spec 008 remains `ACTIVE_CANONICAL`. T843 may record `COMPLETE_CANONICAL` only after T842 is machine-observed, and that completion record must itself be exact-head qualified, reconciled, expected-head merged, and exact-postmerge verified before completion becomes effective.
+Public `v1.0.0` remains immutable and tag `v1.0.0` resolves to release commit `5cb1c77340b75649f6168e0e8f66479ea047ea96`.
