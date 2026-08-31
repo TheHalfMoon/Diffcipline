@@ -6,24 +6,34 @@ Live GitHub/repository truth overrides this snapshot.
 
 Spec 005 is `COMPLETE_CANONICAL` at `e64a6ae9ad50edc9e08a1392c23134f96d4d7587` after terminal post-merge `ci` `33398836802`, `skills-compat` `33398836751`, and `release` `33398836807` all completed `SUCCESS`.
 
-Spec 006 planning authority is canonical at `ccdaa65b7ff48775ffa72e20f8d2dbf024ee3577`. PR #69 exact head `2d633052e990b5ba852495eecb49d1b2a5d25ab6` passed `ci` `33399447630`, `skills-compat` `33399447639`, `release` `33399447636`, and every historical v0.1 guard. Exact post-merge `ci` `33399584260`, `skills-compat` `33399584290`, and `release` `33399584278` all completed `SUCCESS`; the canonical release run proved the three locked native builds, deterministic checksum closure, signed Sigstore provenance, and every binary attestation subject.
+Spec 006 planning authority is canonical at `ccdaa65b7ff48775ffa72e20f8d2dbf024ee3577`.
 
-The only pre-v1 tag/release remains immutable historical `v0.1.0` at `ab434ae114b5f11ea9eb882bf572831dc7634531`.
+The first Phase B implementation unit is canonical at `a36f1fc867b2da565cd3168fa44f13aa9c1b8893`. PR #70 exact head `cb760c9a37a9168b5d9947b5927e1c8cb2095746` passed `ci` `33401308999`, `skills-compat` `33401309458`, `release` `33401308837`, `tag-v1.0.0` `33401308830`, and all historical v0.1 guards. Expected-head merge produced `a36f1fc867b2da565cd3168fa44f13aa9c1b8893`; exact post-merge `ci` `33401705271`, `skills-compat` `33401705118`, and `release` `33401705332` all completed `SUCCESS`. The canonical release run proved all three locked native builds, deterministic checksum closure, signed Sigstore provenance, and every binary attestation subject.
 
-## Current Phase B candidate
+Canonical `main` now carries crate and lockfile version `1.0.0`, the v1 changelog entry, guarded `v1.0.0` tag authority, and preserved immutable v0.1 validation.
 
-The current implementation branch is limited to the version and guarded-tag authority surface:
+The only existing tag/release remains immutable historical `v0.1.0` at `ab434ae114b5f11ea9eb882bf572831dc7634531`. No `v1.0.0` tag or release exists at this frontier.
 
-- crate and lockfile version are `1.0.0`;
-- `CHANGELOG.md` records only machine-proven v1 capabilities and keeps publication completion conditional on the immutable verifier;
-- new `tag-v1.0.0.yml` accepts only the owner-authored exact `/release v1.0.0 <sha>` contract, requires `origin/main` to equal that SHA, requires successful exact-SHA canonical `ci`, `skills-compat`, and `release` push runs, refuses an existing tag, and creates a lightweight tag only at the verified SHA;
-- `release.yml` now qualifies changes to the v1 tag authority;
-- historical v0.1 PR validators resolve version `0.1.0` from the fixed immutable v0.1 tag instead of incorrectly requiring the current crate to remain at 0.1.0 forever.
+## Current Phase B staging candidate
 
-No tag has been created and no release has been staged or published by this candidate.
+The current bounded unit implements only T612 recovery staging plus its canonical evidence bookkeeping:
 
-## Next gates
+- owner-only request contract `/stage-release v1.0.0 <exact-release-sha>`;
+- exact tag target, canonical-main ancestry, and crate-version verification;
+- exact-SHA successful canonical `ci`, `skills-compat`, and `release` evidence plus successful v1 tag-authority evidence;
+- exactly one non-expired `signed-release-candidate` selected from the resolved canonical release run;
+- dynamic artifact ID/digest recording rather than hard-coded future artifact identity;
+- exact five-file closure, three-entry `SHA256SUMS`, checksum verification, and every binary attestation verification;
+- refusal to replace an existing release;
+- draft-only creation with the exact release SHA recorded in release notes;
+- complete five-asset round-trip byte comparison and 90-day staging evidence.
 
-Qualify this exact bounded candidate and make its version/tag-authority changes canonical. Then implement T612/T613 recovery staging and immutable published-release verification, complete T610 release documentation, and use that second unit as the final T614/T615 publication-implementation candidate.
+No path in this workflow publishes a release.
 
-T615 still gates any `v1.0.0` tag creation.
+## Policy-preserving split
+
+A combined T612 + T613 + runbook candidate measured `+473` lines, exceeding `.diffcipline.toml` `max_added_lines = 400`. The implementation is therefore split into separate canonical units rather than increasing or weakening repository policy.
+
+After T612 becomes canonical, the final bounded unit will add T613 immutable published-release verification and finish T610 publication documentation. That final unit will be the T614 exact-head candidate and, after expected-head merge plus post-merge qualification, the T615 canonical release commit.
+
+T615 still gates any `v1.0.0` tag creation. A verified draft will still not authorize publication without the independent administrator immutability prerequisite.
