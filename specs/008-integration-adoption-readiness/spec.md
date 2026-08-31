@@ -2,9 +2,9 @@
 
 ## Status
 
-`ACTIVE_CANDIDATE`
+`ACTIVE_CANONICAL`
 
-This authority becomes `ACTIVE_CANONICAL` only after this planning unit passes exact-head qualification, clean reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` on the resulting canonical commit.
+Activation is canonical at `60fb2643c2710f0e262c2b007ca4192f039d30c3` after exact post-merge `ci`, `skills-compat`, and `release` success.
 
 ## Purpose
 
@@ -23,6 +23,16 @@ Spec 007 is `COMPLETE_CANONICAL` at `108ed30e9d8fd00b7d0a6202cba5c433476c9ea9` a
 - `release` `33436852085` — `SUCCESS`.
 
 Public `v1.0.0` remains immutable at release commit `5cb1c77340b75649f6168e0e8f66479ea047ea96`.
+
+## Activation record
+
+Planning PR #88 exact head `693e1bc81af394e77c96e7a373be8118ca301bb3` passed all nine required pull-request workflows, reconciled with no submitted reviews or inline review threads and no substantive comments, and was squash-merged by expected head to `60fb2643c2710f0e262c2b007ca4192f039d30c3`.
+
+Exact activation post-merge:
+
+- `ci` `33439088987` — `SUCCESS`;
+- `skills-compat` `33439088957` — `SUCCESS`;
+- `release` `33439088976` — `SUCCESS`.
 
 ## Principles
 
