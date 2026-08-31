@@ -6,6 +6,10 @@ Diffcipline release artifacts are built from locked Cargo inputs. The canonical 
 
 Spec 004 v1 defines a **release-candidate capability**, not a public v1 release. The contract promotes the repository's existing `.github/workflows/release.yml` machinery into an explicit qualification surface without authorizing creation or movement of a v1 tag, draft release, or published release.
 
+### Capability status
+
+The v1 signed release-candidate capability is implemented and qualified on canonical `main`. Trusted canonical pushes exercise the locked three-platform build, deterministic checksum closure, keyless GitHub/Sigstore provenance, and attestation-subject verification before a signed candidate is accepted. This status does not imply that a public `v1.0` tag or GitHub release exists.
+
 ### Candidate artifact sets
 
 A pull-request qualification run produces the `release-candidate` artifact with exactly four files:
