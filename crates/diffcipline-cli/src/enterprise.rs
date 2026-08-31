@@ -266,3 +266,27 @@ fn layered_scope_violations(
     }
     reasons
 }
+
+#[cfg(test)]
+mod release_polish_regression {
+    use super::*;
+
+    #[test]
+    fn quoted_verification_commands_preserve_commas() {
+        let policy = parse_policy(
+            "version = 1\n[verification]\ncommands = [\"echo alpha,beta\", \"cargo test\"]\n\
+r1_commands = [\"printf one,two\"]\n",
+        )
+        .unwrap();
+
+        assert_eq!(policy.commands, ["echo alpha,beta", "cargo test"]);
+        assert_eq!(policy.r1_commands, ["printf one,two"]);
+    }
+
+    #[test]
+    fn malformed_quoted_arrays_fail_closed() {
+        assert!(parse_array("[\"echo alpha,beta]", "commands").is_err());
+        assert!(parse_array("[\"echo ok\", bare]", "commands").is_err());
+        assert!(parse_array("[\"echo ok\",]", "commands").is_err());
+    }
+}

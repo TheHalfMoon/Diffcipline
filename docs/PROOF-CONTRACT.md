@@ -15,11 +15,15 @@ Policy provenance is explicit. `policy.mode` is `default`, `repository`, or `ent
 
 ## Enterprise policy mode
 
-Enterprise policy is opt-in and local-file only:
+Enterprise policy is explicit and local-file only:
 
 ```text
 diffcipline check --enterprise-policy <path> [--base <ref>] [--risk <R0|R1|R2|R3>] [--run] [--json]
 ```
+
+The monotonic enterprise layer is active only when `--enterprise-policy <path>` is actually supplied. A repository-controlled workflow can omit that argument, so the local-file mechanism alone does not make an organizational baseline mandatory.
+
+A genuinely mandatory organizational baseline requires an organization-controlled enforcement path—such as a required workflow, reusable workflow, ruleset-integrated workflow, or equivalent externally controlled CI policy—that supplies the enterprise policy input. The local-file mechanism is not an identity, RBAC, credential-distribution, or remote policy-control system.
 
 No environment discovery, network fetch, credential exchange, or remote control plane is used. When enterprise mode is active, `policy.mode` is `enterprise`; `policy.sources` lists the explicit enterprise source first and `.diffcipline.toml` second when repository policy exists.
 
@@ -32,7 +36,7 @@ Layering is monotonic:
 - default and risk-specific verification commands are cumulative, deterministic, enterprise-first, and exact duplicates are removed;
 - missing, unreadable, malformed, unsupported-version, duplicate, or self-referential enterprise policy input fails closed.
 
-A repository policy can therefore add constraints or verification but cannot reduce the effect of an enterprise baseline. The no-enterprise path retains repository-policy version 1 behavior.
+A repository policy can therefore add constraints or verification but cannot reduce the effect of an enterprise baseline once enterprise mode is invoked. The no-enterprise path retains repository-policy version 1 behavior.
 
 ## Verdicts and exit codes
 
