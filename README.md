@@ -13,6 +13,9 @@ The public `v1.0.0` release is published and immutable. Its Linux, macOS, and Wi
 - **Proof contract:** [`docs/PROOF-CONTRACT.md`](docs/PROOF-CONTRACT.md)
 - **Release verification:** [`docs/RELEASES.md`](docs/RELEASES.md)
 - **Benchmark evidence and limitations:** [`benchmarks/PROTOCOL.md`](benchmarks/PROTOCOL.md)
+- **Capability-to-evidence matrix:** [`docs/EVIDENCE.md`](docs/EVIDENCE.md)
+- **Agent-readable index:** [`llms.txt`](llms.txt)
+- **Citation metadata:** [`CITATION.cff`](CITATION.cff)
 
 Diffcipline does not claim universal superiority. Its public benchmark record includes negative results, failed runs, limitations, and preserved verifier failures alongside successful release evidence.
 
