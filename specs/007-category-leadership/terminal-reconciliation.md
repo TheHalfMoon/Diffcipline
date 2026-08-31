@@ -56,7 +56,7 @@ No open pull request was present immediately before creating this terminal quali
 
 Two documentation issues were found and are repaired in this candidate before closeout:
 
-1. `llms.txt` and the README first-screen evidence list predated Phases E/G, so they did not link the bounded comparison or discoverability audit. This candidate adds those canonical evidence pointers without changing product claims.
+1. `llms.txt` was created before Phases E/G and did not yet link the bounded comparison or discoverability audit. This candidate adds those canonical evidence pointers to the machine-readable index without changing product claims.
 2. `stronger-evaluation.md` incorrectly summarized the v0.1 historical scorer-pass count as `0/6`. The frozen v0.1 report says every arm finished at `1/6 correct` and `1/6 scorer-pass`. The frozen v0.3 report says every treatment finished at `1/6 task-correct` while the frozen scorer reported `0/6 scorer-pass` under the published `__pycache__` confound. This candidate corrects only the summary; the historical reports and raw evidence remain unchanged.
 
 ## Completion-criteria reconciliation
