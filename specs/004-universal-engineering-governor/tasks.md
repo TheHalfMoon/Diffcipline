@@ -50,12 +50,22 @@ T427 exact evidence:
 
 ## Phase D — Broad agent portability
 
-- [ ] T430 Publish a generic Agent Skills installation/portability contract.
-- [ ] T431 Preserve one canonical `diffcipline` and `diffcipline-review` behavior across agents.
-- [ ] T432 Qualify Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI from exact heads.
-- [ ] T433 Add a generic layout/content qualification independent of one named client.
-- [ ] T434 Document platform-neutral CLI/skill boundaries and limitations.
-- [ ] T435 Merge and verify broad portability canonically.
+- [x] T430 Publish a generic Agent Skills installation/portability contract.
+- [x] T431 Preserve one canonical `diffcipline` and `diffcipline-review` behavior across agents.
+- [x] T432 Qualify Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI from exact heads.
+- [x] T433 Add a generic layout/content qualification independent of one named client.
+- [x] T434 Document platform-neutral CLI/skill boundaries and limitations.
+- [x] T435 Merge and verify broad portability canonically.
+
+T435 exact evidence:
+
+- PR #60 final exact head `5d8192bb25e3ea62224ea38ac7a090edf3da25be` changed only `.github/workflows/skills-compat.yml` and `docs/INSTALLATION.md` at +134/-0;
+- exact-head `skills-compat` `33360432460` completed `SUCCESS` for the generic Agent Skills contract and all six clients, including byte-identical comparison of both installed skills against their canonical sources;
+- exact-head `ci` `33360432458` completed `SUCCESS` across Rust and dogfood jobs on Linux, macOS, and Windows plus proof-v1 schema validation on Linux;
+- no submitted reviews or inline review threads remained; Qodo reported only a billing pause and CodeRabbit reported only that automatic review was skipped;
+- expected-head squash merge produced canonical `066c0138e5e2970781cc91abba38797654f92c77`;
+- exact post-merge `skills-compat` `33360553460` completed `SUCCESS` for the generic contract and all six clients;
+- exact post-merge `ci` `33360553459` completed `SUCCESS` across the full cross-platform Rust and dogfood matrix.
 
 ## Phase E — Signed release-artifact contract
 
