@@ -14,14 +14,14 @@
 - [x] T812 Add a Node `.diffcipline.toml` example.
 - [x] T813 Add a Python `.diffcipline.toml` example.
 - [x] T814 Add a Go `.diffcipline.toml` example.
-- [x] T815 Add a repository integration test that loads the exact checked-in example files through the CLI contract and asserts their intended verification commands are exposed as `NOT RUN` without `--run`.
-- [ ] T816 Qualify, reconcile, expected-head merge, and exact post-merge verify the example unit.
+- [x] T815 Add a repository integration test that loads the exact checked-in example files through the CLI contract and asserts the intended verification commands are exposed as `NOT RUN` without `--run`.
+- [x] T816 Qualify, reconcile, expected-head merge, and exact post-merge verify the example unit. PR #89 exact head `015c0196b646d7eafd231de6607e57d5d633f23a`; all nine pull-request workflows `SUCCESS`; canonical Phase B `b31d891427b5ddbd43fc24c2ad2e1dc7adc6bd39`; post-merge `ci` `33440059674`, `skills-compat` `33440059726`, and `release` `33440059755` all `SUCCESS`.
 
 ## Phase C — Adoption and independent validation
 
-- [ ] T820 Publish `docs/ADOPTION.md` covering Agent Skills installation, supported agent layouts, CLI, risk profiles, and the immutable GitHub Action path without vendor-endorsement language.
-- [ ] T821 Publish `docs/INDEPENDENT-VALIDATION.md` with exact environment facts, commands, expected semantics, evidence-retention requirements, and `NOT RUN` rules.
-- [ ] T822 Link adoption/examples/validation from `README.md` and `llms.txt` without keyword stuffing.
+- [x] T820 Publish `docs/ADOPTION.md` covering Agent Skills installation, qualified installer layouts, CLI, risk profiles, and immutable GitHub Action usage without vendor-endorsement language.
+- [x] T821 Publish `docs/INDEPENDENT-VALIDATION.md` with fixed release identity, exact release/attestation/CLI checks, evidence-retention requirements, and explicit `NOT RUN` / `NOT AVAILABLE` semantics. This is a protocol, not an external validation result.
+- [x] T822 Link adoption, examples, and independent validation from human and machine-readable entry points without keyword stuffing.
 - [ ] T823 Qualify, reconcile, expected-head merge, and exact post-merge verify the adoption unit.
 
 ## Phase D — Metadata handoff and discovery observation
@@ -40,4 +40,4 @@
 
 ## Ordering
 
-Gate A is canonical. Phase B content is only an implementation candidate until T816 completes. Do not declare external metadata live from a recommendation document. Do not rewrite historical Spec 007 discovery or benchmark evidence. T843 is last and cannot be pre-recorded as complete.
+Phases A and B are canonical. Phase C content is only an implementation candidate until T823 completes. Do not declare external metadata live from a recommendation document. Do not rewrite historical Spec 007 discovery or benchmark evidence. T843 is last and cannot be pre-recorded as complete.
