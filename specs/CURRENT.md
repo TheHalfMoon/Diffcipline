@@ -2,9 +2,9 @@
 
 Active: Spec 005 / v1 Release Polish
 
-Status: `PLANNING_CANDIDATE`
+Status: `ACTIVE_CANONICAL`
 
-Spec 005 planning authority is candidate-only until T503 is merged to canonical `main` and the required exact post-merge `ci`, `skills-compat`, and `release` gates succeed on the resulting canonical SHA. No Spec 005 implementation begins before that boundary.
+Spec 005 planning authority is canonical at `3e7abe3ca7c95fe327ef04ccb46fae89286ab8bc`. Its exact post-merge gates completed successfully: `ci` `33397182736`, `skills-compat` `33397182730`, and `release` `33397182737`.
 
 Live GitHub/repository truth overrides this file.
 
@@ -20,13 +20,14 @@ Spec 004 / v1 Universal Engineering Governor is `COMPLETE_CANONICAL` at terminal
 
 ## Active frontier
 
-Spec 005 is a narrow pre-v1 polish unit only:
+Spec 005 Phase B is active under the canonical planning authority:
 
-- correct the verified quoted-array comma parsing defect without adding a runtime dependency;
-- add focused regression coverage while preserving fail-closed policy behavior;
-- document the actual enforcement boundary of explicit `--enterprise-policy <path>` input;
-- review low-cost repository hygiene where supported by authorized tooling;
-- qualify and close the unit with exact-head, expected-head merge, and post-merge machine evidence.
+- the quoted-array comma defect was machine-reproduced on red head `c20a81b9bf47ac3b7da55db6300385b8e25e706f` by `ci` `33397575574`, where Rust `cargo test --workspace --all-targets --locked` failed after format and clippy succeeded;
+- a surgical dependency-free quote-aware separator scan now exists on the implementation branch with positive comma-preservation and negative fail-closed regression coverage;
+- the proof contract now states that `--enterprise-policy <path>` is effective only when supplied and that mandatory organizational enforcement requires an externally controlled CI path that supplies it;
+- live repository hygiene review found no issue-template directory and an empty GitHub repository description; available authorized tooling cannot mutate description/topics, and Spec 005 makes that tooling limitation non-blocking.
+
+The next gate is T515: one final exact implementation head must pass `ci`, `skills-compat`, `release`, historical immutable-release guards, review/thread/comment reconciliation, mergeability, and canonical-main reconciliation.
 
 ## Publication boundary
 
