@@ -1,8 +1,10 @@
 # Current specification
 
-Active: Spec 007 / Category Leadership
+Latest completed: Spec 007 / Category Leadership
 
-Status: `ACTIVE_CANONICAL`
+Status: `COMPLETE_CANONICAL`
+
+This status becomes effective canonical truth only after the exact T773 evidence-record unit is merged and its resulting canonical commit passes exact post-merge `ci`, `skills-compat`, and `release`.
 
 Live GitHub/repository truth overrides this file.
 
@@ -18,18 +20,17 @@ Specs 001–006 are `COMPLETE_CANONICAL`. Public `v1.0.0` is published immutable
 - Phase D `41adfcd3d2ca6e16c85bddff8d976239f9d97d67`;
 - Phase E `92ad064b954182fe2082ac0a5c873ad0d740d811` — post-merge `ci` `33432375777`, `skills-compat` `33432375615`, `release` `33432375709` all `SUCCESS`;
 - Phase F `c8068f89bb926d86c3fb305c6097a41da985a3d4` — post-merge `ci` `33433480729`, `skills-compat` `33433480739`, `release` `33433480733` all `SUCCESS`;
-- Phase G `735e61c5db24df45fdca4e6d80f3982f82abdf5d` — post-merge `ci` `33434796013`, `skills-compat` `33434795922`, `release` `33434795993` all `SUCCESS`.
+- Phase G `735e61c5db24df45fdca4e6d80f3982f82abdf5d` — post-merge `ci` `33434796013`, `skills-compat` `33434795922`, `release` `33434795993` all `SUCCESS`;
+- terminal qualification `2103a2be6e1bff7e5b2972cd91ccca39fbe43caf` — post-merge `ci` `33435932948`, `skills-compat` `33435932927`, `release` `33435932967` all `SUCCESS`.
 
-T700–T763 are complete.
+T700–T773 are recorded complete. T773 is supported by `specs/007-category-leadership/t773-complete-canonical.md` and becomes canonical only under this final evidence-record unit's own qualification/merge/post-merge condition.
 
-The stronger experiment is canonically `NOT_RUN`; no unavailable experimental capability is represented as evidence. The bounded comparison is not a universal ranking. The discoverability audit records current search/adoption gaps without converting them into quality judgments.
+## Preserved limitations
+
+Completion does not create a universal superiority claim. The stronger experiment remains canonically `NOT_RUN`; frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage; the dated discoverability audit records broad discovery/adoption as an open gap; unavailable independent model recommendation systems remain `NOT TESTED` in that audit.
 
 Repository description/topics remain unset because the available authenticated GitHub execution surface exposes no mutation action for those fields. Homepage remains intentionally unset because no separate stable canonical site exists. Discussions remain disabled because no maintained discussion workflow exists.
 
 ## Active frontier
 
-Phase H terminal qualification is active on `spec/007-terminal-qualification`.
-
-T770 reconciliation found and repairs two documentation issues before closeout: the machine-readable index now links the Phase E/G evidence, and the Phase F historical-benchmark summary is corrected to match the frozen v0.1/v0.3 reports. Historical evidence itself is unchanged.
-
-T771/T772 remain pending exact terminal candidate qualification, clean reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` success. Spec 007 must remain `ACTIVE_CANONICAL` until that proof exists; only then may T773 record `COMPLETE_CANONICAL`.
+No Spec 007 implementation frontier remains after the T773 record becomes canonical. Any further category-leadership work requires a new canonical specification or separately authorized maintenance unit. Completed Spec 007 evidence must not be silently rewritten to absorb future work.
