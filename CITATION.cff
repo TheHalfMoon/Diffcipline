@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use Diffcipline, please cite the software using these metadata."
+title: "Diffcipline"
+type: software
+version: "1.0.0"
+date-released: "2026-08-31"
+commit: "5cb1c77340b75649f6168e0e8f66479ea047ea96"
+authors:
+  - name: "TheHalfMoon"
+    website: "https://github.com/TheHalfMoon"
+abstract: "Deterministic finish-line proof for coding agents, combining portable Agent Skills with a dependency-free Rust CLI for exact-diff policy and verification evidence."
+keywords:
+  - "coding agents"
+  - "agent skills"
+  - "software verification"
+  - "developer tools"
+  - "Rust"
+license: MIT
+repository-code: "https://github.com/TheHalfMoon/Diffcipline"
+repository-artifact: "https://github.com/TheHalfMoon/Diffcipline/releases/tag/v1.0.0"
+url: "https://github.com/TheHalfMoon/Diffcipline"
