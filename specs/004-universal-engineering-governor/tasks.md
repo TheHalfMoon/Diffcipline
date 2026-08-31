@@ -42,7 +42,7 @@ T416 exact evidence:
 
 T427 exact evidence:
 
-- PR #58 final exact head `7ae53bfde368287a3a780fb591e7a3d21166856f` stayed exactly within repository policy at 3 files and +400/-1;
+- PR #58 final exact head `7ae53bfde368287a3a780fb591e7a3d21166856f` stayed within repository policy at 3 files and +400/-1;
 - exact-head `ci` `33357573607` and `release` `33357573613` completed `SUCCESS`;
 - expected-head squash merge produced canonical `f0198395f0a141048b272bfd495f585fb76f6011`;
 - exact post-merge `ci` `33357739486` and `release` `33357739507` completed `SUCCESS`.
@@ -76,22 +76,41 @@ T435 exact evidence:
 T447 exact evidence:
 
 - PR #62 exact head `4dbc751e09808999df61383092c2720f289c34d8` changed only `docs/RELEASES.md` at +89/-0;
-- exact-head `ci` `33361112731` and `release` `33361112742` completed `SUCCESS`; the PR release run built locked Linux/macOS/Windows binaries and generated and verified the three-entry SHA-256 manifest, while signing and release drafting remained unavailable on the pull-request event;
-- no submitted reviews or inline review threads remained; Qodo reported only a billing pause and CodeRabbit reported only that automatic review was skipped;
+- exact-head `ci` `33361112731` and `release` `33361112742` completed `SUCCESS`;
 - expected-head squash merge produced canonical `b20b2671c75c5076fcf66397ee4a3f7c308bdfba`;
 - exact post-merge `ci` `33361219139` and `release` `33361219144` completed `SUCCESS`;
-- canonical `release` `33361219144` built and packaged the locked native binaries on all three hosts, generated and verified `SHA256SUMS`, created signed Sigstore provenance through GitHub OIDC, preserved the attestation bundle, verified every native binary subject, and uploaded the signed candidate;
+- canonical `release` `33361219144` built the locked native binaries, verified `SHA256SUMS`, created signed Sigstore provenance through GitHub OIDC, preserved the attestation bundle, and verified every native binary subject;
 - `stage GitHub release draft` was intentionally skipped because no v1 tag or public release is authorized.
 
 ## Phase F — Integrated qualification and closeout
 
-- [ ] T450 Update README and contract docs only with implemented v1 capabilities.
-- [ ] T451 Pass exact-head `ci`, `skills-compat`, `release`, and any dedicated v1 qualification gate on one final candidate.
-- [ ] T452 Reconcile valid reviews/threads and reverify canonical `main` before merge.
-- [ ] T453 Merge the final v1 capability candidate with an expected-head guard.
-- [ ] T454 Verify exact post-merge repository, portability, schema/policy, and signed-release evidence.
-- [ ] T455 Record `COMPLETE_CANONICAL` separately only after T454 is machine-observed and the terminal record itself becomes canonical.
+- [x] T450 Update README and contract docs only with implemented v1 capabilities.
+- [x] T451 Pass exact-head `ci`, `skills-compat`, `release`, and any dedicated v1 qualification gate on one final candidate.
+- [x] T452 Reconcile valid reviews/threads and reverify canonical `main` before merge.
+- [x] T453 Merge the final v1 capability candidate with an expected-head guard.
+- [x] T454 Verify exact post-merge repository, portability, schema/policy, and signed-release evidence.
+- [x] T455 Record `COMPLETE_CANONICAL` separately only after T454 is machine-observed and the terminal record itself becomes canonical.
+
+T450–T454 exact evidence:
+
+- PR #64 final exact head `4e3e2d25754e72f1a0becd953a8f91405f955f01` changed only `README.md`, `docs/INSTALLATION.md`, and `docs/RELEASES.md` at 3 files and +25/-1;
+- exact-head `ci` `33365761812`, `skills-compat` `33365761816`, and `release` `33365761900` all completed `SUCCESS` on that same head;
+- the exact-head portability run passed the generic Agent Skills contract and all six named clients; the release run passed all three locked native builds and deterministic checksum closure, while provenance signing and release drafting were correctly skipped on the pull-request event;
+- no submitted reviews or inline review threads remained; Qodo reported only a billing pause and CodeRabbit reported only that automatic review was skipped;
+- canonical `main` remained exactly `54ef361f817846e35fbe238806d0a09d84e09e0b` immediately before merge;
+- expected-head squash merge of PR #64 produced canonical `2ff687c038f72a3b747e85ad907d2400955cb649`;
+- exact post-merge `ci` `33365950241`, `skills-compat` `33365950200`, and `release` `33365950214` all completed `SUCCESS` on `2ff687c038f72a3b747e85ad907d2400955cb649`;
+- post-merge CI passed Rust and dogfood gates across Linux, macOS, and Windows plus proof-v1 schema validation on Linux;
+- post-merge portability passed the generic contract and Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI;
+- post-merge release built and packaged all three locked native binaries, generated and verified the deterministic SHA-256 manifest, created signed Sigstore provenance, preserved the attestation bundle, verified every native binary subject, and intentionally skipped `stage GitHub release draft` because no public v1 tag exists.
+
+T455 terminal record:
+
+- T454 was machine-observed before this terminal record was authored;
+- this record closes the Spec 004 task ledger and records `COMPLETE_CANONICAL` with no active implementation frontier;
+- the completion claim is candidate-only until this terminal record itself is merged to canonical `main` and its required post-merge `ci`, `skills-compat`, and `release` gates succeed on the resulting canonical SHA;
+- no public v1 tag or release is created or authorized by this record.
 
 ## Ordering
 
-T403 gates all implementation. T416 gates enterprise policy work. T427 gates final portability/release integration. T447 gates integrated closeout. T455 is terminal.
+T403 gated all implementation. T416 gated enterprise policy work. T427 gated final portability/release integration. T447 gated integrated closeout. T455 is terminal.
