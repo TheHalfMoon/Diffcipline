@@ -1,0 +1,65 @@
+name: Proof or evidence failure
+description: Report a reproducible mismatch in Diffcipline proof, policy, or verification evidence.
+title: "proof: "
+labels:
+  - evidence
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form when the observed PASS / REVIEW / FAIL result, scope evidence, verification state, or machine-readable proof does not match the repository facts you can reproduce.
+  - type: input
+    id: version
+    attributes:
+      label: Diffcipline version or commit
+      placeholder: v1.0.0 or exact commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: policy
+    attributes:
+      label: Relevant policy
+      description: Include the smallest relevant `.diffcipline.toml` or enterprise-policy excerpt. Remove sensitive paths or values if needed.
+      render: toml
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Exact command
+      placeholder: diffcipline check --base origin/main --risk R2 --run --json
+    validations:
+      required: true
+  - type: textarea
+    id: gitstate
+    attributes:
+      label: Exact repository state
+      description: Describe the base ref, changed/untracked files, and any manifest or lockfile changes needed to reproduce the result.
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed proof
+      description: Include verdict, exit code, reasons, scope violations, and verification states or a CI run link.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected proof and why
+      description: State the expected verdict/evidence and the repository fact that supports it.
+    validations:
+      required: true
+  - type: checkboxes
+    id: integrity
+    attributes:
+      label: Evidence integrity
+      options:
+        - label: I did not remove a failing row, command, or relevant changed file from this reproduction.
+          required: true
+        - label: I removed secrets, credentials, and private data.
+          required: true
+        - label: I understand a disagreement with a model-generated opinion is not by itself a Diffcipline proof defect.
+          required: true

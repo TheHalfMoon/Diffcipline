@@ -23,10 +23,14 @@ Planning authority: `768a3980e99c4dac4e49b55d39f1d66366025ae8`; post-merge `ci` 
 
 Phase B first-screen truth and installability: `f3bcf163466feb853d3d441f326b758c5b9bce8e`; post-merge `ci` `33428154407`, `skills-compat` `33428154408`, `release` `33428154493` all `SUCCESS`.
 
-T700–T714 are complete.
+Phase C discovery and machine-readable identity: `91ab45bc729b578cda37aed159bb4dbdd8e2f545`; post-merge `ci` `33429154442`, `skills-compat` `33429154536`, `release` `33429154544` all `SUCCESS`.
+
+T700–T725 are complete.
+
+Repository description and topics remain unset because the available authenticated GitHub execution surface exposes no mutation action for those metadata fields. Homepage remains intentionally unset because the GitHub repository is the only stable canonical destination.
 
 ## Active frontier
 
-Phase C / T720–T725 is the current bounded unit: document the current GitHub metadata mutation limitation, intentionally leave homepage unset without a stable independent destination, add `llms.txt`, truthful CFF 1.2.0 citation metadata, and a capability-to-evidence matrix, then merge only after exact-head and post-merge proof.
+Phase D / T730–T734 is the current bounded unit: strengthen security reporting and supported-version guidance, add narrowly useful reproducible bug/proof issue forms, strengthen contribution evidence rules, keep Discussions disabled until there is a maintained purpose, then merge only after exact-head and post-merge proof.
 
-After T725, Phase D trust and contribution surfaces are next.
+After T734, Phase E source-cited comparative evidence is next.
