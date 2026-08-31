@@ -2,9 +2,9 @@
 
 ## Status
 
-`PLANNING`
+`IMPLEMENTATION`
 
-Implementation is not authorized until this planning authority is merged to canonical `main` and its exact post-merge gates are machine-observed successful.
+Planning authority became canonical at `df9c0216723d3e241b6cea99bfe58c6212c1cd6a` after exact-head and post-merge repository, skills, and release gates succeeded. Implementation remains ordered by `tasks.md` and cannot skip canonical phase boundaries.
 
 ## Roadmap authority
 

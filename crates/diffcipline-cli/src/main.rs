@@ -4,6 +4,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 const POLICY_FILE: &str = ".diffcipline.toml";
+const PROOF_SCHEMA: &str = "diffcipline.proof/v1";
+const PROOF_SCHEMA_VERSION: &str = "1.0";
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 enum Verdict {
@@ -204,11 +206,24 @@ fn run_check(args: Vec<String>) -> Result<Verdict, String> {
 
     let result = check(base.as_deref(), execute, risk)?;
     if json {
-        println!("{}", to_json(&result, base.as_deref()));
+        let (policy_mode, policy_sources) = policy_provenance()?;
+        println!(
+            "{}",
+            to_json(&result, base.as_deref(), policy_mode, &policy_sources)
+        );
     } else {
         print_result(&result, base.as_deref());
     }
     Ok(result.verdict)
+}
+
+fn policy_provenance() -> Result<(&'static str, Vec<String>), String> {
+    let root = git_root()?;
+    if root.join(POLICY_FILE).exists() {
+        Ok(("repository", vec![POLICY_FILE.into()]))
+    } else {
+        Ok(("default", Vec::new()))
+    }
 }
 
 fn print_help() {
@@ -824,12 +839,18 @@ fn verification_state(state: Option<bool>) -> &'static str {
     }
 }
 
-fn to_json(result: &CheckResult, base: Option<&str>) -> String {
+fn to_json(
+    result: &CheckResult,
+    base: Option<&str>,
+    policy_mode: &str,
+    policy_sources: &[String],
+) -> String {
     let files = json_string_array(&result.stats.files);
     let reasons = json_string_array(&result.reasons);
     let expected_files = json_string_array(&result.expected_files);
     let forbidden_surfaces = json_string_array(&result.forbidden_surfaces);
     let scope_violations = json_string_array(&result.scope_violations);
+    let policy_sources = json_string_array(policy_sources);
     let verification = result
         .verification
         .iter()
@@ -851,7 +872,11 @@ fn to_json(result: &CheckResult, base: Option<&str>) -> String {
         .unwrap_or_else(|| "null".into());
 
     format!(
-        "{{\"verdict\":\"{}\",\"base\":{},\"changed_files\":{},\"added_lines\":{},\"deleted_lines\":{},\"files\":[{}],\"reasons\":[{}],\"risk\":{},\"expected_files\":[{}],\"forbidden_surfaces\":[{}],\"scope_violations\":[{}],\"verification\":[{}]}}",
+        "{{\"schema\":\"{}\",\"schema_version\":\"{}\",\"policy\":{{\"mode\":\"{}\",\"sources\":[{}]}},\"verdict\":\"{}\",\"base\":{},\"changed_files\":{},\"added_lines\":{},\"deleted_lines\":{},\"files\":[{}],\"reasons\":[{}],\"risk\":{},\"expected_files\":[{}],\"forbidden_surfaces\":[{}],\"scope_violations\":[{}],\"verification\":[{}]}}",
+        PROOF_SCHEMA,
+        PROOF_SCHEMA_VERSION,
+        json_escape(policy_mode),
+        policy_sources,
         result.verdict.name(),
         base,
         result.stats.files.len(),
@@ -961,7 +986,10 @@ r2_commands = [\"cargo clippy\"]\nr3_commands = [\"cargo test --all\"]\n",
             ],
         };
 
-        let json = to_json(&result, Some("main"));
+        let json = to_json(&result, Some("main"), "repository", &[POLICY_FILE.into()]);
+        assert!(json.starts_with(
+            "{\"schema\":\"diffcipline.proof/v1\",\"schema_version\":\"1.0\",\"policy\":{\"mode\":\"repository\",\"sources\":[\".diffcipline.toml\"]},"
+        ));
         assert!(json.contains("\"verdict\":\"FAIL\""));
         assert!(json.contains("\"base\":\"main\""));
         assert!(json.contains("\"changed_files\":1"));

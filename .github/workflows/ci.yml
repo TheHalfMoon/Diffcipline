@@ -29,6 +29,9 @@ jobs:
       - run: cargo fmt --all -- --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --all-targets --locked
+      - name: Validate proof-v1 schema contract
+        if: runner.os == 'Linux'
+        run: python3 scripts/validate-proof-v1.py
 
   dogfood:
     name: Diffcipline proof gate (${{ matrix.os }})

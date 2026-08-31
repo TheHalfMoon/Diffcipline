@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "diffcipline.proof/v1",
+  "title": "Diffcipline Proof v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schema_version", "policy", "verdict", "base", "changed_files", "added_lines", "deleted_lines", "files", "reasons", "risk", "expected_files", "forbidden_surfaces", "scope_violations", "verification"],
+  "properties": {
+    "schema": {"const": "diffcipline.proof/v1"},
+    "schema_version": {"const": "1.0"},
+    "policy": {"type": "object", "additionalProperties": false, "required": ["mode", "sources"], "properties": {"mode": {"enum": ["default", "repository", "enterprise"]}, "sources": {"type": "array", "items": {"type": "string"}}}},
+    "verdict": {"enum": ["PASS", "REVIEW", "FAIL"]},
+    "base": {"type": ["string", "null"]},
+    "changed_files": {"type": "integer", "minimum": 0},
+    "added_lines": {"type": "integer", "minimum": 0},
+    "deleted_lines": {"type": "integer", "minimum": 0},
+    "files": {"type": "array", "items": {"type": "string"}},
+    "reasons": {"type": "array", "items": {"type": "string"}},
+    "risk": {"type": ["string", "null"], "enum": ["R0", "R1", "R2", "R3", null]},
+    "expected_files": {"type": "array", "items": {"type": "string"}},
+    "forbidden_surfaces": {"type": "array", "items": {"type": "string"}},
+    "scope_violations": {"type": "array", "items": {"type": "string"}},
+    "verification": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["command", "state"], "properties": {"command": {"type": "string"}, "state": {"enum": ["PASS", "FAIL", "NOT RUN"]}}}}
+  }
+}
