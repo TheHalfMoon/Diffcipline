@@ -19,8 +19,12 @@ impl Fixture {
         fs::create_dir_all(&root).unwrap();
         git(&root, &["init"]);
         git(&root, &["config", "user.name", "Diffcipline Test"]);
-        git(&root, &["config", "user.email", "diffcipline-test@example.invalid"]);
+        git(
+            &root,
+            &["config", "user.email", "diffcipline-test@example.invalid"],
+        );
         fs::write(root.join("tracked.txt"), "before\n").unwrap();
+        fs::write(root.join("package.json"), "{}\n").unwrap();
         fs::write(
             root.join(".diffcipline.toml"),
             format!(
@@ -33,7 +37,13 @@ dependency_manifest_changes = \"allow\"\nlockfile_changes = \"allow\"\nuntracked
         fs::write(root.join("enterprise.toml"), enterprise).unwrap();
         git(
             &root,
-            &["add", "tracked.txt", ".diffcipline.toml", "enterprise.toml"],
+            &[
+                "add",
+                "tracked.txt",
+                "package.json",
+                ".diffcipline.toml",
+                "enterprise.toml",
+            ],
         );
         git(&root, &["commit", "-m", "fixture base"]);
         fs::write(root.join("tracked.txt"), "after\n").unwrap();
@@ -56,21 +66,32 @@ impl Drop for Fixture {
 }
 
 fn git(root: &Path, args: &[&str]) {
-    let output = Command::new("git").args(args).current_dir(root).output().unwrap();
-    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(root)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
 }
 
 fn enterprise(max_files: usize, expected: &str) -> String {
     format!(
         "version = 1\n[policy]\nmax_changed_files = {max_files}\nmax_added_lines = 20\n\
-dependency_manifest_changes = \"allow\"\nlockfile_changes = \"allow\"\nuntracked_files = \"allow\"\n{expected}\n\
+dependency_manifest_changes = \"fail\"\nlockfile_changes = \"allow\"\nuntracked_files = \"allow\"\n{expected}\n\
 [verification]\ncommands = [\"git status --short\"]\n"
     )
 }
 
 #[test]
 fn enterprise_mode_is_explicit_cumulative_and_provenanced() {
-    let fixture = Fixture::new(&enterprise(4, "expected_files = [\"tracked.txt\"]"), "expected_files = [\"*.txt\"]");
+    let fixture = Fixture::new(
+        &enterprise(4, "expected_files = [\"tracked.txt\"]"),
+        "expected_files = [\"*.txt\"]",
+    );
     let output = fixture.run(&[
         "check",
         "--enterprise-policy",
@@ -86,20 +107,15 @@ fn enterprise_mode_is_explicit_cumulative_and_provenanced() {
 }
 
 #[test]
-fn enterprise_numeric_limit_cannot_be_weakened_by_repository() {
-    let fixture = Fixture::new(&enterprise(0, ""), "");
+fn enterprise_hardening_cannot_be_weakened_by_repository() {
+    let fixture = Fixture::new(&enterprise(0, "expected_files = [\"src/**\"]"), "");
+    fs::write(fixture.root.join("package.json"), "{\"changed\":true}\n").unwrap();
     let output = fixture.run(&["check", "--enterprise-policy", "enterprise.toml", "--run"]);
     assert_eq!(output.status.code(), Some(2));
-    assert!(String::from_utf8_lossy(&output.stdout).contains("changed files 1 exceed maximum 0"));
-}
-
-#[test]
-fn every_nonempty_expected_contract_is_enforced() {
-    let fixture = Fixture::new(&enterprise(4, "expected_files = [\"src/**\"]"), "expected_files = [\"tracked.txt\"]");
-    let output = fixture.run(&["check", "--enterprise-policy", "enterprise.toml", "--run"]);
-    assert_eq!(output.status.code(), Some(2));
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("enterprise expected-files contract rejected: tracked.txt"));
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("exceed maximum 0"));
+    assert!(stdout.contains("dependency manifest changed: package.json"));
+    assert!(stdout.contains("enterprise expected-files contract rejected: tracked.txt"));
 }
 
 #[test]
