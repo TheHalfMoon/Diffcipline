@@ -29,15 +29,15 @@
 - [x] T830 Publish `docs/GITHUB-METADATA.md` with exact recommended description/topics, source rationale, and live application status.
 - [x] T831 Re-check repository metadata mutation support. The authenticated execution surface still exposes no repository description/topics mutation action, so the required status is `NOT APPLIED — TOOLING UNAVAILABLE`; live GitHub remains description unset, topics empty, homepage unset.
 - [x] T832 Publish `docs/DISCOVERABILITY-2026-09-01.md` as a new bounded post-change snapshot while preserving historical `docs/DISCOVERABILITY.md` unchanged.
-- [ ] T833 Qualify, reconcile, expected-head merge, and exact post-merge verify the metadata/discovery unit.
+- [x] T833 Qualify, reconcile, expected-head merge, and exact post-merge verify the metadata/discovery unit. PR #91 exact head `128e2b711a725f79b788ce67151ce590fa940a06`; all nine pull-request workflows `SUCCESS`; no submitted reviews or inline review threads; only non-substantive automated comments; canonical `main` remained `498df9f4c0260f6deb87861f4e27f882f16a14ab` before expected-head squash merge. Canonical Phase D `cc52f2c95e67eca1458549b6639c6080c0feb533`; post-merge `ci` `33441805035`, `skills-compat` `33441805026`, and `release` `33441805093` all `SUCCESS`.
 
 ## Phase E — Terminal closeout
 
-- [ ] T840 Reconcile all Spec 008 public surfaces and preserved evidence against live canonical `main`.
+- [x] T840 Reconcile all Spec 008 public surfaces and preserved evidence against live canonical `main`. `terminal-reconciliation.md` records canonical Phase D proof, immutable `v1.0.0`, unchanged historical discoverability blob `013791e04fd30607f1f64f4a8218c000a8f0ab73`, exact metadata status `NOT APPLIED — TOOLING UNAVAILABLE`, preserved benchmark limitations, and the bounded public-surface corrections in this terminal candidate.
 - [ ] T841 Qualify the exact terminal candidate and reconcile reviews, threads, comments, mergeability, and canonical main.
 - [ ] T842 Merge only the expected head and require exact post-merge `ci`, `skills-compat`, and `release` success.
 - [ ] T843 Record `COMPLETE_CANONICAL` only after T842 is machine-observed, then qualify that completion record under the same proof-before-done discipline.
 
 ## Ordering
 
-Phases A through C are canonical. Phase D content is only an implementation candidate until T833 completes. Do not declare the recommended repository metadata live: its verified status is `NOT APPLIED — TOOLING UNAVAILABLE`. Do not rewrite historical Spec 007 discovery or benchmark evidence. T843 is last and cannot be pre-recorded as complete.
+Phases A through D are canonical. The Phase E terminal-reconciliation candidate does not mark completion. Repository metadata remains `NOT APPLIED — TOOLING UNAVAILABLE`; historical discovery and benchmark evidence remain preserved. T843 is last and cannot be recorded until T842 is machine-observed.

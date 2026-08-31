@@ -22,26 +22,22 @@ Phase B / validated ecosystem examples: `b31d891427b5ddbd43fc24c2ad2e1dc7adc6bd3
 
 Phase C / adoption and independent validation: `498df9f4c0260f6deb87861f4e27f882f16a14ab` — post-merge `ci` `33441120552`, `skills-compat` `33441120459`, `release` `33441120450` all `SUCCESS`.
 
-The canonical repository now contains validated Rust/Node/Python/Go policy examples, a bounded adoption guide, and a reproducible independent-validation protocol against immutable `v1.0.0`. The protocol is not an external validation result.
+Phase D / metadata handoff and discoverability observation: `cc52f2c95e67eca1458549b6639c6080c0feb533` — post-merge `ci` `33441805035`, `skills-compat` `33441805026`, `release` `33441805093` all `SUCCESS`.
 
-## Authorized scope
-
-Spec 008 targets repository-controlled adoption readiness without reopening Spec 007:
-
-1. validated ecosystem policy examples;
-2. a canonical adoption guide across already-qualified Agent Skills layouts, CLI, and immutable GitHub Action usage;
-3. a reproducible independent-validation protocol with no fabricated external result;
-4. exact GitHub description/topics recommendations with truthful live-application status;
-5. a new dated post-change discovery observation that preserves the Spec 007 audit unchanged.
+The canonical repository now contains validated Rust/Node/Python/Go policy examples, bounded adoption guidance, a reproducible independent-validation protocol against immutable `v1.0.0`, exact GitHub metadata recommendations with truthful application status, and a new dated discoverability snapshot that preserves the historical Spec 007 audit.
 
 ## Preserved limitations
 
-Frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage, the stronger experiment remains `NOT_RUN`, broad discovery/adoption remains an open gap, and unavailable independent model recommendation systems remain `NOT TESTED`.
+Frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage, no stronger experiment is represented as having run, broad discovery/adoption remains an explicit gap, and unavailable independent model recommendation systems remain `NOT TESTED`.
 
-Live repository metadata was re-read after Phase C and still reports description unset, topics empty, and homepage unset. The authenticated execution surface was re-checked and exposes no repository description/topics mutation action. The exact application status is `NOT APPLIED — TOOLING UNAVAILABLE`.
+Live repository metadata was re-read during terminal reconciliation and still reports description unset, topics empty, and homepage unset. The authenticated execution surface still exposes no repository description/topics mutation action. The exact application status remains `NOT APPLIED — TOOLING UNAVAILABLE`.
+
+Public `v1.0.0` remains immutable and tag `v1.0.0` still resolves to `5cb1c77340b75649f6168e0e8f66479ea047ea96`. Historical `docs/DISCOVERABILITY.md` remains unchanged at blob `013791e04fd30607f1f64f4a8218c000a8f0ab73`.
 
 ## Active frontier
 
-Phase D candidate `docs/008-metadata-discoverability` publishes the exact metadata recommendation in `docs/GITHUB-METADATA.md`, records the unavailable mutation status truthfully, and adds `docs/DISCOVERABILITY-2026-09-01.md` as a new bounded observation while leaving historical `docs/DISCOVERABILITY.md` unchanged.
+Phase E terminal reconciliation is the active candidate. `specs/008-integration-adoption-readiness/terminal-reconciliation.md` reconciles every completion criterion against canonical Phase D and records the bounded public-surface corrections in this candidate.
 
-T833 requires exact-head qualification, review/thread/comment and canonical-main reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` before terminal Phase E begins.
+T841 requires exact-head qualification and clean review/thread/comment/mergeability/canonical-main reconciliation. T842 then requires expected-head merge and exact post-merge `ci`, `skills-compat`, and `release` success.
+
+Spec 008 remains `ACTIVE_CANONICAL`. T843 may record `COMPLETE_CANONICAL` only after T842 is machine-observed, and that completion record must itself be exact-head qualified, reconciled, expected-head merged, and exact-postmerge verified before completion becomes effective.

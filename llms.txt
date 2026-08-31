@@ -14,12 +14,14 @@ Public release `v1.0.0` is immutable and fixed at commit `5cb1c77340b75649f6168e
 - [Adoption guide](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/ADOPTION.md): Bounded adoption paths for Agent Skills, CLI policies, risk profiles, and the immutable GitHub Action.
 - [Validated policy examples](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/examples/README.md): Checked-in Rust, Node, Python, and Go policy starting points that are validated by repository integration tests.
 - [Independent validation protocol](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/INDEPENDENT-VALIDATION.md): Reproducible fixed-v1 release, attestation, CLI, and Agent Skills checks with explicit NOT RUN semantics; this is a protocol, not an external result.
+- [GitHub metadata recommendation](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/GITHUB-METADATA.md): Exact recommended description/topics and the verified live application status `NOT APPLIED — TOOLING UNAVAILABLE`.
+- [Post-change discoverability snapshot](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/DISCOVERABILITY-2026-09-01.md): Bounded dated observation after repository-controlled adoption work; it records unchanged broad-discovery limitations without claiming ranking or adoption.
 - [Proof contract](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/PROOF-CONTRACT.md): Stable human and machine proof semantics, policy fields, verdicts, and exit behavior.
 - [Installation](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/INSTALLATION.md): Agent Skills layouts and supported coding-agent installation surfaces.
 - [Enterprise policy](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/ENTERPRISE-POLICY.md): Local monotonic enterprise-policy layering and fail-closed behavior.
 - [Evidence matrix](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/EVIDENCE.md): Capability claims mapped to repository or immutable machine evidence.
 - [Bounded comparison](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/COMPARISON.md): Source-frozen structural comparison with strengths, weaknesses, unknowns, and no universal ranking claim.
-- [Discoverability audit](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/DISCOVERABILITY.md): Dated GitHub, public-web, skills.sh, and independent-LLM availability observations with explicit bounds.
+- [Historical discoverability audit](https://raw.githubusercontent.com/TheHalfMoon/Diffcipline/main/docs/DISCOVERABILITY.md): Preserved Spec 007 GitHub, public-web, skills.sh, and independent-LLM availability observations with explicit bounds.
 
 ## Release and verification
 
