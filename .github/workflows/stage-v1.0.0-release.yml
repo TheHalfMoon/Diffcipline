@@ -1,0 +1,217 @@
+name: stage-v1.0.0-release
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/stage-v1.0.0-release.yml"
+      - ".github/workflows/verify-v1.0.0-release.yml"
+      - "docs/RELEASES.md"
+      - "specs/**"
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate v1 release staging recovery
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Verify exact candidate checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
+      - name: Validate request contract, version, and tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          parse_request() {
+            read -r command tag target_sha extra <<< "$1"
+            test "$command" = "/stage-release"
+            test "$tag" = "v1.0.0"
+            test -z "${extra:-}"
+            [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
+          }
+          parse_request "/stage-release v1.0.0 0123456789abcdef0123456789abcdef01234567"
+          ! parse_request "/stage-release v1.0.0 deadbeef"
+          ! parse_request "/stage-release v1.0.1 0123456789abcdef0123456789abcdef01234567"
+          crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
+          test "$crate_version" = "1.0.0"
+          gh run download --help >/dev/null
+          gh attestation verify --help >/dev/null
+          gh release create --help >/dev/null
+          gh release download --help >/dev/null
+
+  stage:
+    name: stage verified v1.0.0 draft from canonical signed candidate
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      github.event.comment.user.login == github.repository_owner &&
+      startsWith(github.event.comment.body, '/stage-release v1.0.0 ')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Parse explicit staging request
+        id: request
+        shell: bash
+        env:
+          REQUEST_BODY: ${{ github.event.comment.body }}
+        run: |
+          set -euo pipefail
+          read -r command tag target_sha extra <<< "$REQUEST_BODY"
+          test "$command" = "/stage-release"
+          test "$tag" = "v1.0.0"
+          test -z "${extra:-}"
+          [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "target_sha=$target_sha" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.request.outputs.target_sha }}
+          fetch-depth: 0
+
+      - name: Verify tagged canonical release commit and lineage
+        shell: bash
+        env:
+          TAG: ${{ steps.request.outputs.tag }}
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          git fetch origin main --no-tags
+          git fetch origin "refs/tags/$TAG:refs/tags/$TAG" --no-tags
+          test "$(git rev-parse "refs/tags/$TAG")" = "$TARGET_SHA"
+          git merge-base --is-ancestor "$TARGET_SHA" origin/main
+          crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
+          test "$crate_version" = "1.0.0"
+          test "$TAG" = "v${crate_version}"
+
+      - name: Resolve exact successful canonical and tag evidence
+        id: evidence
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          successful_run() {
+            workflow="$1"
+            event="$2"
+            gh api -X GET "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs" \
+              -f head_sha="$TARGET_SHA" -f event="$event" -f status=completed -f per_page=100 \
+              --jq '.workflow_runs | map(select(.conclusion == "success")) | sort_by(.id) | last | .id // empty'
+          }
+          ci_run="$(successful_run ci.yml push)"
+          skills_run="$(successful_run skills-compat.yml push)"
+          release_run="$(successful_run release.yml push)"
+          tag_run="$(successful_run tag-v1.0.0.yml issue_comment)"
+          test -n "$ci_run"
+          test -n "$skills_run"
+          test -n "$release_run"
+          test -n "$tag_run"
+          echo "ci_run=$ci_run" >> "$GITHUB_OUTPUT"
+          echo "skills_run=$skills_run" >> "$GITHUB_OUTPUT"
+          echo "release_run=$release_run" >> "$GITHUB_OUTPUT"
+          echo "tag_run=$tag_run" >> "$GITHUB_OUTPUT"
+
+      - name: Download and verify exact canonical signed candidate
+        id: artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_RUN_ID: ${{ steps.evidence.outputs.release_run }}
+        run: |
+          set -euo pipefail
+          artifact_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RELEASE_RUN_ID/artifacts" \
+            --jq '[.artifacts[] | select(.name == "signed-release-candidate" and .expired == false)]')"
+          test "$(jq 'length' <<< "$artifact_json")" -eq 1
+          artifact_id="$(jq -r '.[0].id' <<< "$artifact_json")"
+          artifact_digest="$(jq -r '.[0].digest' <<< "$artifact_json")"
+          [[ "$artifact_digest" == sha256:* ]]
+          echo "artifact_id=$artifact_id" >> "$GITHUB_OUTPUT"
+          echo "artifact_digest=$artifact_digest" >> "$GITHUB_OUTPUT"
+          rm -rf dist
+          mkdir dist
+          gh run download "$RELEASE_RUN_ID" --repo "$GITHUB_REPOSITORY" \
+            --name signed-release-candidate --dir dist
+          test "$(find dist -maxdepth 1 -type f | wc -l)" -eq 5
+          test -f dist/SHA256SUMS
+          test -f dist/PROVENANCE.sigstore.json
+          test "$(wc -l < dist/SHA256SUMS)" -eq 3
+          (cd dist && sha256sum -c SHA256SUMS)
+          for file in dist/diffcipline-*; do
+            gh attestation verify "$file" --repo "$GITHUB_REPOSITORY"
+          done
+
+      - name: Create draft release from verified canonical assets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.request.outputs.tag }}
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Refusing to replace existing release for $TAG" >&2
+            exit 1
+          fi
+          printf 'Release commit: `%s`\n\nBuilt and staged from the exact canonical signed release candidate. Publication remains an administrative action gated by release immutability.\n' "$TARGET_SHA" > release-notes.md
+          gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" \
+            --title "Diffcipline $TAG" --notes-file release-notes.md --draft --verify-tag
+
+      - name: Round-trip verify draft assets and record evidence
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.request.outputs.tag }}
+          TARGET_SHA: ${{ steps.request.outputs.target_sha }}
+          CI_RUN_ID: ${{ steps.evidence.outputs.ci_run }}
+          SKILLS_RUN_ID: ${{ steps.evidence.outputs.skills_run }}
+          RELEASE_RUN_ID: ${{ steps.evidence.outputs.release_run }}
+          TAG_RUN_ID: ${{ steps.evidence.outputs.tag_run }}
+          ARTIFACT_ID: ${{ steps.artifact.outputs.artifact_id }}
+          ARTIFACT_DIGEST: ${{ steps.artifact.outputs.artifact_digest }}
+        run: |
+          set -euo pipefail
+          test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')" = "true"
+          rm -rf staged evidence
+          mkdir staged evidence
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir staged
+          find dist -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort > expected-assets.txt
+          find staged -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort > staged-assets.txt
+          cmp expected-assets.txt staged-assets.txt
+          test "$(wc -l < staged-assets.txt)" -eq 5
+          while IFS= read -r asset; do cmp "dist/$asset" "staged/$asset"; done < expected-assets.txt
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json tagName,url,isDraft,assets > evidence/draft-release.json
+          (cd staged && sha256sum *) > evidence/staged-assets.sha256
+          cat > evidence/staging.txt <<EOF
+          tag=$TAG
+          tag_sha=$TARGET_SHA
+          ci_run_id=$CI_RUN_ID
+          skills_run_id=$SKILLS_RUN_ID
+          canonical_release_run_id=$RELEASE_RUN_ID
+          signed_release_artifact_id=$ARTIFACT_ID
+          signed_release_artifact_digest=$ARTIFACT_DIGEST
+          tag_authority_run_id=$TAG_RUN_ID
+          staging_workflow_run_id=$GITHUB_RUN_ID
+          draft_release=true
+          assets_roundtrip_verified=true
+          binary_attestations=verified
+          EOF
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: v1.0.0-draft-staging-evidence
+          path: evidence/*
+          if-no-files-found: error
+          retention-days: 90
+          compression-level: 0
