@@ -1,0 +1,66 @@
+name: Bug report
+description: Report a reproducible Diffcipline defect.
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping make Diffcipline more reliable. Do not include secrets or vulnerability details here; use SECURITY.md for security reports.
+  - type: input
+    id: version
+    attributes:
+      label: Diffcipline version or commit
+      description: Use an exact tag or commit when possible.
+      placeholder: v1.0.0 or 5cb1c773...
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, architecture, Git version, and relevant agent/CI surface.
+      placeholder: Ubuntu 24.04 x86_64, Git 2.x, CLI
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Provide the smallest repository state, policy, command, and steps that reproduce the behavior.
+      placeholder: |
+        1. Create ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Machine evidence
+      description: Paste the exact Diffcipline command/output, exit code, or CI run link. Remove credentials and private data.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Reporter checks
+      options:
+        - label: I reduced this to a reproducible case or explained why I could not.
+          required: true
+        - label: I removed secrets, credentials, and private data.
+          required: true
+        - label: This is not a private security vulnerability report.
+          required: true
