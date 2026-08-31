@@ -20,7 +20,9 @@ Activation: `60fb2643c2710f0e262c2b007ca4192f039d30c3` — post-merge `ci` `3343
 
 Phase B / validated ecosystem examples: `b31d891427b5ddbd43fc24c2ad2e1dc7adc6bd39` — post-merge `ci` `33440059674`, `skills-compat` `33440059726`, `release` `33440059755` all `SUCCESS`.
 
-The canonical Phase B files include checked-in Rust, Node, Python, and Go policies plus an integration test that loads those exact files through the CLI contract.
+Phase C / adoption and independent validation: `498df9f4c0260f6deb87861f4e27f882f16a14ab` — post-merge `ci` `33441120552`, `skills-compat` `33441120459`, `release` `33441120450` all `SUCCESS`.
+
+The canonical repository now contains validated Rust/Node/Python/Go policy examples, a bounded adoption guide, and a reproducible independent-validation protocol against immutable `v1.0.0`. The protocol is not an external validation result.
 
 ## Authorized scope
 
@@ -34,10 +36,12 @@ Spec 008 targets repository-controlled adoption readiness without reopening Spec
 
 ## Preserved limitations
 
-Frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage, the stronger experiment remains `NOT_RUN`, broad discovery/adoption remains an open gap, and unavailable independent model recommendation systems remain `NOT TESTED` in the dated Spec 007 audit.
+Frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage, the stronger experiment remains `NOT_RUN`, broad discovery/adoption remains an open gap, and unavailable independent model recommendation systems remain `NOT TESTED`.
 
-Live repository metadata still reports description unset, topics empty, and homepage unset. Phase D must re-check whether the authenticated execution surface exposes a repository-metadata mutation action; no document may claim those values are live without verified GitHub state.
+Live repository metadata was re-read after Phase C and still reports description unset, topics empty, and homepage unset. The authenticated execution surface was re-checked and exposes no repository description/topics mutation action. The exact application status is `NOT APPLIED — TOOLING UNAVAILABLE`.
 
 ## Active frontier
 
-Phase C candidate `docs/008-adoption-independent-validation` adds a bounded adoption guide and an independent-validation protocol against immutable `v1.0.0`, then links adoption/examples/validation from the human and machine-readable entry points. T823 requires exact-head qualification, clean reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` before Phase D begins.
+Phase D candidate `docs/008-metadata-discoverability` publishes the exact metadata recommendation in `docs/GITHUB-METADATA.md`, records the unavailable mutation status truthfully, and adds `docs/DISCOVERABILITY-2026-09-01.md` as a new bounded observation while leaving historical `docs/DISCOVERABILITY.md` unchanged.
+
+T833 requires exact-head qualification, review/thread/comment and canonical-main reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` before terminal Phase E begins.
