@@ -1,9 +1,9 @@
-name: tag-v0.1.0
+name: tag-v1.0.0
 
 on:
   pull_request:
     paths:
-      - ".github/workflows/tag-v0.1.0.yml"
+      - ".github/workflows/tag-v1.0.0.yml"
       - "crates/diffcipline-cli/Cargo.toml"
       - "specs/**"
   issue_comment:
@@ -14,18 +14,17 @@ permissions:
 
 jobs:
   validate:
-    name: validate guarded tag authority
+    name: validate guarded v1 tag authority
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
       - name: Verify exact candidate checkout
         shell: bash
         run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
-      - name: Validate v0.1 request contract and immutable version source
+      - name: Validate v1 request contract
         shell: bash
         run: |
           set -euo pipefail
@@ -33,27 +32,24 @@ jobs:
             body="$1"
             read -r command tag target_sha extra <<< "$body"
             test "$command" = "/release"
-            test "$tag" = "v0.1.0"
+            test "$tag" = "v1.0.0"
             test -z "${extra:-}"
             [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
           }
-          parse_request "/release v0.1.0 0123456789abcdef0123456789abcdef01234567"
-          ! parse_request "/release v0.1.0 deadbeef"
-          ! parse_request "/release v0.1.1 0123456789abcdef0123456789abcdef01234567"
-          ! parse_request "/release v0.1.0 0123456789abcdef0123456789abcdef01234567 extra"
-          expected_sha="ab434ae114b5f11ea9eb882bf572831dc7634531"
-          git fetch origin "refs/tags/v0.1.0:refs/tags/v0.1.0" --no-tags
-          test "$(git rev-parse refs/tags/v0.1.0)" = "$expected_sha"
-          crate_version="$(git show refs/tags/v0.1.0:crates/diffcipline-cli/Cargo.toml | awk -F '"' '/^version = / {print $2; exit}')"
-          test "$crate_version" = "0.1.0"
+          parse_request "/release v1.0.0 0123456789abcdef0123456789abcdef01234567"
+          ! parse_request "/release v1.0.0 deadbeef"
+          ! parse_request "/release v1.0.1 0123456789abcdef0123456789abcdef01234567"
+          ! parse_request "/release v1.0.0 0123456789abcdef0123456789abcdef01234567 extra"
+          crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
+          test "$crate_version" = "1.0.0"
 
   tag:
-    name: create verified v0.1.0 tag
+    name: create verified v1.0.0 tag
     if: >-
       github.event_name == 'issue_comment' &&
       github.event.issue.pull_request &&
       github.event.comment.user.login == github.repository_owner &&
-      startsWith(github.event.comment.body, '/release v0.1.0 ')
+      startsWith(github.event.comment.body, '/release v1.0.0 ')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -69,7 +65,7 @@ jobs:
           set -euo pipefail
           read -r command tag target_sha extra <<< "$REQUEST_BODY"
           test "$command" = "/release"
-          test "$tag" = "v0.1.0"
+          test "$tag" = "v1.0.0"
           test -z "${extra:-}"
           [[ "$target_sha" =~ ^[0-9a-f]{40}$ ]]
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
@@ -91,14 +87,14 @@ jobs:
           git fetch origin main --no-tags
           test "$(git rev-parse origin/main)" = "$TARGET_SHA"
           crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
-          test "$crate_version" = "0.1.0"
+          test "$crate_version" = "1.0.0"
           test "$TAG" = "v${crate_version}"
           if git ls-remote --exit-code origin "refs/tags/$TAG" >/dev/null 2>&1; then
             echo "Refusing to replace existing tag $TAG" >&2
             exit 1
           fi
 
-      - name: Verify exact-SHA post-merge T062 workflows
+      - name: Verify exact-SHA canonical qualification
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}

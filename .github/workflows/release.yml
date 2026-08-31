@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - ".github/workflows/tag-v0.1.0.yml"
+      - ".github/workflows/tag-v1.0.0.yml"
       - ".github/workflows/verify-v0.1.0-release.yml"
       - "Cargo.toml"
       - "Cargo.lock"
@@ -20,6 +21,7 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - ".github/workflows/tag-v0.1.0.yml"
+      - ".github/workflows/tag-v1.0.0.yml"
       - ".github/workflows/verify-v0.1.0-release.yml"
       - "Cargo.toml"
       - "Cargo.lock"

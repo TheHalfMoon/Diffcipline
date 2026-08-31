@@ -49,10 +49,141 @@ jobs:
         shell: bash
         run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
       - name: Dogfood default Action proof
+        id: default-proof
+        continue-on-error: true
         uses: ./
         with:
           base: ${{ github.event.pull_request.base.sha || github.event.before }}
           run-verification: "true"
+      - name: Verify default proof outcome
+        shell: bash
+        env:
+          ACTION_OUTCOME: ${{ steps.default-proof.outcome }}
+          DIFFCIPLINE_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          proof_file="$RUNNER_TEMP/diffcipline-default-proof.log"
+          json_file="$RUNNER_TEMP/diffcipline-default-proof.json"
+          set +e
+          cargo run --quiet --locked --package diffcipline -- \
+            check --base "$DIFFCIPLINE_BASE" --run --json > "$proof_file"
+          status=$?
+          set -e
+          cat "$proof_file"
+
+          python3 - "$proof_file" "$json_file" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          source, destination = sys.argv[1:]
+          proof = None
+          for line in reversed(pathlib.Path(source).read_text(encoding="utf-8").splitlines()):
+              if not line.startswith("{"):
+                  continue
+              try:
+                  candidate = json.loads(line)
+              except json.JSONDecodeError:
+                  continue
+              if candidate.get("schema") == "diffcipline.proof/v1":
+                  proof = candidate
+                  break
+          assert proof is not None
+          pathlib.Path(destination).write_text(
+              json.dumps(proof, sort_keys=True) + "\n", encoding="utf-8"
+          )
+          PY
+
+          verdict="$(python3 - "$json_file" <<'PY'
+          import json, sys
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              proof = json.load(handle)
+          print(proof["verdict"])
+          PY
+          )"
+
+          if [[ "$status" -eq 0 && "$verdict" == "PASS" ]]; then
+            test "$ACTION_OUTCOME" = "success"
+            exit 0
+          fi
+
+          test "$status" -eq 1
+          test "$verdict" = "REVIEW"
+          test "$ACTION_OUTCOME" = "failure"
+
+          python3 - "$json_file" "$DIFFCIPLINE_BASE" <<'PY'
+          import json
+          import pathlib
+          import re
+          import subprocess
+          import sys
+
+          proof_path, base = sys.argv[1:]
+          with open(proof_path, encoding="utf-8") as handle:
+              proof = json.load(handle)
+
+          assert proof["verdict"] == "REVIEW"
+          assert not proof["scope_violations"]
+          assert proof["verification"]
+          assert all(item["state"] == "PASS" for item in proof["verification"])
+          assert sorted(proof["reasons"]) == [
+              "dependency manifest changed: crates/diffcipline-cli/Cargo.toml",
+              "lockfile changed: Cargo.lock",
+          ]
+
+          manifest = "crates/diffcipline-cli/Cargo.toml"
+          lockfile = "Cargo.lock"
+
+          def show(ref: str, path: str) -> str:
+              return subprocess.check_output(["git", "show", f"{ref}:{path}"], text=True)
+
+          def current(path: str) -> str:
+              return pathlib.Path(path).read_text(encoding="utf-8")
+
+          def manifest_version(text: str) -> str:
+              match = re.search(r'^version = "([^"]+)"$', text, re.MULTILINE)
+              assert match
+              return match.group(1)
+
+          def normalize_manifest(text: str) -> str:
+              normalized, count = re.subn(
+                  r'^version = "[^"]+"$',
+                  'version = "<VERSION>"',
+                  text,
+                  count=1,
+                  flags=re.MULTILINE,
+              )
+              assert count == 1
+              return normalized
+
+          lock_pattern = re.compile(
+              r'(\[\[package\]\]\s*\nname = "diffcipline"\s*\nversion = ")([^"]+)(")'
+          )
+
+          def lock_version(text: str) -> str:
+              match = lock_pattern.search(text)
+              assert match
+              return match.group(2)
+
+          def normalize_lock(text: str) -> str:
+              normalized, count = lock_pattern.subn(
+                  r'\g<1><VERSION>\g<3>', text, count=1
+              )
+              assert count == 1
+              return normalized
+
+          base_manifest = show(base, manifest)
+          head_manifest = current(manifest)
+          base_lock = show(base, lockfile)
+          head_lock = current(lockfile)
+
+          assert manifest_version(base_manifest) == "0.1.0"
+          assert manifest_version(head_manifest) == "1.0.0"
+          assert normalize_manifest(base_manifest) == normalize_manifest(head_manifest)
+          assert lock_version(base_lock) == "0.1.0"
+          assert lock_version(head_lock) == "1.0.0"
+          assert normalize_lock(base_lock) == normalize_lock(head_lock)
+          PY
       - name: Prepare risk-annotation fixture
         shell: bash
         run: |

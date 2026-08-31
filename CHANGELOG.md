@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## 1.0.0 — 2026-08-31
+
+### Added
+- Stable `diffcipline.proof/v1` / `1.0` proof schema with deterministic policy provenance.
+- Optional monotonic enterprise policy layering through explicit `--enterprise-policy <path>` input.
+- Portable Agent Skills qualification covering the generic contract plus Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI.
+- Signed cross-platform release-candidate pipeline with deterministic SHA-256 closure, keyless GitHub/Sigstore provenance, and binary-subject verification.
+
+### Changed
+- Quoted policy-array parsing now preserves commas inside quoted verification commands while retaining fail-closed malformed-input behavior.
+- Enterprise-enforcement documentation now distinguishes optional local policy input from organization-controlled required CI enforcement.
+
+### Release
+- Public `v1.0.0` publication is governed by Spec 006 and is not complete until the immutable published release passes the repository's release verifier.
+
 ## 0.1.0 — 2026-08-29
 
 ### Added

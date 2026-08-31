@@ -2,9 +2,9 @@
 
 ## Status
 
-`PLANNING_CANDIDATE`
+`ACTIVE_CANONICAL`
 
-This specification becomes publication implementation authority only after this planning record is merged to canonical `main` and the required exact post-merge `ci`, `skills-compat`, and `release` gates succeed on the resulting canonical SHA.
+Planning authority is canonical at `ccdaa65b7ff48775ffa72e20f8d2dbf024ee3577`. Its exact post-merge `ci` `33399584260`, `skills-compat` `33399584290`, and `release` `33399584278` runs all completed `SUCCESS`; the canonical release run built all three locked native binaries, verified deterministic checksum closure, created signed Sigstore provenance, preserved the attestation bundle, and verified every native-binary subject.
 
 Spec 005 remains `COMPLETE_CANONICAL`. This specification does not reopen or reinterpret any completed capability work.
 

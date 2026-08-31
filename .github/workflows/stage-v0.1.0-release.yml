@@ -22,10 +22,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
       - name: Verify exact candidate checkout
         shell: bash
         run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha }}"
-      - name: Validate request contract and tooling
+      - name: Validate request contract, immutable version source, and tooling
         shell: bash
         run: |
           set -euo pipefail
@@ -41,7 +42,10 @@ jobs:
           ! parse_request "/stage-release v0.1.0 deadbeef"
           ! parse_request "/stage-release v0.1.1 0123456789abcdef0123456789abcdef01234567"
           ! parse_request "/stage-release v0.1.0 0123456789abcdef0123456789abcdef01234567 extra"
-          crate_version="$(awk -F '"' '/^version = / {print $2; exit}' crates/diffcipline-cli/Cargo.toml)"
+          expected_sha="ab434ae114b5f11ea9eb882bf572831dc7634531"
+          git fetch origin "refs/tags/v0.1.0:refs/tags/v0.1.0" --no-tags
+          test "$(git rev-parse refs/tags/v0.1.0)" = "$expected_sha"
+          crate_version="$(git show refs/tags/v0.1.0:crates/diffcipline-cli/Cargo.toml | awk -F '"' '/^version = / {print $2; exit}')"
           test "$crate_version" = "0.1.0"
           gh run download --help >/dev/null
           gh attestation verify --help >/dev/null
