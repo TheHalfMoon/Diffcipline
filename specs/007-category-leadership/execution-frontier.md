@@ -7,39 +7,29 @@ Live GitHub/repository truth overrides this snapshot.
 - planning authority: `768a3980e99c4dac4e49b55d39f1d66366025ae8`;
 - Phase B: `f3bcf163466feb853d3d441f326b758c5b9bce8e`;
 - Phase C: `91ab45bc729b578cda37aed159bb4dbdd8e2f545`;
-- Phase D: `41adfcd3d2ca6e16c85bddff8d976239f9d97d67`.
+- Phase D: `41adfcd3d2ca6e16c85bddff8d976239f9d97d67`;
+- Phase E: `92ad064b954182fe2082ac0a5c873ad0d740d811`.
 
-Phase D exact post-merge gates:
+Phase E exact post-merge gates:
 
-- `ci` `33431396088` — `SUCCESS`;
-- `skills-compat` `33431396169` — `SUCCESS`;
-- `release` `33431395958` — `SUCCESS`.
+- `ci` `33432375777` — `SUCCESS`;
+- `skills-compat` `33432375615` — `SUCCESS`;
+- `release` `33432375709` — `SUCCESS`.
 
-T700–T734 are complete.
+T700–T744 are complete.
 
-## Phase E candidate
+## Phase F candidate
 
-Branch: `docs/007-comparative-evidence`.
+Branch: `docs/007-stronger-evaluation-not-run`.
 
-Source identity was frozen before conclusions on 2026-08-31:
+Decision: a new stronger comparative coding-agent experiment is `NOT_RUN` in the current environment. The repository execution surface can mutate/observe GitHub and public sources, but it does not expose a separate controlled set of comparable coding-agent/model executors plus a preregisterable harness/scorer suitable for a defensible treatment comparison.
 
-- `obra/superpowers@b36e0829c6d0140e93cfef2ca599b1b07d4a7797`;
-- `Aurite-ai/agent-verifier@d4b6c010be1a897a72c93f648beab64e41b8199c`;
-- `renezander030/skillgate@1ffd54cb32b8e834feb93b1b6d1f1a0a1472eff7`;
-- `agent-contracts/agent-task-contract@6f844d9b83eecf896427e491d4072982187b957e`.
+The conversational repository executor is not substituted as an experimental treatment. Missing experimental infrastructure is not converted into a benchmark result.
 
-`specs/007-category-leadership/comparator-snapshot.md` fixes ten observable dimensions and conservative evidence labels before `docs/COMPARISON.md` draws conclusions.
+`stronger-evaluation.md` records the decision, preserves existing negative v0.1/v0.3 evidence unchanged, and lists the controls required before any future run.
 
-The matrix must keep three evidence classes separate:
-
-1. structural capability evidence;
-2. benchmark/experiment evidence;
-3. adoption/discoverability signals.
-
-`Not established` means only that the frozen reviewed source did not establish the capability; it is not a claim of impossibility or absence outside the snapshot.
-
-T740–T743 become canonical only after T744 exact-head qualification, source revalidation, clean reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` success.
+T750 and T753 become complete only after this exact candidate qualifies, reconciles, merges by expected head, and exact post-merge `ci`, `skills-compat`, and `release` succeed. T751/T752 remain not activated because the T750 condition is false for this environment.
 
 ## Next unit
 
-After T744, decide T750 honestly. If no separately authorized capable evaluation environment exists, record the stronger experiment as `NOT RUN` without weakening or inflating comparative claims, then proceed to the discoverability audit.
+After T753, execute the timestamped discoverability audit. Record GitHub/web/skills.sh observations exactly. Independent LLM systems unavailable to this execution environment must be recorded `NOT OBSERVED`, not simulated or inferred.

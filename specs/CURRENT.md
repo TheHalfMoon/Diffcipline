@@ -12,17 +12,20 @@ Specs 001–006 are `COMPLETE_CANONICAL`. Public `v1.0.0` is published immutable
 
 ## Spec 007 canonical units
 
-- planning authority `768a3980e99c4dac4e49b55d39f1d66366025ae8` — post-merge `ci` `33426507275`, `skills-compat` `33426507265`, `release` `33426507377` all `SUCCESS`;
-- Phase B `f3bcf163466feb853d3d441f326b758c5b9bce8e` — post-merge `ci` `33428154407`, `skills-compat` `33428154408`, `release` `33428154493` all `SUCCESS`;
-- Phase C `91ab45bc729b578cda37aed159bb4dbdd8e2f545` — post-merge `ci` `33429154442`, `skills-compat` `33429154536`, `release` `33429154544` all `SUCCESS`;
-- Phase D `41adfcd3d2ca6e16c85bddff8d976239f9d97d67` — post-merge `ci` `33431396088`, `skills-compat` `33431396169`, `release` `33431395958` all `SUCCESS`.
+- planning authority `768a3980e99c4dac4e49b55d39f1d66366025ae8`;
+- Phase B `f3bcf163466feb853d3d441f326b758c5b9bce8e`;
+- Phase C `91ab45bc729b578cda37aed159bb4dbdd8e2f545`;
+- Phase D `41adfcd3d2ca6e16c85bddff8d976239f9d97d67`;
+- Phase E comparative evidence `92ad064b954182fe2082ac0a5c873ad0d740d811` — post-merge `ci` `33432375777`, `skills-compat` `33432375615`, `release` `33432375709` all `SUCCESS`.
 
-T700–T734 are complete.
+T700–T744 are complete.
 
-Repository description/topics remain unset because the available authenticated GitHub execution surface exposes no mutation action for those metadata fields. Homepage remains intentionally unset because no separate stable canonical site exists. Discussions remain disabled because no maintained discussion workflow or response commitment exists.
+Repository description/topics remain unset because the available authenticated GitHub execution surface exposes no mutation action for those fields. Homepage remains intentionally unset because no separate stable canonical site exists. Discussions remain disabled because no maintained discussion workflow exists.
+
+`docs/COMPARISON.md` is a bounded source-frozen structural comparison, not a universal ranking or correctness benchmark. Existing negative benchmark evidence remains unchanged.
 
 ## Active frontier
 
-Phase E / T740–T744 is the current bounded unit. Exact comparator commits are frozen before conclusions; comparison dimensions and evidence labels are preregistered in the snapshot; `docs/COMPARISON.md` separates structural capabilities, benchmark evidence, and popularity/adoption signals and must publish weaknesses and unknowns alongside Diffcipline strengths.
+Phase F / T750–T753 is the current bounded unit. The current execution environment does not expose a separate controlled multi-treatment coding-agent/model benchmark harness, so the stronger experiment is a `NOT_RUN` candidate. This must be published as missing experimental capability, not converted into evidence.
 
-After T744, T750 decides whether a genuinely capable separately authorized stronger-evaluation environment exists. Absence of such an environment must be recorded as `NOT RUN`, not converted into evidence.
+After T753, Phase G performs a timestamped discoverability audit across GitHub, public web search, skills.sh, and only those independent LLM systems actually accessible to the execution environment.
