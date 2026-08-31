@@ -1,3 +1,5 @@
+mod enterprise;
+
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -159,6 +161,15 @@ fn main() -> ExitCode {
 }
 
 fn run() -> Result<Verdict, String> {
+    let enterprise_args = env::args().skip(1).collect::<Vec<_>>();
+    if enterprise_args.first().map(String::as_str) == Some("check")
+        && enterprise_args
+            .iter()
+            .any(|argument| argument == "--enterprise-policy")
+    {
+        return enterprise::run_check(enterprise_args[1..].to_vec());
+    }
+
     let mut args = env::args().skip(1);
 
     match args.next().as_deref() {
@@ -229,7 +240,7 @@ fn policy_provenance() -> Result<(&'static str, Vec<String>), String> {
 fn print_help() {
     println!(
         "Diffcipline — discipline for coding agents\n\n\
-Usage:\n  diffcipline init\n  diffcipline check [--base <ref>] [--risk <R0|R1|R2|R3>] [--run] [--json]\n\n\
+Usage:\n  diffcipline init\n  diffcipline check [--base <ref>] [--risk <R0|R1|R2|R3>] [--enterprise-policy <path>] [--run] [--json]\n\n\
 Exit codes:\n  0 PASS\n  1 REVIEW\n  2 FAIL\n  64 usage/execution error"
     );
 }
