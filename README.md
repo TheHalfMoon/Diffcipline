@@ -11,6 +11,19 @@ Diffcipline is an open Agent Skill plus a deterministic CLI that gives coding ag
 
 It is inspired by the best ideas behind cautious, surgical agent behavior and minimal senior-engineer code, but it adds the missing layer: **machine-observed proof over the exact diff**.
 
+## v1 capability milestone
+
+The Universal Engineering Governor capability set is implemented on canonical `main`:
+
+- stable machine proof schema `diffcipline.proof/v1` / `1.0` with deterministic policy provenance;
+- explicit local enterprise-policy input with monotonic, fail-closed layering over repository policy;
+- one canonical Agent Skills behavior qualified byte-identically for Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI, plus the generic Agent Skills layout;
+- locked Linux, macOS, and Windows release-candidate builds with deterministic `SHA256SUMS`, keyless GitHub/Sigstore provenance, and attestation-subject verification on trusted canonical pushes.
+
+See [`docs/PROOF-CONTRACT.md`](docs/PROOF-CONTRACT.md), [`docs/INSTALLATION.md`](docs/INSTALLATION.md), and [`docs/RELEASES.md`](docs/RELEASES.md) for the machine, portability, and release-candidate contracts.
+
+This capability milestone does **not** create or authorize a public `v1.0` tag or GitHub release.
+
 ## Why Diffcipline
 
 Coding agents are fast at producing plausible changes. The expensive failures happen when they silently assume, over-build, touch unrelated files, add dependencies too early, or declare success without enough evidence.
@@ -96,13 +109,16 @@ diffcipline check
 diffcipline check --base origin/main
 diffcipline check --base origin/main --run
 diffcipline check --base origin/main --risk R2 --run
+diffcipline check --enterprise-policy ./enterprise.diffcipline.toml --base origin/main --risk R2 --run --json
 ```
 
 `--run` executes the verification commands declared in `.diffcipline.toml`. Without `--run`, configured verification is reported as NOT RUN rather than silently treated as passing.
 
 `--risk R0|R1|R2|R3` selects the matching repository-configured verification profile. An explicitly requested profile must exist and contain at least one command; Diffcipline fails closed instead of silently falling back to weaker verification. Omitting `--risk` preserves the default `commands` behavior.
 
-When intent contracts are configured, every changed repository-relative path is checked against `expected_files` and `forbidden_surfaces`. A path outside all expected patterns or inside a forbidden surface produces FAIL. Human and JSON proof output expose the selected risk, configured intent contract, scope violations, and verification command state.
+`--enterprise-policy <path>` explicitly adds a local enterprise baseline. The repository layer may tighten that baseline but cannot weaken its limits, decisions, scope restrictions, or required verification. No network discovery, credential exchange, or remote policy service is used.
+
+When intent contracts are configured, every changed repository-relative path is checked against `expected_files` and `forbidden_surfaces`. A path outside all expected patterns or inside a forbidden surface produces FAIL. Human and JSON proof output expose the selected risk, configured intent contract, scope violations, verification command state, and policy provenance.
 
 ## GitHub Action
 

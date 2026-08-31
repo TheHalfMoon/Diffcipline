@@ -2,6 +2,10 @@
 
 Diffcipline publishes one platform-neutral Agent Skills core. Agent clients may differ in discovery or installation paths, but they must consume the same canonical skill behavior.
 
+## v1 portability capability status
+
+The v1 portability capability is implemented by the generic contract below and qualified for Claude Code, Codex, Cursor, OpenCode, GitHub Copilot, and Gemini CLI. Qualification proves exact-head discovery and installation plus byte identity of both installed skills against their canonical repository sources. It does not claim exhaustive client UI/runtime integration.
+
 ## Canonical skills
 
 The repository contains exactly one behavioral authority for each shipped skill:
