@@ -19,6 +19,45 @@ permissions:
   contents: read
 
 jobs:
+  generic-contract:
+    name: generic Agent Skills contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checkout
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+      - name: Verify canonical layout and unique behavioral sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          expected = {
+              "diffcipline": Path("skills/diffcipline/SKILL.md"),
+              "diffcipline-review": Path("skills/diffcipline-review/SKILL.md"),
+          }
+          seen = {name: [] for name in expected}
+          for path in Path(".").rglob("SKILL.md"):
+              text = path.read_text(encoding="utf-8")
+              for name in expected:
+                  if f"\nname: {name}\n" in f"\n{text}":
+                      seen[name].append(path)
+          for name, canonical in expected.items():
+              assert canonical.is_file(), f"missing canonical skill: {canonical}"
+              assert seen[name] == [canonical], f"non-canonical {name} skill sources: {seen[name]}"
+              text = canonical.read_text(encoding="utf-8")
+              assert text.startswith("---\n"), f"missing frontmatter: {canonical}"
+              assert f"name: {name}\n" in text, f"wrong skill name: {canonical}"
+              assert "description: " in text, f"missing description: {canonical}"
+              assert "license: MIT\n" in text, f"missing MIT license: {canonical}"
+          assert "Think → Challenge → Minimize → Change → Prove" in expected["diffcipline"].read_text(encoding="utf-8")
+          assert "Review the exact diff, not the author's narrative." in expected["diffcipline-review"].read_text(encoding="utf-8")
+          PY
+
   install:
     name: skills installer (${{ matrix.agent }})
     runs-on: ubuntu-latest
@@ -103,4 +142,6 @@ jobs:
           grep -Fxq "name: diffcipline" "$root/diffcipline/SKILL.md"
           grep -Fxq "name: diffcipline-review" "$root/diffcipline-review/SKILL.md"
           grep -Fq "Think → Challenge → Minimize → Change → Prove" "$root/diffcipline/SKILL.md"
+          cmp "$GITHUB_WORKSPACE/skills/diffcipline/SKILL.md" "$root/diffcipline/SKILL.md"
+          cmp "$GITHUB_WORKSPACE/skills/diffcipline-review/SKILL.md" "$root/diffcipline-review/SKILL.md"
           echo "Verified $SOURCE_MODE install for $AGENT at $SKILL_DIR"
