@@ -2,9 +2,9 @@
 
 Active: Spec 006 / v1 Public Publication
 
-Status: `PLANNING_CANDIDATE`
+Status: `ACTIVE_CANONICAL`
 
-Spec 006 becomes active canonical publication authority only after its planning record is merged to canonical `main` and the required exact post-merge `ci`, `skills-compat`, and `release` gates succeed on the resulting canonical SHA.
+Spec 006 planning authority is canonical at `ccdaa65b7ff48775ffa72e20f8d2dbf024ee3577`. Its final publication implementation is canonical through PR #72, whose expected-head merge produced the sole authorized `v1.0.0` release target `5cb1c77340b75649f6168e0e8f66479ea047ea96`. Exact post-merge `ci` `33403468465`, `skills-compat` `33403468547`, and `release` `33403468550` all completed `SUCCESS` on that release SHA.
 
 Live GitHub/repository truth overrides this file.
 
@@ -18,16 +18,24 @@ Spec 003 / v0.3 is `COMPLETE_CANONICAL` at `d09757237560e0963c2eed8ac49eefcae378
 
 Spec 004 / v1 Universal Engineering Governor is `COMPLETE_CANONICAL` at terminal canonical `768bfcd48a1bbcc86e6ccbe879f87677eb66afb7`.
 
-Spec 005 / v1 Release Polish is `COMPLETE_CANONICAL` at terminal canonical `e64a6ae9ad50edc9e08a1392c23134f96d4d7587`. Its terminal post-merge `ci` `33398836802`, `skills-compat` `33398836751`, and `release` `33398836807` all completed `SUCCESS`; the trusted release run built all three native binaries, verified deterministic checksum closure, created signed Sigstore provenance, preserved the attestation bundle, and verified every native-binary subject.
+Spec 005 / v1 Release Polish is `COMPLETE_CANONICAL` at terminal canonical `e64a6ae9ad50edc9e08a1392c23134f96d4d7587`. Its terminal post-merge `ci` `33398836802`, `skills-compat` `33398836751`, and `release` `33398836807` all completed `SUCCESS`.
 
-## Active frontier
+## Active Spec 006 frontier
 
-Spec 006 is a publication-only authority derived from live terminal Spec 005 truth. It authorizes no new product feature.
+T614 and T615 are complete. The final implementation candidate `b75c469e4fbbcac41ac43b849d621f5ae38fa075` passed all required v1, historical v0.1, `ci`, `skills-compat`, and `release` workflows before expected-head merge. Canonical release commit `5cb1c77340b75649f6168e0e8f66479ea047ea96` then passed exact post-merge qualification.
 
-The immediate gate is T603: make the publication planning record canonical and prove exact post-merge `ci`, `skills-compat`, and `release` before any version bump, tag, draft release, or publication implementation begins.
+T620 is complete: owner-triggered `tag-v1.0.0` run `33403681664` completed `SUCCESS`, and `v1.0.0` resolves exactly to `5cb1c77340b75649f6168e0e8f66479ea047ea96`.
 
-## Publication boundary
+T621 is complete: owner-triggered `stage-v1.0.0-release` run `33403855005` completed `SUCCESS`. It verified the exact canonical signed candidate, created draft release `379824838`, and round-trip byte-verified the five staged assets. The release remains a verified unpublished draft.
 
-Until T603 is canonical, version `1.0.0`, tag `v1.0.0`, draft staging, publication, and published-asset verification remain unauthorized.
+T622 is the current repository-governance unit: record this tag/staging evidence canonically without changing the release target. Its candidate record becomes effective only after merge and exact post-merge qualification.
 
-Even after publication implementation is canonical, repository automation must not publish the draft. Independent repository-administrator confirmation that GitHub release immutability is enabled is required before publication through the administrative release surface.
+After canonical T622, the active frontier is T630.
+
+## Administrative publication boundary
+
+Before publication, an independent repository administrator must confirm in GitHub repository settings that **Enable release immutability** is active.
+
+The connected repository execution tooling does not expose that repository-level administration setting, so it must not infer or bypass it. Historical immutable `v0.1.0` does not substitute for the required current administrative confirmation.
+
+No repository workflow may publish the draft. Only after T630 is independently satisfied may the existing verified `v1.0.0` draft be published through GitHub's administrative release surface. Publication must trigger the immutable published-release verifier, and Spec 006 remains incomplete until that verifier succeeds and terminal T633 evidence becomes canonical.
