@@ -24,34 +24,46 @@ These are discovery/trust-surface gaps, not evidence that product behavior is we
 
 ## Public ecosystem signals
 
-### skills.sh
+### Open Agent Skills ecosystem
 
-Source: https://skills.sh/ and https://skills.sh/docs
+Sources: https://agentskills.io, https://github.com/agentskills, https://skills.sh, and https://skills.sh/docs
 
 Observed points:
 
+- Agent Skills is an open format intended for portable agent capabilities;
 - the ecosystem installs public skills with `npx skills add <owner/repo>`;
-- its leaderboard is based on anonymous install telemetry;
-- its documentation provides a public install-count badge;
-- leaderboard position is therefore an adoption observation, not an engineering-quality metric.
+- skills.sh exposes install telemetry and an install-count badge;
+- leaderboard/install position is an adoption observation, not an engineering-quality metric.
 
-Implication for Diffcipline: confirm registry/indexing behavior and expose the existing install path clearly, but never equate install count with correctness or superiority.
+Implication for Diffcipline: use the open format and existing install path as the discovery spine, but never equate install count with correctness or superiority.
 
-### SteveVitali/agent-skills
+### obra/superpowers — verification-before-completion
 
-Source: https://github.com/SteveVitali/agent-skills
+Source: https://skills.sh/obra/superpowers/verification-before-completion
 
-Observed positioning includes harness-agnostic skills, evidence-over-claims, verification, fresh-context review, and acceptance-criteria evidence. This is adjacent to Diffcipline's proof-before-done category and demonstrates that evidence-oriented messaging is already competitive.
+At this snapshot the skill showed roughly 193.8K installs and centers on the rule that completion claims require fresh verification evidence. That makes proof-before-completion a demonstrated high-demand category, not a unique phrase Diffcipline can own by messaging alone.
 
-### renezander030/skillgate
+### agent-contracts/agent-task-contract
 
-Source: https://github.com/renezander030/skillgate
+Source: https://github.com/agent-contracts/agent-task-contract
 
-Observed positioning emphasizes a deterministic finish-line evaluator outside the model, blocking completion until configured checks pass, plus instruction-drift controls. This is a direct adjacent comparison point for deterministic enforcement.
+Observed positioning combines task definition, scope boundaries, risk-matched verification, failure context, and PR-ready evidence. This is a close conceptual comparator for scope-and-verification discipline, while its implementation model differs from Diffcipline's repository-native deterministic CLI and proof schema.
+
+### Aurite-ai/agent-verifier
+
+Source: https://github.com/Aurite-ai/agent-verifier
+
+Observed positioning emphasizes cross-agent verification against policy, security, code-quality, and language-specific requirements. This reinforces that broad agent portability and verification alone are not sufficient differentiation claims.
+
+### Repository discoverability
+
+Source: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/classifying-your-repository-with-topics
+
+GitHub documents repository topics as a mechanism for helping people find projects by purpose and subject. Diffcipline currently has no topics or repository description, so metadata is a concrete discovery gap rather than cosmetic polish.
 
 ### Other adjacent signals
 
-Public search also surfaced repositories focused on minimal-diff skills, agent governance, evidence ledgers, and spec-driven coding workflows. The category is therefore broader than one competitor and comparison should use a timestamped set rather than a cherry-picked rival.
+Public search surfaced additional repositories focused on deterministic finish-line gates, minimal-diff skills, agent governance, evidence ledgers, spec-driven workflows, and large multi-skill catalogs. Comparison must therefore use a timestamped comparator set rather than a cherry-picked rival.
 
 ## Differentiation hypothesis to verify
 
