@@ -24,26 +24,20 @@ Spec 001 / v0.1 is `COMPLETE_CANONICAL`; immutable `v0.1.0` remains fixed at `ab
 
 Spec 002 / v0.2 is `COMPLETE_CANONICAL` at `0a6513aa17c90840a5024c62684d042571d431ed`. No v0.2 tag was created.
 
-Spec 003 / v0.3 is `COMPLETE_CANONICAL` at `d09757237560e0963c2eed8ac49eefcae378f780`. Its terminal post-merge `ci` `33302411448`, `benchmark-v0.3-qualification` `33302411430`, `skills-compat` `33302411434`, and `release` `33302411442` all succeeded. Its accepted one-shot experiment and published negative findings remain frozen.
+Spec 003 / v0.3 is `COMPLETE_CANONICAL` at `d09757237560e0963c2eed8ac49eefcae378f780`. Its accepted one-shot experiment and published negative findings remain frozen.
 
-## Spec 004 canonical planning authority
+## Spec 004 canonical progress
 
-PR #56 planning head `cb590fde5dc3bf76abee1ec3bd8b512607d63dcf` passed exact-head `ci` `33302675371`, `skills-compat` `33302675367`, and `release` `33302675373`, then merged as canonical `df9c0216723d3e241b6cea99bfe58c6212c1cd6a`.
+Planning/T403 is canonical at `df9c0216723d3e241b6cea99bfe58c6212c1cd6a`.
 
-Exact post-merge `ci` `33302752212`, `skills-compat` `33302752218`, and `release` `33302752209` all completed `SUCCESS`. T403 is therefore canonical and implementation is authorized in task order.
+Stable proof schema/T416 is canonical at `fd42970ccf868c5a808b9b3bd03f26c27b7c9161`. The v1 proof contract is `diffcipline.proof/v1` / `1.0` with deterministic schema identity, legacy evidence semantics, and policy provenance.
 
-## Active Phase B candidate
+Enterprise policy/T427 is canonical at `f0198395f0a141048b272bfd495f585fb76f6011`. PR #58 final head `7ae53bfde368287a3a780fb591e7a3d21166856f` passed exact-head `ci` `33357573607` and `release` `33357573613`; post-merge `ci` `33357739486` and `release` `33357739507` also succeeded. Enterprise policy is explicit local-file input, monotonic over repository policy, fail-closed, and disclosed through the stable proof-v1 policy provenance object.
 
-Stable proof schema T410–T415 are implemented on the current candidate:
-
-- repository schema `schemas/proof-v1.json` identifies `diffcipline.proof/v1` / `1.0`;
-- `check --json` preserves existing fields and exit semantics while adding schema identity and policy provenance;
-- policy mode is currently `default` or `repository`; `enterprise` is reserved in the v1 schema for Phase C;
-- Rust tests and `scripts/validate-proof-v1.py` bind real CLI output to exact schema field order and reject an incompatible schema version;
-- CI runs this contract validation with no new Rust runtime dependency.
+The post-merge release evidence on `f0198395f0a141048b272bfd495f585fb76f6011` also proves locked Linux/macOS/Windows builds, checksum-manifest closure, signed Sigstore provenance, and attestation-subject verification. Those observations may be reused as evidence in Phase E only where the release contract remains unchanged and later exact-head/final qualification requirements are still satisfied.
 
 ## Immediate frontier
 
-Only T416 remains for Phase B: the exact stable-schema candidate must pass required exact-head gates, reconcile reviews, merge with an expected-head guard, and pass exact post-merge verification. Enterprise policy implementation is blocked until T416 is canonical.
+Phase D broad agent portability is next: T430–T435. Preserve one canonical `diffcipline` and `diffcipline-review` skill behavior, qualify the existing six named clients from exact heads, add a generic Agent Skills layout/content qualification independent of any one client, and document platform-neutral boundaries and limitations.
 
-No public v1 tag/release is authorized by this phase.
+Do not create platform-specific behavioral forks. No public v1 tag/release is authorized by this phase.
