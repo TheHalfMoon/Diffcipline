@@ -18,37 +18,75 @@ Phase C / adoption and independent validation: `498df9f4c0260f6deb87861f4e27f882
 
 Phase D / metadata handoff and discoverability observation: `cc52f2c95e67eca1458549b6639c6080c0feb533` — post-merge `ci` `33441805035`, `skills-compat` `33441805026`, `release` `33441805093` all `SUCCESS`.
 
-PR #91 exact head `128e2b711a725f79b788ce67151ce590fa940a06` passed all nine required pull-request workflows. Reconciliation found no submitted reviews or inline review threads, only non-substantive automated comments, mergeability `true`, and unchanged canonical `main` before expected-head squash merge.
+## Canonical terminal reconciliation
 
-## Terminal reconciliation candidate
+Terminal reconciliation PR #92 exact head:
 
-Branch: `docs/008-terminal-reconciliation`.
+`c7e60b1b5f4c63311655215ef172c8de565e11e2`
 
-The candidate:
+All nine exact-head pull-request workflows completed `SUCCESS`:
 
-1. publishes `terminal-reconciliation.md` against exact canonical Phase D;
-2. corrects stale canonical-frontier text now that T833 is machine-observed;
-3. links the canonical metadata handoff and dated discoverability snapshot from `README.md` and `llms.txt` without replacing the preserved historical audit;
-4. records T840 complete while keeping T841, T842, and T843 pending.
+- `tag-v1.0.0` `33442164512`;
+- `tag-v0.1.0` `33442164582`;
+- `stage-v1.0.0-release` `33442164514`;
+- `stage-v0.1.0-release` `33442164484`;
+- `verify-v0.1.0-release` `33442164545`;
+- `verify-v1.0.0-release` `33442164580`;
+- `release` `33442164488`;
+- `ci` `33442164621`;
+- `skills-compat` `33442164604`.
 
-Live GitHub during terminal reconciliation still reports description unset, topics empty, and homepage unset. The authenticated execution surface still exposes no repository description/topics mutation action. Exact application status remains:
+Final reconciliation found no submitted reviews or inline review threads, only non-substantive automated comments, mergeability `true`, exact head unchanged, and canonical `main` still `cc52f2c95e67eca1458549b6639c6080c0feb533` before merge.
+
+PR #92 was squash-merged with the expected-head guard to:
+
+`f8314f34135afab2bd7801afb0658d40441f598e`
+
+Exact post-merge T842 proof on that canonical commit:
+
+- `ci` `33442409478` — `SUCCESS`;
+- `skills-compat` `33442409398` — `SUCCESS`;
+- `release` `33442409380` — `SUCCESS`.
+
+T840, T841, and T842 are therefore machine-observed complete.
+
+## T843 completion-record candidate
+
+Branch: `docs/008-complete-canonical`.
+
+This final evidence-record unit is intentionally bounded to five governance/evidence surfaces:
+
+1. `specs/008-integration-adoption-readiness/t843-complete-canonical.md`;
+2. `specs/008-integration-adoption-readiness/spec.md`;
+3. `specs/008-integration-adoption-readiness/tasks.md`;
+4. `specs/008-integration-adoption-readiness/execution-frontier.md`;
+5. `specs/CURRENT.md`.
+
+The candidate records `COMPLETE_CANONICAL` only because T842 is already machine-observed. That status is not effective canonical truth while this branch remains an unqualified candidate.
+
+Effective completion requires this exact final candidate head to:
+
+1. pass all nine required pull-request workflows;
+2. reconcile reviews, review threads, comments, mergeability, exact head, and canonical `main` cleanly;
+3. merge only with the expected-head guard;
+4. pass exact post-merge `ci`, `skills-compat`, and `release` on the resulting canonical commit.
+
+Only after step 4 succeeds does Spec 008 become genuinely `COMPLETE_CANONICAL` with no remaining authorized implementation task.
+
+## Preserved live truth and limitations
+
+Live GitHub during terminal reconciliation reported description unset, topics empty, and homepage unset. The authenticated execution surface exposes no repository description/topics mutation action. Exact application status remains:
 
 `NOT APPLIED — TOOLING UNAVAILABLE`
 
-Live `v1.0.0` remains immutable and its tag still resolves to `5cb1c77340b75649f6168e0e8f66479ea047ea96`. Historical `docs/DISCOVERABILITY.md` remains unchanged at blob `013791e04fd30607f1f64f4a8218c000a8f0ab73`. Frozen negative benchmark evidence remains unchanged.
+Historical `docs/DISCOVERABILITY.md` remains preserved at blob `013791e04fd30607f1f64f4a8218c000a8f0ab73`.
 
-## Preserved limitations
+The dated post-change discovery observation remains bounded and does not establish broad adoption, ranking, vendor endorsement, or independent recommendation evidence.
 
-- v0.1 and accepted v0.3 do not establish a correctness advantage;
-- failed benchmark runs and negative evidence remain published;
-- no stronger experiment is represented as having run;
-- no vendor endorsement, universal superiority, adoption, ranking, or independent-validation result is claimed;
-- broad public discovery/adoption remains an explicit gap;
-- independent recommendation surfaces remain `NOT TESTED` where unavailable;
-- repository metadata recommendations are not live because mutation tooling is unavailable.
+Frozen v0.1 and accepted v0.3 benchmark evidence remains unchanged and does not establish a correctness advantage. Failed and negative evidence remains published. No stronger experiment is represented as having run.
 
-## Next gate
+Public `v1.0.0` remains immutable at `5cb1c77340b75649f6168e0e8f66479ea047ea96`; this candidate does not mutate tags, releases, assets, workflows, dependencies, lockfiles, benchmark results, or proof semantics.
 
-T841 requires all nine workflows to succeed on the exact terminal-candidate head plus clean reviews/threads/comments/mergeability/canonical-main reconciliation. T842 then requires expected-head merge and exact post-merge `ci`, `skills-compat`, and `release` success.
+## Final gate
 
-Spec 008 must remain `ACTIVE_CANONICAL` through this unit. Only after T842 is machine-observed may a separate T843 completion record state `COMPLETE_CANONICAL`, and that record must itself pass the same qualification and post-merge proof discipline before completion becomes effective.
+The next and final gate is exact-head qualification of the T843 completion-record candidate, followed by clean reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` success.
