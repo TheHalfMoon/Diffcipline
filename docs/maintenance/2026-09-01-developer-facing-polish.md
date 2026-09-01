@@ -29,8 +29,14 @@ Improve the repository's first-run developer experience without changing Diffcip
 - new comparative, adoption, popularity, endorsement, or superiority claims;
 - repository metadata mutation when the execution surface does not expose a supported mutation action.
 
+## Workflow applicability
+
+For this maintenance surface, `ci` applies to every pull request and every push to `main`. `release` applies because `README.md` is in its path filter. `skills-compat` is not selected because this unit does not touch `.github/workflows/skills-compat.yml`, `skills/**`, `docs/INSTALLATION.md`, or `specs/**`.
+
+A workflow that is not selected by its path filter is not represented as `PASS`; it is recorded as not applicable to this exact change.
+
 ## Completion rule
 
-This maintenance unit is complete only when its exact pull-request head passes the repository's required pull-request qualification, review/thread/comment/mergeability/main reconciliation is clean, it merges by expected head, and the resulting canonical commit passes the required post-merge `ci`, `skills-compat`, and `release` workflows.
+This maintenance unit is complete only when its exact pull-request head passes every workflow selected by GitHub for the changed paths, including exact-head `ci` and `release`, review/thread/comment/mergeability/main reconciliation is clean, it merges by expected head, and the resulting canonical commit passes every workflow selected by the canonical push, including `ci` and `release`.
 
 Until those conditions are machine-observed, the maintenance work remains a candidate and canonical `main` remains authoritative.
