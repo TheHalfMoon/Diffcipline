@@ -48,7 +48,7 @@ After that final proof is machine-observed, Specs 001–008 are `COMPLETE_CANONI
 
 Frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage, no stronger experiment is represented as having run, broad discovery/adoption remains an explicit gap, and unavailable independent model recommendation systems remain `NOT TESTED` where no separately preserved third-party observation surface was available.
 
-Repository metadata remains truthfully recorded as `NOT APPLIED — TOOLING UNAVAILABLE`; live GitHub was last reconciled with description unset, topics empty, and homepage unset because the authenticated execution surface exposes no supported repository metadata mutation action.
+Repository metadata is now live and independently reconciled from the authenticated GitHub repository API: description is `Proof-before-done verification for coding agents through Agent Skills, a dependency-free Rust CLI, and a pinned GitHub Action.`; topics are `agent-skills`, `ai-agents`, `code-quality`, `coding-agents`, `developer-tools`, `github-actions`, `rust`, and `verification`; homepage remains unset. The earlier `NOT APPLIED — TOOLING UNAVAILABLE` state remains a historical observation in `docs/GITHUB-METADATA.md` and is no longer the current live state.
 
 Historical `docs/DISCOVERABILITY.md` remains preserved at blob `013791e04fd30607f1f64f4a8218c000a8f0ab73`.
 
