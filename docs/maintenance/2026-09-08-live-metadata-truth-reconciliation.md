@@ -48,22 +48,28 @@ Public `v1.0.0` remains immutable and unchanged.
 
 ## Workflow applicability
 
-Because this unit changes `specs/CURRENT.md`, GitHub path filters select all of:
+GitHub's exact PR-head selection is authoritative. Because this unit changes `specs/CURRENT.md`, the observed PR event selected all nine repository qualification workflows:
 
 - `ci`;
 - `skills-compat`;
-- `release`.
+- `release`;
+- `stage-v0.1.0-release`;
+- `tag-v0.1.0`;
+- `verify-v0.1.0-release`;
+- `stage-v1.0.0-release`;
+- `tag-v1.0.0`;
+- `verify-v1.0.0-release`.
 
-Each selected workflow must be evaluated only on the exact PR head and, after merge, on the exact resulting canonical commit. A queued, in-progress, missing, skipped-by-filter, or stale run is not a PASS.
+Each selected workflow must be evaluated only on the exact PR head and, after merge, every workflow selected by GitHub on the exact resulting canonical commit must also succeed. A queued, in-progress, missing, skipped, stale, or different-head run is not a PASS.
 
 ## Completion rule
 
 This unit is complete only when:
 
-1. the exact PR head passes `ci`, `skills-compat`, and `release`;
+1. the exact PR head passes all nine observed qualification workflows listed above;
 2. reviews, review threads, comments, mergeability, exact head, and canonical `main` are reconciled;
 3. the PR merges by expected head without rewriting shared history;
-4. the resulting canonical commit passes post-merge `ci`, `skills-compat`, and `release`;
+4. every workflow selected by GitHub for the resulting canonical push succeeds on that exact canonical commit;
 5. live GitHub metadata is re-verified after the merge;
 6. `docs/DISCOVERABILITY.md` still has blob `013791e04fd30607f1f64f4a8218c000a8f0ab73`;
 7. Issue #96 is closed only after the above evidence exists.
