@@ -20,6 +20,30 @@ Superpowers is important prior art for treating software-development methodology
 
 Source: https://github.com/obra/superpowers
 
+## Tencent/SkillHone
+
+SkillHone is relevant prior art for evidence-gated Agent Skill evolution. Its useful concepts for future Diffcipline work include persistent decision history, held-out regression validation, evaluation/skill separation, and treating the entire skill folder as the change surface rather than only `SKILL.md`.
+
+Diffcipline does not adopt SkillHone's optimization harness, model-provider stack, local Git server, or self-evolution loop through this acknowledgment. Any future implementation inspired by these ideas requires separate repository authorization, a demonstrated verification benefit, compatibility with Diffcipline's portable Agent Skills core, and evidence that evaluation inputs cannot leak into the skill under test.
+
+Qualified observation revision: `7d565839fb4dc74f9c77f09ace660e1c0484e048`
+
+Source: https://github.com/Tencent/SkillHone
+
+License observed at qualification: MIT.
+
+## Tencent/LoopForge
+
+LoopForge is relevant prior art for resumable software-delivery workflows. Its useful concepts for future Diffcipline work include risk-sensitive workflow routing, separation of implementation/review/testing responsibilities, persisted verification artifacts, and explicit handoff/resume state for interrupted agent work.
+
+Diffcipline does not adopt LoopForge as a multi-agent orchestration framework through this acknowledgment. Future adoption should remain bounded to proof and verification concerns; Diffcipline should not require a workflow manager in order to use its core Agent Skill or CLI. Direct code reuse, if ever proposed, must preserve LoopForge and applicable third-party attribution requirements.
+
+Qualified observation revision: `09c765286f549624dd95434e1e6ef2249657cbeb`
+
+Source: https://github.com/Tencent/LoopForge
+
+License observed at qualification: MIT, with third-party attribution requirements documented by the source repository.
+
 ## Agent Skills
 
 Diffcipline follows the open Agent Skills directory convention so the behavioral layer remains portable across compatible agents and installers.
