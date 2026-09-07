@@ -1,14 +1,24 @@
 # Current specification
 
-Active after this completion-record unit becomes canonical: none.
+Active specification: none.
 
-Status recorded by this unit: `COMPLETE_CANONICAL`
+Canonical project status: `COMPLETE_CANONICAL`.
 
 Live GitHub/repository truth overrides this file.
 
-The status above becomes effective canonical truth only after the exact T843 completion-record candidate itself passes all nine required pull-request workflows, reconciles reviews/threads/comments/mergeability/exact head/canonical `main`, merges by expected head, and the resulting canonical commit passes exact post-merge `ci`, `skills-compat`, and `release`.
+Specs 001–008 are complete under their recorded canonical governance and machine-observed evidence. There is no active authorized implementation specification and no remaining Spec 008 implementation frontier.
 
-Until those conditions are machine-observed, canonical `main` remains the prior terminal-reconciliation state and Spec 008 must not be treated as effectively complete merely because this candidate records the status.
+## Canonical completion
+
+Spec 008 completion record PR #93 exact head `ca726dae9a6f4e28dd8653f5c8c9da22c460be2a` passed its required pull-request qualification, reconciled cleanly, and merged to canonical commit `3bb0fdaf7c6d7a77fa586dd320acf4a0d0b5e2d9`.
+
+Exact post-merge workflows on `3bb0fdaf7c6d7a77fa586dd320acf4a0d0b5e2d9` completed `SUCCESS`:
+
+- `ci` `33485424611`;
+- `skills-compat` `33485424488`;
+- `release` `33485424445`.
+
+That merge made T843 effective and completed Specs 001–008 canonically.
 
 ## Completed roadmap history
 
@@ -32,23 +42,31 @@ Terminal reconciliation: `f8314f34135afab2bd7801afb0658d40441f598e` — post-mer
 
 Terminal reconciliation PR #92 exact head `c7e60b1b5f4c63311655215ef172c8de565e11e2` passed all nine required pull-request workflows and reconciled with no submitted reviews or inline review threads, no substantive comments, mergeability `true`, exact head unchanged, and canonical `main` still `cc52f2c95e67eca1458549b6639c6080c0feb533` before expected-head squash merge.
 
-T840, T841, and T842 are machine-observed complete.
+T840, T841, T842, and T843 are machine-observed complete.
 
-## Completion-record frontier
+## Post-completion maintenance
 
-Branch `docs/008-complete-canonical` is the sole remaining Spec 008 unit. It records T843 and `COMPLETE_CANONICAL` only after T842 machine proof exists.
+Post-completion repository maintenance does not reopen or extend Specs 001–008.
 
-The candidate is limited to the Spec 008 completion record and canonical status/frontier/task surfaces. It does not alter implementation, workflows, dependencies, lockfiles, releases, tags, assets, benchmark results, proof semantics, or historical evidence.
+Developer-facing repository polish became canonical at `7c1a15ef052e6942ad501c0b630102f02409eb02`.
 
-Effective completion requires exact-head qualification of this candidate through all nine pull-request workflows, clean review/thread/comment/mergeability/main reconciliation, expected-head merge, and exact post-merge `ci`, `skills-compat`, and `release` success.
+Bounded prior-art qualification for Tencent/SkillHone and Tencent/LoopForge became canonical at `60276fd8c74f88a23c7f256c97dcba9fdf50018c` without changing runtime behavior or proof semantics.
 
-After that final proof is machine-observed, Specs 001–008 are `COMPLETE_CANONICAL`, there is no active authorized implementation specification, and any new repository-controlled work requires a new canonical specification or separately authorized maintenance unit.
+Live GitHub metadata reconciliation became canonical at `4349c54c96eb7ab2041eef2249ad058260e0a648` after exact post-merge `ci`, `skills-compat`, and `release` success.
+
+## Current authorization boundary
+
+There is no active implementation specification or dependency-ordered implementation frontier.
+
+New repository-controlled implementation work requires a new canonical specification. Bounded maintenance requires separate maintenance authority and must qualify on the exact change under review.
+
+Completion is not a license to manufacture successor work. New work must be justified by a real requirement, reproducible defect, security issue, governance contradiction, or separately authorized maintenance need.
 
 ## Preserved limitations
 
-Frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage, no stronger experiment is represented as having run, broad discovery/adoption remains an explicit gap, and unavailable independent model recommendation systems remain `NOT TESTED` where no separately preserved third-party observation surface was available.
+Frozen v0.1/v0.3 benchmark evidence does not establish a correctness advantage, no stronger experiment is represented as having run, broad discovery/adoption remains an explicit limitation, and unavailable independent model recommendation systems remain `NOT TESTED` where no separately preserved third-party observation surface was available.
 
-Repository metadata is now live and independently reconciled from the authenticated GitHub repository API: description is `Proof-before-done verification for coding agents through Agent Skills, a dependency-free Rust CLI, and a pinned GitHub Action.`; topics are `agent-skills`, `ai-agents`, `code-quality`, `coding-agents`, `developer-tools`, `github-actions`, `rust`, and `verification`; homepage remains unset. The earlier `NOT APPLIED — TOOLING UNAVAILABLE` state remains a historical observation in `docs/GITHUB-METADATA.md` and is no longer the current live state.
+Repository metadata is live and independently reconciled from the authenticated GitHub repository API: description is `Proof-before-done verification for coding agents through Agent Skills, a dependency-free Rust CLI, and a pinned GitHub Action.`; topics are `agent-skills`, `ai-agents`, `code-quality`, `coding-agents`, `developer-tools`, `github-actions`, `rust`, and `verification`; homepage remains unset. The earlier `NOT APPLIED — TOOLING UNAVAILABLE` state remains a historical observation in `docs/GITHUB-METADATA.md` and is no longer the current live state.
 
 Historical `docs/DISCOVERABILITY.md` remains preserved at blob `013791e04fd30607f1f64f4a8218c000a8f0ab73`.
 
