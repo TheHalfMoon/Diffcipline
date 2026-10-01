@@ -32,3 +32,11 @@ cargo test --workspace --all-targets --locked
 ```
 
 If the local environment cannot run a required check, report that check as NOT RUN. Never convert absence of evidence into PASS.
+
+<!-- graft:start -->
+## Graft context
+
+Use Graft (https://github.com/trailhq/Graft) as local agent tooling to understand the real code flow before editing. Prefer `graft check`, `graft map`, `graft ask "<question>" --source`, `graft skeleton <file>`, `graft callers <symbol>`, and `graft grep "<literal>"`; initialize/refresh locally with `graft init` / `graft build` when needed.
+
+Keep `graft/` local and uncommitted. Do not introduce paid model/API usage. Graft context is not proof, PASS evidence, or a product dependency. Exact machine-observed verification remains mandatory.
+<!-- graft:end -->
